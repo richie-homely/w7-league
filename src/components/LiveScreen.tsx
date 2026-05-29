@@ -85,19 +85,73 @@ export function LiveScreen() {
   const panel = LIVE_PANELS[panelIdx];
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: C.bg,
-        color: C.text,
-        fontFamily: F.body,
-        zIndex: 9999,
-        display: "flex",
-        flexDirection: "column",
-        overflow: "hidden",
-      }}
-    >
+    <>
+      {/* The live board is a TV/projector layout (5-col grids). Below 768px we
+          hide it via CSS media query (no JS/hydration concerns) and show a
+          short prompt to open it on a big screen instead. */}
+      <style>{`
+        @media (max-width: 768px) {
+          .w7-live-stage { display: none !important; }
+          .w7-live-mobile { display: flex !important; }
+        }
+      `}</style>
+      <div
+        className="w7-live-mobile"
+        style={{
+          display: "none",
+          position: "fixed",
+          inset: 0,
+          background: C.bg,
+          color: C.text,
+          fontFamily: F.body,
+          zIndex: 9999,
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          gap: 20,
+          padding: 32,
+        }}
+      >
+        <Logo style={{ width: 72, height: 72, fontSize: 28 }} />
+        <div style={{ fontFamily: F.display, fontSize: 30, color: C.accent, letterSpacing: "0.04em", lineHeight: 1 }}>
+          LIVE SCREEN
+        </div>
+        <div style={{ fontSize: 15, color: C.mute, maxWidth: 320, lineHeight: 1.5 }}>
+          The live league board is built for a big screen. Open it on a TV, laptop, or desktop to view.
+        </div>
+        <button
+          onClick={exit}
+          style={{
+            marginTop: 8,
+            padding: "12px 24px",
+            background: C.accent,
+            color: C.bg,
+            border: "none",
+            borderRadius: 6,
+            fontFamily: F.display,
+            fontSize: 16,
+            letterSpacing: "0.05em",
+            cursor: "pointer",
+          }}
+        >
+          VIEW STANDINGS &amp; FIXTURES
+        </button>
+      </div>
+      <div
+        className="w7-live-stage"
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: C.bg,
+          color: C.text,
+          fontFamily: F.body,
+          zIndex: 9999,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
       <div
         style={{
           position: "absolute",
@@ -224,7 +278,8 @@ export function LiveScreen() {
       >
         ESC to exit
       </button>
-    </div>
+      </div>
+    </>
   );
 }
 
