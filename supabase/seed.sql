@@ -60,17 +60,17 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g3-high', 11, 'TBC', 'TBC', null, null, true),
   ('g3-high', 12, 'TBC', 'TBC', null, null, true),
 
-  -- G5 (upper) — 9 confirmed, 3 TBC
+  -- G5 (upper) — 10 confirmed, 2 TBC
   ('g4-high', 1, 'Gavin O''Donoghue',    'Barry Kelly',         3.49, 5.10, false),
   ('g4-high', 2, 'John Fitz 202',        'David',               4.76, 3.84, false),
   ('g4-high', 3, 'Robert Pickerill',     'David Hennebry',      4.43, 3.57, false),
   ('g4-high', 4, 'Dean Noble',           'Chris Ffrench',       3.94, 2.86, false),
   ('g4-high', 5, 'Matthew',              'Mike Shanahan',       3.40, 3.04, false),
-  ('g4-high', 6, 'Greg Shine',           'Sam Vargas',          3.44, 2.68, false),
+  ('g4-high', 6, 'Greg Shine',           'Sam Vargas',          3.44, 2.88, false),
   ('g4-high', 7, 'Nathan Condell',       'Simon Matthews',      2.43, 3.25, false),
-  ('g4-high', 8, 'Ella Tindale',         'Sahir Mangat',        2.05, 2.16, false),
-  ('g4-high', 9, 'Kevin Finnegan',       'Richie Carroll',      2.00, 1.29, false),
-  ('g4-high', 10, 'TBC', 'TBC', null, null, true),
+  ('g4-high', 8, 'Jack Furlong',         'Dylan Furlong',       2.72, 2.89, false),
+  ('g4-high', 9, 'Ella Tindale',         'Sahir Mangat',        2.05, 2.16, false),
+  ('g4-high', 10, 'Kevin Finnegan',      'Richie Carroll',      2.00, 1.29, false),
   ('g4-high', 11, 'TBC', 'TBC', null, null, true),
   ('g4-high', 12, 'TBC', 'TBC', null, null, true)
 on conflict (division_id, seed) do update set

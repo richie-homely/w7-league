@@ -188,7 +188,7 @@ export function TeamView({
                       </div>
                       <div>
                         <div style={{ fontSize: 11, color: C.mute, marginBottom: 2 }}>vs</div>
-                        <TeamName team={opponent} size="sm" />
+                        <TeamName team={opponent} size="sm" showRatings />
                       </div>
                       <div style={{ textAlign: "right" }}>
                         {done && f.sets ? (

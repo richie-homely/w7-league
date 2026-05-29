@@ -62,17 +62,45 @@ export function Badge({
   );
 }
 
+// Playtomic ratings render to 2 dp; null (unknown) shows an en-dash.
+export function fmtRating(r: number | null): string {
+  return r === null ? "–" : r.toFixed(2);
+}
+
+// Small monospace rating chip shown beside a player's name in fixture lists.
+function RatingChip({ r, fontSize = 10 }: { r: number | null; fontSize?: number }) {
+  return (
+    <span
+      style={{
+        fontFamily: F.mono,
+        fontSize,
+        fontWeight: 600,
+        color: r === null ? C.mute : C.accentDim,
+        marginLeft: 6,
+        letterSpacing: "0.02em",
+      }}
+    >
+      {fmtRating(r)}
+    </span>
+  );
+}
+
 export function TeamName({
   team,
   size = "md",
   mute = false,
+  showRatings = false,
 }: {
   team: Team | undefined;
   size?: "sm" | "md" | "lg";
   mute?: boolean;
+  showRatings?: boolean;
 }) {
   if (!team) return null;
   const fs = size === "lg" ? 17 : size === "sm" ? 12 : 14;
+  const rfs = size === "lg" ? 12 : size === "sm" ? 10 : 11;
+  // Placeholder (TBC) teams have no meaningful ratings — never show chips.
+  const ratings = showRatings && !team.placeholder;
   return (
     <div
       style={{
@@ -82,8 +110,14 @@ export function TeamName({
         color: mute ? C.mute : C.text,
       }}
     >
-      <div style={{ fontWeight: 600 }}>{team.p1}</div>
-      <div style={{ fontWeight: 400, opacity: 0.75 }}>{team.p2}</div>
+      <div style={{ fontWeight: 600 }}>
+        {team.p1}
+        {ratings && <RatingChip r={team.r1} fontSize={rfs} />}
+      </div>
+      <div style={{ fontWeight: 400, opacity: 0.75 }}>
+        {team.p2}
+        {ratings && <RatingChip r={team.r2} fontSize={rfs} />}
+      </div>
     </div>
   );
 }

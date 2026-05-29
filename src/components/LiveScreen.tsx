@@ -15,7 +15,16 @@ import {
 import { computeStandings } from "@/lib/standings";
 import { useLeagueData } from "@/lib/useLeagueData";
 import { Countdown } from "./Countdown";
-import { Logo } from "./ui";
+import { Logo, fmtRating } from "./ui";
+
+// Inline rating shown after a player's first name on the live-screen fixtures panel.
+function LiveRating({ r }: { r: number | null }) {
+  return (
+    <span style={{ fontFamily: F.mono, fontSize: 9, fontWeight: 600, color: r === null ? C.mute : C.accentDim, marginLeft: 3 }}>
+      {fmtRating(r)}
+    </span>
+  );
+}
 
 const LIVE_PANELS_PRESEASON = [
   { id: "countdown", label: "FIRST WHISTLE" },
@@ -396,11 +405,15 @@ function LivePanelFixtures({
                 return (
                   <div key={f.id} style={{ background: C.bg2, borderRadius: 4, padding: "6px 8px", fontSize: 11, lineHeight: 1.35 }}>
                     <div style={{ fontWeight: 700, color: C.text }}>
-                      {t1.p1.split(" ")[0]} / {t1.p2.split(" ")[0]}
+                      {t1.p1.split(" ")[0]}
+                      {!t1.placeholder && <LiveRating r={t1.r1} />} / {t1.p2.split(" ")[0]}
+                      {!t1.placeholder && <LiveRating r={t1.r2} />}
                     </div>
                     <div style={{ color: C.mute, fontSize: 9, margin: "1px 0" }}>vs</div>
                     <div style={{ fontWeight: 700, color: C.text }}>
-                      {t2.p1.split(" ")[0]} / {t2.p2.split(" ")[0]}
+                      {t2.p1.split(" ")[0]}
+                      {!t2.placeholder && <LiveRating r={t2.r1} />} / {t2.p2.split(" ")[0]}
+                      {!t2.placeholder && <LiveRating r={t2.r2} />}
                     </div>
                   </div>
                 );

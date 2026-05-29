@@ -649,8 +649,8 @@ function FixtureRow({
       }}
     >
       <div style={{ fontFamily: F.mono, fontSize: 11, color: C.mute }}>{fixture.code ?? "—"}</div>
-      <TeamName team={t1} size="sm" mute={t1?.placeholder} />
-      <TeamName team={t2} size="sm" mute={t2?.placeholder} />
+      <TeamName team={t1} size="sm" mute={t1?.placeholder} showRatings />
+      <TeamName team={t2} size="sm" mute={t2?.placeholder} showRatings />
       <div>
         {editing ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
