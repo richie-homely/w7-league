@@ -128,7 +128,7 @@ function AdminLogin({ supabase }: { supabase: ReturnType<typeof createClient> })
     setStatus("sending");
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback?next=/admin` },
+      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
     });
     if (error) {
       setErrMsg(error.message);
