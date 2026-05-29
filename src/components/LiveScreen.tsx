@@ -88,9 +88,11 @@ export function LiveScreen() {
     <>
       {/* The live board is a TV/projector layout (5-col grids). Below 768px we
           hide it via CSS media query (no JS/hydration concerns) and show a
-          short prompt to open it on a big screen instead. */}
+          short prompt to open it on a big screen instead. Threshold sits at
+          600px so phones are gated but tablets (incl. small ones) get the
+          full board. */}
       <style>{`
-        @media (max-width: 768px) {
+        @media (max-width: 600px) {
           .w7-live-stage { display: none !important; }
           .w7-live-mobile { display: flex !important; }
         }
