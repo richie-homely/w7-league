@@ -6,29 +6,23 @@ export function tierColor(tier: Tier): string {
   return tier === "lower" ? C.accent : C.info;
 }
 
-// CSS wordmark stand-in for the W7 tennis-ball logo. Drop the real asset into
-// /public and swap this out when ready.
+// The W7 Padel tennis-ball mark. Asset lives at /public/w7-logo.png (a square,
+// transparent PNG of the ball). Sized per call site via the `style` prop —
+// object-fit keeps the ball's aspect ratio inside whatever box is requested.
+// eslint-disable-next-line @next/next/no-img-element
 export function Logo({ style = {} }: { style?: CSSProperties }) {
   return (
-    <div
+    <img
+      src="/w7-logo.png"
+      alt="W7 Padel"
       style={{
-        background: C.accent,
-        color: C.bg,
-        borderRadius: "50%",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontFamily: F.display,
-        fontWeight: 700,
-        letterSpacing: "0.02em",
         width: 44,
         height: 44,
-        fontSize: 18,
+        objectFit: "contain",
+        display: "block",
         ...style,
       }}
-    >
-      W7
-    </div>
+    />
   );
 }
 
