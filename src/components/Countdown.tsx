@@ -11,22 +11,28 @@ import {
 import { Logo } from "./ui";
 
 export function Countdown({ size = "md" as "md" | "lg", showSeconds = true }) {
+  const [mounted, setMounted] = useState(false);
   const [, setTick] = useState(0);
   useEffect(() => {
+    setMounted(true);
     const id = setInterval(() => setTick((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
-  const t = timeUntilStart();
-  if (!t) return null;
+  // Time-derived values diverge between the server render and the first client
+  // render (different clocks → hydration mismatch). Render dashes until mounted
+  // so the initial client paint matches the server HTML, then fill in real values.
+  const t = mounted ? timeUntilStart() : null;
+  // Once mounted, a null result means the league has already started — hide.
+  if (mounted && !t) return null;
   const big = size === "lg" ? 96 : 48;
   const lbl = size === "lg" ? 13 : 10;
   const gap = size === "lg" ? 28 : 14;
-  const units = [
-    { v: t.days, l: "DAYS" },
-    { v: t.hours, l: "HOURS" },
-    { v: t.mins, l: "MINS" },
+  const units: { v: number | null; l: string }[] = [
+    { v: t?.days ?? null, l: "DAYS" },
+    { v: t?.hours ?? null, l: "HOURS" },
+    { v: t?.mins ?? null, l: "MINS" },
   ];
-  if (showSeconds) units.push({ v: t.secs, l: "SECS" });
+  if (showSeconds) units.push({ v: t?.secs ?? null, l: "SECS" });
   return (
     <div style={{ display: "flex", gap, alignItems: "flex-end", fontFamily: F.display }}>
       {units.map((u, i) => (
@@ -40,7 +46,7 @@ export function Countdown({ size = "md" as "md" | "lg", showSeconds = true }) {
               letterSpacing: "-0.02em",
             }}
           >
-            {String(u.v).padStart(2, "0")}
+            {u.v === null ? "--" : String(u.v).padStart(2, "0")}
           </div>
           <div
             style={{

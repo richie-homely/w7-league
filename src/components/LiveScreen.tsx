@@ -39,7 +39,9 @@ export function LiveScreen() {
   const LIVE_PANELS = preseason ? LIVE_PANELS_PRESEASON : LIVE_PANELS_LIVE;
   const [panelIdx, setPanelIdx] = useState(0);
   const [tick, setTick] = useState(0);
-  const [now, setNow] = useState(new Date());
+  // Null until mounted so the first client render matches the server HTML
+  // (otherwise the wall clock differs between the two → hydration mismatch).
+  const [now, setNow] = useState<Date | null>(null);
 
   const exit = () => router.push("/");
 
@@ -52,6 +54,7 @@ export function LiveScreen() {
   }, [LIVE_PANELS.length]);
 
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
@@ -121,12 +124,14 @@ export function LiveScreen() {
         <div style={{ flex: 1 }} />
         <div style={{ textAlign: "right" }}>
           <div style={{ fontFamily: F.mono, fontSize: 42, color: C.accent, lineHeight: 1, fontWeight: 700 }}>
-            {now.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
+            {now ? now.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" }) : "--:--"}
           </div>
           <div style={{ fontSize: 12, color: C.mute, marginTop: 4, letterSpacing: "0.1em" }}>
             {now
-              .toLocaleDateString("en-IE", { weekday: "long", day: "numeric", month: "long" })
-              .toUpperCase()}
+              ? now
+                  .toLocaleDateString("en-IE", { weekday: "long", day: "numeric", month: "long" })
+                  .toUpperCase()
+              : ""}
           </div>
         </div>
         <div style={{ paddingLeft: 32, borderLeft: `1px solid ${C.border}`, textAlign: "right" }}>
