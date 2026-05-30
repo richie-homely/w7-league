@@ -5,6 +5,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://league.w7padel.com"),
   title: "W7 Padel · Summer Leagues 2026",
   description: "W7 Padel Summer Leagues 2026 — live standings, fixtures and knockout brackets. Wicklow Town.",
+  icons: {
+    icon: "/w7-logo.png",
+    apple: "/w7-logo.png",
+  },
   openGraph: {
     title: "W7 Padel · Summer Leagues 2026",
     description: "W7 Padel Summer Leagues 2026 — live standings, fixtures and knockout brackets. Wicklow Town.",
