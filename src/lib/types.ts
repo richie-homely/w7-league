@@ -36,6 +36,7 @@ export interface Fixture {
   status: FixtureStatus;
   sets: SetScore[] | null;
   tbc: "both" | "one" | null;
+  homeTeamId: string | null;
   enteredBy: string | null;
   enteredAt: number | null;
   notes: string;

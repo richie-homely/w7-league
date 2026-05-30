@@ -299,6 +299,7 @@ function AdminView({
       status: string;
       sets: null;
       tbc: "both" | "one" | null;
+      home_team_id: string;
       notes: string;
     }> = [];
     let n = 0;
@@ -316,6 +317,7 @@ function AdminView({
           status: "pending",
           sets: null,
           tbc: g.tbc,
+          home_team_id: g.homeTeamId,
           notes: "",
         });
       }
@@ -649,8 +651,14 @@ function FixtureRow({
       }}
     >
       <div style={{ fontFamily: F.mono, fontSize: 11, color: C.mute }}>{fixture.code ?? "—"}</div>
-      <TeamName team={t1} size="sm" mute={t1?.placeholder} showRatings />
-      <TeamName team={t2} size="sm" mute={t2?.placeholder} showRatings />
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <TeamName team={t1} size="sm" mute={t1?.placeholder} showRatings />
+        {fixture.homeTeamId === t1?.id && <HomeTag />}
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <TeamName team={t2} size="sm" mute={t2?.placeholder} showRatings />
+        {fixture.homeTeamId === t2?.id && <HomeTag />}
+      </div>
       <div>
         {editing ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -714,6 +722,25 @@ function FixtureRow({
         )}
       </div>
     </div>
+  );
+}
+
+function HomeTag() {
+  return (
+    <span
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        color: C.bg,
+        background: C.accent,
+        borderRadius: 3,
+        padding: "1px 5px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      HOME
+    </span>
   );
 }
 

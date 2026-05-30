@@ -53,11 +53,14 @@ export interface GeneratedFixture {
   team1Id: string;
   team2Id: string;
   tbc: "both" | "one" | null;
+  homeTeamId: string;
 }
 
 // Build fixture rows for a single division's teams. TBC-heavy rounds sink to the
 // end so the earliest rounds are the most playable (every real team gets an early
-// fixture). Returns rows ready for insertion (no ids/codes assigned here).
+// fixture). Home team is assigned greedily to keep each team's home count as even
+// as possible (target: 5–6 home games each over 11 rounds). Returns rows ready
+// for insertion (no ids/codes assigned here).
 export function buildFixturesForDivision(divTeams: Team[]): GeneratedFixture[] {
   const placeholderIds = new Set(
     divTeams.filter((t) => t.placeholder).map((t) => t.id)
@@ -79,17 +82,25 @@ export function buildFixturesForDivision(divTeams: Team[]): GeneratedFixture[] {
     (x, y) => x.dead - y.dead || x.mixed - y.mixed || x.origIdx - y.origIdx
   );
 
+  // Track home game count per team to distribute evenly.
+  const homeCount: Record<string, number> = {};
+  for (const t of divTeams) homeCount[t.id] = 0;
+
   const out: GeneratedFixture[] = [];
   scored.forEach((entry, rIdx) => {
     entry.round.forEach(([t1, t2]) => {
       const bothTbc = placeholderIds.has(t1) && placeholderIds.has(t2);
       const oneTbc = placeholderIds.has(t1) || placeholderIds.has(t2);
+      // Assign home to the team with fewer home games so far; ties go to t1.
+      const homeTeamId = (homeCount[t1] ?? 0) <= (homeCount[t2] ?? 0) ? t1 : t2;
+      homeCount[homeTeamId] = (homeCount[homeTeamId] ?? 0) + 1;
       out.push({
         divisionId: divTeams[0].divisionId,
         round: rIdx + 1,
         team1Id: t1,
         team2Id: t2,
         tbc: bothTbc ? "both" : oneTbc ? "one" : null,
+        homeTeamId,
       });
     });
   });

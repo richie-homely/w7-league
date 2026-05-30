@@ -155,6 +155,7 @@ export function TeamView({
                       ? divTeams.find((t) => t.id === f.team2Id)
                       : divTeams.find((t) => t.id === f.team1Id);
                   const youAreT1 = f.team1Id === selectedTeam.id;
+                  const isHome = f.homeTeamId === selectedTeam.id;
                   const wk = weekRangeForRound(f.round);
                   const done = f.status === "completed";
                   let result: "W" | "L" | null = null;
@@ -187,7 +188,22 @@ export function TeamView({
                         <div style={{ fontSize: 10 }}>{fmtDate(wk.start, { short: true })}</div>
                       </div>
                       <div>
-                        <div style={{ fontSize: 11, color: C.mute, marginBottom: 2 }}>vs</div>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                          <span style={{ fontSize: 11, color: C.mute }}>vs</span>
+                          <span
+                            style={{
+                              fontSize: 10,
+                              fontWeight: 700,
+                              letterSpacing: "0.06em",
+                              color: isHome ? C.bg : C.mute,
+                              background: isHome ? C.accent : C.card2,
+                              borderRadius: 3,
+                              padding: "1px 5px",
+                            }}
+                          >
+                            {isHome ? "HOME" : "AWAY"}
+                          </span>
+                        </div>
                         <TeamName team={opponent} size="sm" showRatings />
                       </div>
                       <div style={{ textAlign: "right" }}>

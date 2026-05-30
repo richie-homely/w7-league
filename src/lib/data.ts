@@ -35,6 +35,7 @@ interface FixtureRow {
   status: Fixture["status"];
   sets: SetScore[] | null;
   tbc: "both" | "one" | null;
+  home_team_id: string | null;
   entered_by: string | null;
   entered_at: string | null;
   notes: string | null;
@@ -69,6 +70,7 @@ export function mapFixtureRow(r: FixtureRow): Fixture {
     status: r.status,
     sets: r.sets,
     tbc: r.tbc,
+    homeTeamId: r.home_team_id,
     enteredBy: r.entered_by,
     enteredAt: r.entered_at ? new Date(r.entered_at).getTime() : null,
     notes: r.notes ?? "",

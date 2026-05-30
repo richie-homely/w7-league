@@ -76,6 +76,22 @@ export function TopBar({
           );
         })}
         <Link
+          href="/rules"
+          style={{
+            padding: "8px 16px",
+            background: "transparent",
+            color: C.text,
+            borderRadius: 6,
+            fontFamily: F.body,
+            fontWeight: 600,
+            fontSize: 13,
+            letterSpacing: "0.02em",
+            textDecoration: "none",
+          }}
+        >
+          Rules
+        </Link>
+        <Link
           href="/live"
           style={{
             padding: "8px 16px",
