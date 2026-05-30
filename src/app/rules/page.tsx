@@ -143,7 +143,8 @@ export default function RulesPage() {
 
         {/* Fixtures & Scheduling */}
         <Section title="Fixtures &amp; Scheduling">
-          <P>Weekly fixtures will be organised by the W7 Padel team. Fixtures, results, and tables will be shared in dedicated WhatsApp groups.</P>
+          <P>Weekly fixtures will be organised by the W7 Padel team. Fixtures and results are to be shared in your respective division WhatsApp groups.</P>
+          <P>League tables will be updated <Highlight>live</Highlight> throughout the league on this site.</P>
           <P>Teams are responsible for:</P>
           <ul style={ulStyle}>
             <li style={liStyle}>Organising matches with opponents within the scheduled week</li>

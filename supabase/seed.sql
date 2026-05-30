@@ -67,7 +67,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   -- ── G5 (upper) — provisional, 2 TBC slots ────────────────────────────────────
   ('g4-high',  1, 'Leah Spillane',        'Ashley Wynne',        3.52, 5.28, false),
   ('g4-high',  2, 'John Fitz 202',        'David',               4.76, 3.84, false),
-  ('g4-high',  3, 'David Kannan',         'Paul McGlade',        2.80, 5.58, false),
+  ('g4-high',  3, 'David Kennan',          'Paul McGlade',        2.80, 5.58, false),
   ('g4-high',  4, 'Rob Lucy',             'Lee Biddulph',        4.28, 3.85, false),
   ('g4-high',  5, 'Colm Bolger',          'Brian Cornyn',        2.78, 3.78, false),
   ('g4-high',  6, 'Matthew',              'Mike Shanahan',       3.40, 3.04, false),
