@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import {
-  CONFIRMATION_NOTE,
+  CONFIRMATION_NOTE_LOWER,
+  confirmationNoteUpper,
   currentRound,
   daysUntilDeadline,
   timeUntilStart,
@@ -138,7 +139,11 @@ export function CountdownBanner() {
   );
 }
 
-export function ConfirmationBanner() {
+export function ConfirmationBanner({
+  upperSlotsRemaining,
+}: {
+  upperSlotsRemaining?: number;
+}) {
   return (
     <div
       style={{
@@ -154,7 +159,16 @@ export function ConfirmationBanner() {
       }}
     >
       <span style={{ color: C.amber, fontWeight: 700, letterSpacing: "0.05em" }}>PLEASE NOTE&nbsp;·&nbsp;</span>
-      {CONFIRMATION_NOTE}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 6 }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ color: C.green, flexShrink: 0 }}>●</span>
+          <span>{CONFIRMATION_NOTE_LOWER}</span>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ color: C.info, flexShrink: 0 }}>●</span>
+          <span>{confirmationNoteUpper(upperSlotsRemaining)}</span>
+        </div>
+      </div>
     </div>
   );
 }

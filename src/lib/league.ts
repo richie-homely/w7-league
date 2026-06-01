@@ -181,8 +181,29 @@ export const CONTACT = {
   playtomic: "https://playtomic.com/clubs/w7-padel-hub-wicklow",
 } as const;
 
-export const CONFIRMATION_NOTE =
-  "Final groupings and fixtures will be confirmed ahead of competition launch, once all slots are full.";
+// Open (placeholder/TBC) slots remaining across the whole upper tier.
+export function upperTierSlotsRemaining(teamsByDiv: Record<string, Team[]>): number {
+  return DIVISIONS.filter((d) => d.tier === "upper").reduce(
+    (n, d) => n + (teamsByDiv[d.id] || []).filter((t) => t.placeholder).length,
+    0
+  );
+}
+
+// "Please note" banner copy — now tier-specific (Team View, Status, Knockout).
+export const CONFIRMATION_NOTE_LOWER =
+  "Lower tier — groupings and fixtures are now confirmed. Let the games begin.";
+
+export function confirmationNoteUpper(slotsRemaining?: number): string {
+  if (slotsRemaining === 0)
+    return "Upper tier — all slots filled; groupings and fixtures now confirmed.";
+  const count =
+    typeof slotsRemaining === "number"
+      ? `${slotsRemaining} team slot${slotsRemaining === 1 ? "" : "s"} remaining`
+      : "the last team slots still open";
+  return `Upper tier — ${count}. The final ${
+    slotsRemaining === 1 ? "team" : "teams"
+  } will slot into the current fixture list once finalised, so games can commence on this basis.`;
+}
 
 // Mirror of the Postgres is_admin() allowlist. This is only for client-side UX
 // (showing "not authorised" messaging) — the real write gate is RLS in the DB.

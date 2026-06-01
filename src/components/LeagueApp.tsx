@@ -62,7 +62,7 @@ export function LeagueApp() {
         </div>
       )}
       {mode === "team" && <TeamView teams={teamsByDiv} fixtures={fixtures} />}
-      {mode === "status" && <StatusView settings={settings} />}
+      {mode === "status" && <StatusView settings={settings} teams={teamsByDiv} />}
       {mode === "knockout" && <KnockoutView teams={teamsByDiv} fixtures={fixtures} />}
       <Footer />
     </div>

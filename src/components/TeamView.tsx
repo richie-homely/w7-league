@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import type { Fixture, Team } from "@/lib/types";
-import { DIVISIONS, fmtDate, weekRangeForRound } from "@/lib/league";
+import { DIVISIONS, fmtDate, upperTierSlotsRemaining, weekRangeForRound } from "@/lib/league";
 import { computeStandings } from "@/lib/standings";
 import { Badge, ScoreCell, TeamName } from "./ui";
 import { CountdownBanner, ConfirmationBanner } from "./Countdown";
@@ -28,14 +28,7 @@ export function TeamView({
   );
 
   // Open (placeholder) slots remaining across the whole upper tier.
-  const upperSlotsRemaining = useMemo(
-    () =>
-      DIVISIONS.filter((d) => d.tier === "upper").reduce(
-        (n, d) => n + (teams[d.id] || []).filter((t) => t.placeholder).length,
-        0
-      ),
-    [teams]
-  );
+  const upperSlotsRemaining = useMemo(() => upperTierSlotsRemaining(teams), [teams]);
 
   const myFixtures = useMemo(() => {
     if (!selectedTeam) return [];
@@ -51,7 +44,7 @@ export function TeamView({
   return (
     <div style={{ padding: "24px 20px", maxWidth: 1400, margin: "0 auto" }}>
       <CountdownBanner />
-      <ConfirmationBanner />
+      <ConfirmationBanner upperSlotsRemaining={upperSlotsRemaining} />
 
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {DIVISIONS.map((d) => {

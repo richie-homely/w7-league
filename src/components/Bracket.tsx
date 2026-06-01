@@ -1,6 +1,7 @@
 import { C, F } from "@/theme/tokens";
 import type { BracketMatch as BracketMatchType, BracketSlot, Fixture, Team, Tier } from "@/lib/types";
 import { TIER_PRIZES, buildBracket, isPlaceholderSlot, tierQualifiers } from "@/lib/bracket";
+import { upperTierSlotsRemaining } from "@/lib/league";
 import { Logo } from "./ui";
 import { ConfirmationBanner } from "./Countdown";
 
@@ -234,7 +235,7 @@ export function KnockoutView({
       </div>
       <TierBracket tier="upper" teams={teams} fixtures={fixtures} />
       <TierBracket tier="lower" teams={teams} fixtures={fixtures} />
-      <ConfirmationBanner />
+      <ConfirmationBanner upperSlotsRemaining={upperTierSlotsRemaining(teams)} />
       <div style={{ fontSize: 11, color: C.mute, lineHeight: 1.6, padding: "8px 4px" }}>
         <strong style={{ color: C.text }}>Seeding:</strong> Qualifiers ranked by points across the tier, tiebreak: set difference → game difference.&nbsp;&nbsp;
         <strong style={{ color: C.text }}>Bracket:</strong> 8-team brackets run QF→SF→F. 12-team brackets give the top 4 seeds a bye into the QF, with seeds 5–12 playing Round 1.&nbsp;&nbsp;

@@ -1,6 +1,6 @@
 import { C, F } from "@/theme/tokens";
-import type { Settings, Tier } from "@/lib/types";
-import { CONTACT } from "@/lib/league";
+import type { Settings, Team, Tier } from "@/lib/types";
+import { CONTACT, upperTierSlotsRemaining } from "@/lib/league";
 import { Logo } from "./ui";
 import { ConfirmationBanner } from "./Countdown";
 
@@ -120,7 +120,13 @@ function TierStatusCard({ tier, status }: { tier: Tier; status: "full" | "availa
   );
 }
 
-export function StatusView({ settings }: { settings: Settings }) {
+export function StatusView({
+  settings,
+  teams,
+}: {
+  settings: Settings;
+  teams: Record<string, Team[]>;
+}) {
   return (
     <div style={{ padding: "24px 20px", maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 8 }}>
@@ -136,7 +142,7 @@ export function StatusView({ settings }: { settings: Settings }) {
       </div>
 
       <div style={{ marginTop: 16, marginBottom: 20 }}>
-        <ConfirmationBanner />
+        <ConfirmationBanner upperSlotsRemaining={upperTierSlotsRemaining(teams)} />
       </div>
 
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
