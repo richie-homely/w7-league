@@ -64,7 +64,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g3-high',  8, 'Richie Cotter',        'Ronan Royce',         2.39, 2.85, false),
   ('g3-high',  9, 'Gareth Murphy',        'Jim Foley',           2.52, 2.49, false),
   ('g3-high', 10, 'Cian Haddock',         'Andras Bondar',       3.07, 1.60, false),
-  ('g3-high', 11, 'Conn Kinsella',        'Kasey Clark',         0.89, 2.65, false),
+  ('g3-high', 11, 'Conn Kinsella',        'Oran Dunning',        1.52, 4.12, false),
   ('g3-high', 12, 'TBC',                  'TBC',                 null, null, true),
 
   -- ── G5 (upper) — provisional, 1 TBC slot ─────────────────────────────────────
