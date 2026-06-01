@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { track } from "@vercel/analytics";
 import { C, F } from "@/theme/tokens";
 import type { Fixture, Team } from "@/lib/types";
 import { DIVISIONS, fmtDate, upperTierSlotsRemaining, weekRangeForRound } from "@/lib/league";
@@ -46,6 +47,45 @@ export function TeamView({
       <CountdownBanner />
       <ConfirmationBanner upperSlotsRemaining={upperSlotsRemaining} />
 
+      <div
+        style={{
+          background: C.card,
+          border: `1px solid ${C.accent}`,
+          borderRadius: 8,
+          padding: "12px 16px",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 10,
+          fontSize: 13,
+          color: C.text,
+        }}
+      >
+        <span style={{ width: 7, height: 7, borderRadius: 4, background: C.accent, flexShrink: 0 }} />
+        <span>
+          <strong style={{ color: C.accent }}>Upcoming competitions across all divisions.</strong>{" "}
+          Be first in line for the next leagues and tournaments.
+        </span>
+        <Link
+          href="/register"
+          onClick={() => track("register_interest", { source: "home", division: division.name })}
+          style={{
+            marginLeft: "auto",
+            background: C.accent,
+            color: C.bg,
+            borderRadius: 6,
+            padding: "6px 12px",
+            fontSize: 12,
+            fontWeight: 700,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Click here to register your interest →
+        </Link>
+      </div>
+
       <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
         {DIVISIONS.map((d) => {
           const active = d.id === selectedDivId;
@@ -81,11 +121,11 @@ export function TeamView({
         })}
       </div>
 
-      {division.tier === "upper" && (
+      {division.tier === "upper" && upperSlotsRemaining > 0 && (
         <div
           style={{
             background: C.card,
-            border: `1px solid ${upperSlotsRemaining === 0 ? C.accent : C.info}`,
+            border: `1px solid ${C.info}`,
             borderRadius: 8,
             padding: "10px 14px",
             marginBottom: 16,
@@ -98,46 +138,15 @@ export function TeamView({
           }}
         >
           <span
-            style={{
-              width: 7,
-              height: 7,
-              borderRadius: 4,
-              background: upperSlotsRemaining === 0 ? C.accent : C.info,
-              flexShrink: 0,
-            }}
+            style={{ width: 7, height: 7, borderRadius: 4, background: C.info, flexShrink: 0 }}
           />
-          {upperSlotsRemaining === 0 ? (
-            <>
-              <span>
-                <strong style={{ color: C.accent }}>Upper tier full.</strong> Register your interest
-                for upcoming leagues.
-              </span>
-              <Link
-                href="/register"
-                style={{
-                  marginLeft: "auto",
-                  background: C.accent,
-                  color: C.bg,
-                  borderRadius: 6,
-                  padding: "6px 12px",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  textDecoration: "none",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Register →
-              </Link>
-            </>
-          ) : (
-            <span>
-              <strong style={{ color: C.info }}>Upper tier</strong> —{" "}
-              {upperSlotsRemaining === 1
-                ? "final team slot"
-                : `last ${upperSlotsRemaining} team slots`}{" "}
-              remaining.
-            </span>
-          )}
+          <span>
+            <strong style={{ color: C.info }}>Upper tier</strong> —{" "}
+            {upperSlotsRemaining === 1
+              ? "final team slot"
+              : `last ${upperSlotsRemaining} team slots`}{" "}
+            remaining.
+          </span>
         </div>
       )}
 
