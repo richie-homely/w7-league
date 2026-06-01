@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import type { Fixture, Team } from "@/lib/types";
 import { DIVISIONS, fmtDate, weekRangeForRound } from "@/lib/league";
@@ -24,6 +25,16 @@ export function TeamView({
   const standings = useMemo(
     () => computeStandings(selectedDivId, teams, fixtures),
     [selectedDivId, teams, fixtures]
+  );
+
+  // Open (placeholder) slots remaining across the whole upper tier.
+  const upperSlotsRemaining = useMemo(
+    () =>
+      DIVISIONS.filter((d) => d.tier === "upper").reduce(
+        (n, d) => n + (teams[d.id] || []).filter((t) => t.placeholder).length,
+        0
+      ),
+    [teams]
   );
 
   const myFixtures = useMemo(() => {
@@ -76,6 +87,66 @@ export function TeamView({
           );
         })}
       </div>
+
+      {division.tier === "upper" && (
+        <div
+          style={{
+            background: C.card,
+            border: `1px solid ${upperSlotsRemaining === 0 ? C.accent : C.info}`,
+            borderRadius: 8,
+            padding: "10px 14px",
+            marginBottom: 16,
+            display: "flex",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 10,
+            fontSize: 13,
+            color: C.text,
+          }}
+        >
+          <span
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: 4,
+              background: upperSlotsRemaining === 0 ? C.accent : C.info,
+              flexShrink: 0,
+            }}
+          />
+          {upperSlotsRemaining === 0 ? (
+            <>
+              <span>
+                <strong style={{ color: C.accent }}>Upper tier full.</strong> Register your interest
+                for upcoming leagues.
+              </span>
+              <Link
+                href="/register"
+                style={{
+                  marginLeft: "auto",
+                  background: C.accent,
+                  color: C.bg,
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Register →
+              </Link>
+            </>
+          ) : (
+            <span>
+              <strong style={{ color: C.info }}>Upper tier</strong> —{" "}
+              {upperSlotsRemaining === 1
+                ? "final team slot"
+                : `last ${upperSlotsRemaining} team slots`}{" "}
+              remaining.
+            </span>
+          )}
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 20 }}>
         <div>

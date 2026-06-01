@@ -1,8 +1,11 @@
 -- W7 League Tracker — team rosters (Playtomic snapshot, 24 May 2026).
 -- Snake draft rebalance applied 30 May 2026.
+-- 1 Jun 2026: +3 upper-tier entrants slotted in by rating (Cian Haddock & Conn
+--   Kinsella → G4, Stevan O'Toole → G5); Richie Carroll 1.29 → 1.40.
 -- Lower tier totals (combined ratings): G1 31.22 | G2 31.09 | G3 31.19
--- Upper tier is provisional — 5 TBC slots remain (G4 seeds 10-12, G5 seeds 11-12).
--- Re-run upper tier snake draft once all TBC teams confirmed.
+-- Upper tier is provisional — 2 TBC slots remain (G4 seed 12, G5 seed 12).
+--   Balanced slot-in only (G4 71.97 / G5 73.08); re-run the upper tier snake
+--   draft once the final two teams are confirmed and the tier is at 24/24.
 -- Teams only; fixtures are generated in-app on demand.
 -- Idempotent: re-running updates rows in place (keyed on division_id + seed).
 
@@ -50,7 +53,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g3-low', 11, 'Eva Rybak',             'Kris Rybak',          0.50, 0.50, false),
   ('g3-low', 12, 'Maria Neilan',          'Caragh Daly',         0.50, 0.50, false),
 
-  -- ── G4 (upper) — provisional, 3 TBC slots ────────────────────────────────────
+  -- ── G4 (upper) — provisional, 1 TBC slot ─────────────────────────────────────
   ('g3-high',  1, 'Peter Finnegan',       'Davy O''Sullivan',    5.05, 4.58, false),
   ('g3-high',  2, 'Gavin O''Donoghue',    'Barry Kelly',         3.49, 5.10, false),
   ('g3-high',  3, 'Shane Donohoe',        'Dylan Orr',           4.48, 4.01, false),
@@ -60,22 +63,22 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g3-high',  7, 'Nathan Condell',       'Simon Matthews',      2.43, 3.25, false),
   ('g3-high',  8, 'Richie Cotter',        'Ronan Royce',         2.39, 2.85, false),
   ('g3-high',  9, 'Gareth Murphy',        'Jim Foley',           2.52, 2.49, false),
-  ('g3-high', 10, 'TBC',                  'TBC',                 null, null, true),
-  ('g3-high', 11, 'TBC',                  'TBC',                 null, null, true),
+  ('g3-high', 10, 'Cian Haddock',         'Andras Bondar',       3.07, 1.60, false),
+  ('g3-high', 11, 'Conn Kinsella',        'Kasey Clark',         0.89, 2.65, false),
   ('g3-high', 12, 'TBC',                  'TBC',                 null, null, true),
 
-  -- ── G5 (upper) — provisional, 2 TBC slots ────────────────────────────────────
+  -- ── G5 (upper) — provisional, 1 TBC slot ─────────────────────────────────────
   ('g4-high',  1, 'Leah Spillane',        'Ashley Wynne',        3.52, 5.28, false),
   ('g4-high',  2, 'John Fitz 202',        'David',               4.76, 3.84, false),
-  ('g4-high',  3, 'David Kennan',          'Paul McGlade',        2.80, 5.58, false),
+  ('g4-high',  3, 'David Kennan',         'Paul McGlade',        2.80, 5.58, false),
   ('g4-high',  4, 'Rob Lucy',             'Lee Biddulph',        4.28, 3.85, false),
-  ('g4-high',  5, 'Colm Bolger',          'Brian Cornyn',        2.78, 3.78, false),
-  ('g4-high',  6, 'Matthew',              'Mike Shanahan',       3.40, 3.04, false),
-  ('g4-high',  7, 'Jack Furlong',         'Dylan Furlong',       2.72, 2.89, false),
-  ('g4-high',  8, 'Dylan Frazer',         'Sean Leonard',        3.42, 2.13, false),
-  ('g4-high',  9, 'Ella Tindale',         'Sahir Mangat',        2.05, 2.16, false),
-  ('g4-high', 10, 'Kevin Finnegan',       'Richie Carroll',      2.00, 1.29, false),
-  ('g4-high', 11, 'TBC',                  'TBC',                 null, null, true),
+  ('g4-high',  5, 'Stevan O''Toole',      'Padraic Bermingham',  2.83, 4.57, false),
+  ('g4-high',  6, 'Colm Bolger',          'Brian Cornyn',        2.78, 3.78, false),
+  ('g4-high',  7, 'Matthew',              'Mike Shanahan',       3.40, 3.04, false),
+  ('g4-high',  8, 'Jack Furlong',         'Dylan Furlong',       2.72, 2.89, false),
+  ('g4-high',  9, 'Dylan Frazer',         'Sean Leonard',        3.42, 2.13, false),
+  ('g4-high', 10, 'Ella Tindale',         'Sahir Mangat',        2.05, 2.16, false),
+  ('g4-high', 11, 'Kevin Finnegan',       'Richie Carroll',      2.00, 1.40, false),
   ('g4-high', 12, 'TBC',                  'TBC',                 null, null, true)
 
 on conflict (division_id, seed) do update set
