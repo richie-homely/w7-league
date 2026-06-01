@@ -20,7 +20,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g1-low',  6, 'Derek Connell',         'Suman Reddy',         1.36, 1.20, false),
   ('g1-low',  7, 'Ross Hamilton',         'Lucy McGettigan',     1.50, 1.04, false),
   ('g1-low',  8, 'Gary Brady',            'Ciaran O''Donoghue',  0.87, 1.30, false),
-  ('g1-low',  9, 'Richie Carroll',        'Fionn O''Higgins',    1.29, 0.83, false),
+  ('g1-low',  9, 'Richie Carroll',        'Fionn O''Higgins',    1.40, 0.83, false),
   ('g1-low', 10, 'Wesley Wojnar',         'Tom Maguire',         1.22, null, false),
   ('g1-low', 11, 'James Heron',           'Bairbre Heron',       0.59, 0.50, false),
   ('g1-low', 12, 'Juliette Kidd',         'Marie Galligan',      null, 0.65, false),

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { RegisterForm } from "@/components/RegisterForm";
+import { KeanoCredit } from "@/components/KeanoCredit";
 
 export const metadata = { title: "Register — W7 Padel Leagues" };
 
@@ -58,6 +59,10 @@ export default function RegisterPage() {
         </div>
 
         <RegisterForm />
+
+        <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${C.border}` }}>
+          <KeanoCredit />
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import { TopBar, type PublicMode } from "./TopBar";
 import { TeamView } from "./TeamView";
 import { StatusView, ContactBar } from "./StatusView";
 import { KnockoutView } from "./Bracket";
+import { KeanoCredit } from "./KeanoCredit";
 
 function Footer() {
   return (
@@ -36,6 +37,7 @@ function Footer() {
             {CONTACT.email}
           </a>
         </div>
+        <KeanoCredit />
       </div>
     </footer>
   );

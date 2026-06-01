@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { C, F } from "@/theme/tokens";
+import { KeanoCredit } from "@/components/KeanoCredit";
 
 export const metadata = { title: "Rules & Format — W7 Summer League 2026" };
 
@@ -190,6 +191,9 @@ export default function RulesPage() {
           </P>
         </Section>
 
+        <div style={{ marginTop: 8, paddingTop: 20, borderTop: `1px solid ${C.border}` }}>
+          <KeanoCredit />
+        </div>
       </div>
     </div>
   );
