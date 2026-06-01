@@ -20,7 +20,17 @@ function Footer() {
     >
       <div style={{ maxWidth: 1400, margin: "0 auto" }}>
         <ContactBar />
-        <div style={{ fontSize: 11, color: C.mute, marginTop: 16, fontFamily: F.body }}>
+        <div style={{ fontSize: 13, color: C.text, marginTop: 16, fontFamily: F.body }}>
+          Got a suggestion or some feedback? Send it through to{" "}
+          <a
+            href={`mailto:${CONTACT.email}?subject=${encodeURIComponent("League suggestion / feedback")}`}
+            style={{ color: C.info, fontWeight: 600 }}
+          >
+            {CONTACT.email}
+          </a>
+          .
+        </div>
+        <div style={{ fontSize: 11, color: C.mute, marginTop: 12, fontFamily: F.body }}>
           W7 Padel · Wicklow Town · League Tracker {VERSION} ({BUILD_DATE}) ·{" "}
           <a href={`mailto:${CONTACT.email}`} style={{ color: C.mute }}>
             {CONTACT.email}
