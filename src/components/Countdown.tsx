@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import {
   CONFIRMATION_NOTE_LOWER,
+  CONFIRMATION_NOTE_RESULTS,
   confirmationNoteUpper,
   currentRound,
   daysUntilDeadline,
@@ -167,6 +168,10 @@ export function ConfirmationBanner({
         <div style={{ display: "flex", gap: 8 }}>
           <span style={{ color: C.info, flexShrink: 0 }}>●</span>
           <span>{confirmationNoteUpper(upperSlotsRemaining)}</span>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <span style={{ color: C.accent, flexShrink: 0 }}>●</span>
+          <span>{CONFIRMATION_NOTE_RESULTS}</span>
         </div>
       </div>
     </div>

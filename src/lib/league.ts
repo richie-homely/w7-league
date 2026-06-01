@@ -193,6 +193,9 @@ export function upperTierSlotsRemaining(teamsByDiv: Record<string, Team[]>): num
 export const CONFIRMATION_NOTE_LOWER =
   "Lower tier — groupings and fixtures are now confirmed. Let the games begin.";
 
+export const CONFIRMATION_NOTE_RESULTS =
+  "Post your game results from Playtomic into the relevant league WhatsApp group and we'll update the leaderboards frequently.";
+
 export function confirmationNoteUpper(slotsRemaining?: number): string {
   if (slotsRemaining === 0)
     return "Upper tier — all slots filled; groupings and fixtures now confirmed.";
