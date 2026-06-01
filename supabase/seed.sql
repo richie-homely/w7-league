@@ -3,9 +3,9 @@
 -- 1 Jun 2026: +3 upper-tier entrants slotted in by rating (Cian Haddock & Conn
 --   Kinsella → G4, Stevan O'Toole → G5); Richie Carroll 1.29 → 1.40.
 -- Lower tier totals (combined ratings): G1 31.22 | G2 31.09 | G3 31.19
--- Upper tier is provisional — 2 TBC slots remain (G4 seed 12, G5 seed 12).
---   Balanced slot-in only (G4 71.97 / G5 73.08); re-run the upper tier snake
---   draft once the final two teams are confirmed and the tier is at 24/24.
+-- Upper tier finalised 1 Jun 2026 — both TBC slots filled, tier at 24/24:
+--   Sam Walker / Kasey Clark → G4 seed 12; James Connolly / Clinton Verhoog
+--   → G5 seed 12. Combined totals now G4 78.92 / G5 79.14 (balanced slot-in).
 -- Teams only; fixtures are generated in-app on demand.
 -- Idempotent: re-running updates rows in place (keyed on division_id + seed).
 
@@ -53,7 +53,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g3-low', 11, 'Eva Rybak',             'Kris Rybak',          0.50, 0.50, false),
   ('g3-low', 12, 'Maria Neilan',          'Caragh Daly',         0.50, 0.50, false),
 
-  -- ── G4 (upper) — provisional, 1 TBC slot ─────────────────────────────────────
+  -- ── G4 (upper) — finalised, 12/12 ────────────────────────────────────────────
   ('g3-high',  1, 'Peter Finnegan',       'Davy O''Sullivan',    5.05, 4.58, false),
   ('g3-high',  2, 'Gavin O''Donoghue',    'Barry Kelly',         3.49, 5.10, false),
   ('g3-high',  3, 'Shane Donohoe',        'Dylan Orr',           4.48, 4.01, false),
@@ -65,9 +65,9 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g3-high',  9, 'Gareth Murphy',        'Jim Foley',           2.52, 2.49, false),
   ('g3-high', 10, 'Cian Haddock',         'Andras Bondar',       3.07, 1.60, false),
   ('g3-high', 11, 'Conn Kinsella',        'Oran Dunning',        1.52, 4.12, false),
-  ('g3-high', 12, 'TBC',                  'TBC',                 null, null, true),
+  ('g3-high', 12, 'Sam Walker',           'Kasey Clark',         2.00, 2.85, false),
 
-  -- ── G5 (upper) — provisional, 1 TBC slot ─────────────────────────────────────
+  -- ── G5 (upper) — finalised, 12/12 ────────────────────────────────────────────
   ('g4-high',  1, 'Leah Spillane',        'Ashley Wynne',        3.52, 5.28, false),
   ('g4-high',  2, 'John Fitz 202',        'David',               4.76, 3.84, false),
   ('g4-high',  3, 'David Kennan',         'Paul McGlade',        2.80, 5.58, false),
@@ -79,7 +79,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g4-high',  9, 'Dylan Frazer',         'Sean Leonard',        3.42, 2.13, false),
   ('g4-high', 10, 'Ella Tindale',         'Sahir Mangat',        2.05, 2.16, false),
   ('g4-high', 11, 'Kevin Finnegan',       'Richie Carroll',      2.00, 1.40, false),
-  ('g4-high', 12, 'TBC',                  'TBC',                 null, null, true)
+  ('g4-high', 12, 'James Connolly',       'Clinton Verhoog',     3.74, 2.32, false)
 
 on conflict (division_id, seed) do update set
   p1          = excluded.p1,
