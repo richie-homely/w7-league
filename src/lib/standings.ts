@@ -39,12 +39,18 @@ export function computeStandings(
       let s2 = 0;
       let g1 = 0;
       let g2 = 0;
-      for (const [a, b] of f.sets!) {
-        g1 += a;
-        g2 += b;
+      f.sets!.forEach(([a, b], idx) => {
+        // The deciding 3rd set is a championship tiebreak (first to 10). It still
+        // counts as a set won (match goes 2-1), but its points are NOT games —
+        // exclude them from the games-for/against tally.
+        const isChampionshipTiebreak = idx === 2;
+        if (!isChampionshipTiebreak) {
+          g1 += a;
+          g2 += b;
+        }
         if (a > b) s1++;
         else if (b > a) s2++;
-      }
+      });
       r1.P++;
       r2.P++;
       r1.SF += s1;
