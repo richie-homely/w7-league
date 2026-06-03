@@ -3,7 +3,7 @@ import { C, F } from "@/theme/tokens";
 import { RegisterForm } from "@/components/RegisterForm";
 import { KeanoCredit } from "@/components/KeanoCredit";
 
-export const metadata = { title: "Register — W7 Padel Leagues" };
+export const metadata = { title: "Register · W7 Padel Leagues" };
 
 export default function RegisterPage() {
   return (

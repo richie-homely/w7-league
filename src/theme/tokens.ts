@@ -1,4 +1,4 @@
-// W7 brand theme tokens — ported from the v0.8 artifact.
+// W7 brand theme tokens, ported from the v0.8 artifact.
 // Black + neon-yellow. Keep these as the single source of truth for colour/font.
 
 export const C = {

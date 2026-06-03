@@ -1,4 +1,4 @@
-// Match score parsing / validation helpers — ported from the v0.8 artifact.
+// Match score parsing / validation helpers, ported from the v0.8 artifact.
 // A result is up to 3 sets [team1 games, team2 games]; the 3rd is a championship tiebreak.
 import type { SetScore } from "./types";
 
@@ -37,6 +37,6 @@ export function isStraightSets(sets: SetScore[]): boolean {
 }
 
 export function formatScore(sets: SetScore[] | null): string {
-  if (!sets || sets.length === 0) return "—";
+  if (!sets || sets.length === 0) return "-";
   return sets.map(([a, b]) => `${a}-${b}`).join(", ");
 }

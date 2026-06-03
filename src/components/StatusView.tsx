@@ -91,7 +91,7 @@ function TierStatusCard({ tier, status }: { tier: Tier; status: "full" | "availa
         <div style={{ fontSize: 12.5, color: C.text, marginTop: 6, lineHeight: 1.5 }}>
           {isFull
             ? "All slots in this tier are taken. Get in touch to join the waitlist for any drop-outs."
-            : "Spaces remain in this tier — secure your slot before the league launches."}
+            : "Spaces remain in this tier. Secure your slot before the league launches."}
         </div>
       </div>
       {!isFull && (
@@ -161,7 +161,7 @@ export function StatusView({
         }}
       >
         <div style={{ fontFamily: F.display, fontSize: 20, color: C.text, letterSpacing: "0.03em" }}>
-          SEE ALL OUR COMPETITIONS & SOCIALS — BOOK IN HERE
+          SEE ALL OUR COMPETITIONS & SOCIALS · BOOK IN HERE
         </div>
         <div style={{ marginTop: 8, fontSize: 13 }}>
           <a

@@ -141,7 +141,7 @@ export function TeamView({
             style={{ width: 7, height: 7, borderRadius: 4, background: C.info, flexShrink: 0 }}
           />
           <span>
-            <strong style={{ color: C.info }}>Upper tier</strong> —{" "}
+            <strong style={{ color: C.info }}>Upper tier</strong>:{" "}
             {upperSlotsRemaining === 1
               ? "final team slot"
               : `last ${upperSlotsRemaining} team slots`}{" "}
@@ -331,7 +331,7 @@ export function TeamView({
                 letterSpacing: "0.1em",
               }}
             >
-              STANDINGS — {division.name} ({division.tierLabel})
+              STANDINGS · {division.name} ({division.tierLabel})
             </div>
             <div style={{ fontSize: 11, color: C.mute }}>Top 4 → tier knockout</div>
           </div>

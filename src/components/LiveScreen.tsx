@@ -703,7 +703,7 @@ function LivePanelPlayoff({
               ))}
             </div>
             <div style={{ fontSize: 11, color: C.mute, marginBottom: 8, letterSpacing: "0.1em" }}>
-              IN THE HUNT — TOP 4 OF EACH DIVISION QUALIFY
+              IN THE HUNT · TOP 4 OF EACH DIVISION QUALIFY
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {tierDivs.map((d) => {

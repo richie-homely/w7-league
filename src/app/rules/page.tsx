@@ -2,7 +2,7 @@ import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { KeanoCredit } from "@/components/KeanoCredit";
 
-export const metadata = { title: "Rules & Format — W7 Summer League 2026" };
+export const metadata = { title: "Rules & Format · W7 Summer League 2026" };
 
 export default function RulesPage() {
   return (
@@ -95,8 +95,8 @@ export default function RulesPage() {
         <Section title="Divisions">
           <P>There will be 5 divisions with 12 teams in each:</P>
           <ul style={ulStyle}>
-            <li style={liStyle}>3 divisions — Playtomic rating <Highlight>0.5 – 2.4</Highlight></li>
-            <li style={liStyle}>2 divisions — Playtomic rating <Highlight>2.5 – 5.5</Highlight></li>
+            <li style={liStyle}>3 divisions at Playtomic rating <Highlight>0.5 – 2.4</Highlight></li>
+            <li style={liStyle}>2 divisions at Playtomic rating <Highlight>2.5 – 5.5</Highlight></li>
           </ul>
           <P>Players must enter with their own partner. Individual entries will not be accepted.</P>
           <P style={{ color: C.mute }}>Extra divisions may be added based on demand.</P>
@@ -187,7 +187,7 @@ export default function RulesPage() {
           <P>Semi-finals and finals will determine the overall champions.</P>
           <SubHeading>Knockout Dates</SubHeading>
           <P style={{ color: C.mute }}>
-            Tournament dates are TBC — dates will be arranged once league stages are completed.
+            Tournament dates are TBC. Dates will be arranged once league stages are completed.
           </P>
         </Section>
 

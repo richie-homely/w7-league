@@ -60,7 +60,7 @@ export function LeagueApp() {
             padding: "8px 20px",
           }}
         >
-          Live data unavailable — showing default state. ({error})
+          Live data unavailable. Showing default state. ({error})
         </div>
       )}
       {mode === "team" && <TeamView teams={teamsByDiv} fixtures={fixtures} />}

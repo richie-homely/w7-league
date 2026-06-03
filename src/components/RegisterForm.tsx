@@ -24,19 +24,19 @@ export function RegisterForm() {
     setInterests((cur) => (cur.includes(v) ? cur.filter((x) => x !== v) : [...cur, v]));
 
   function buildMailto() {
-    const subject = `W7 League registration${format ? ` — ${format}` : ""}`;
+    const subject = `W7 League registration${format ? `: ${format}` : ""}`;
     const lines = [
       "New W7 League registration enquiry",
       "",
       `Name: ${name}`,
       `Email: ${email}`,
-      `Phone: ${phone || "—"}`,
-      `Partner: ${partner || "—"}`,
+      `Phone: ${phone || "-"}`,
+      `Partner: ${partner || "-"}`,
       `Format: ${format}`,
       `Level / interest: ${interests.join(", ")}`,
       "",
       "Message:",
-      message || "—",
+      message || "-",
     ];
     const body = lines.join("\r\n");
     return `mailto:${REGISTER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
@@ -106,7 +106,7 @@ export function RegisterForm() {
         </Field>
       </div>
 
-      <Field label="Partner" hint="Leagues are doubles — name your partner if you have one">
+      <Field label="Partner" hint="Leagues are doubles, so name your partner if you have one">
         <input style={inputStyle} value={partner} onChange={(e) => setPartner(e.target.value)} placeholder="Optional" />
       </Field>
 
@@ -146,7 +146,7 @@ export function RegisterForm() {
       </button>
       <p style={{ fontSize: 12, color: C.mute, lineHeight: 1.5, margin: 0 }}>
         This opens your email app with the details pre-filled, addressed to {REGISTER_EMAIL}. You stay in
-        control — nothing is sent until you press send.
+        control. Nothing is sent until you press send.
       </p>
     </form>
   );

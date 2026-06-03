@@ -7,7 +7,7 @@ export function tierColor(tier: Tier): string {
 }
 
 // The W7 Padel tennis-ball mark. Asset lives at /public/w7-logo.png (a square,
-// transparent PNG of the ball). Sized per call site via the `style` prop —
+// transparent PNG of the ball). Sized per call site via the `style` prop;
 // object-fit keeps the ball's aspect ratio inside whatever box is requested.
 // eslint-disable-next-line @next/next/no-img-element
 export function Logo({ style = {} }: { style?: CSSProperties }) {
@@ -93,7 +93,7 @@ export function TeamName({
   if (!team) return null;
   const fs = size === "lg" ? 17 : size === "sm" ? 12 : 14;
   const rfs = size === "lg" ? 12 : size === "sm" ? 10 : 11;
-  // Placeholder (TBC) teams have no meaningful ratings — never show chips.
+  // Placeholder (TBC) teams have no meaningful ratings, so never show chips.
   const ratings = showRatings && !team.placeholder;
   return (
     <div
@@ -117,7 +117,7 @@ export function TeamName({
 }
 
 export function ScoreCell({ sets }: { sets: SetScore[] | null }) {
-  if (!sets) return <span style={{ color: C.mute }}>—</span>;
+  if (!sets) return <span style={{ color: C.mute }}>-</span>;
   return (
     <div style={{ fontFamily: F.mono, fontSize: 14, display: "flex", gap: 8 }}>
       {sets.map(([a, b], i) => (

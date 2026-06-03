@@ -24,7 +24,7 @@ export function Countdown({ size = "md" as "md" | "lg", showSeconds = true }) {
   // render (different clocks → hydration mismatch). Render dashes until mounted
   // so the initial client paint matches the server HTML, then fill in real values.
   const t = mounted ? timeUntilStart() : null;
-  // Once mounted, a null result means the league has already started — hide.
+  // Once mounted, a null result means the league has already started, so hide.
   if (mounted && !t) return null;
   const big = size === "lg" ? 96 : 48;
   const lbl = size === "lg" ? 13 : 10;
@@ -133,7 +133,7 @@ export function CountdownBanner() {
           ROUND {round} · LEAGUE LIVE
         </div>
         <div style={{ fontSize: 11, color: C.mute, marginTop: 3 }}>
-          {daysLeft > 0 ? `${daysLeft} days to deadline (Sat 15 Aug)` : "Deadline reached — knockouts ahead"}
+          {daysLeft > 0 ? `${daysLeft} days to deadline (Sat 15 Aug)` : "Deadline reached. Knockouts ahead"}
         </div>
       </div>
     </div>

@@ -147,7 +147,7 @@ function AdminLogin({ supabase }: { supabase: ReturnType<typeof createClient> })
         ADMIN SIGN IN
       </div>
       <div style={{ color: C.mute, fontSize: 13, marginBottom: 28 }}>
-        Enter your admin email. We&apos;ll send a one-time magic link — no password needed.
+        Enter your admin email. We&apos;ll send a one-time magic link. No password needed.
       </div>
 
       {status === "sent" ? (
@@ -323,7 +323,7 @@ function AdminView({
       }
     }
     if (!rows.length) {
-      alert("No teams loaded — seed teams before generating fixtures.");
+      alert("No teams loaded. Seed teams before generating fixtures.");
       return;
     }
     const del = await supabase
@@ -650,7 +650,7 @@ function FixtureRow({
         opacity: busy ? 0.6 : 1,
       }}
     >
-      <div style={{ fontFamily: F.mono, fontSize: 11, color: C.mute }}>{fixture.code ?? "—"}</div>
+      <div style={{ fontFamily: F.mono, fontSize: 11, color: C.mute }}>{fixture.code ?? "-"}</div>
       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
         <TeamName team={t1} size="sm" mute={t1?.placeholder} showRatings />
         {fixture.homeTeamId === t1?.id && <HomeTag />}

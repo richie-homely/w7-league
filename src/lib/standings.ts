@@ -1,4 +1,4 @@
-// Standings computation — ported from the v0.8 artifact.
+// Standings computation, ported from the v0.8 artifact.
 // Win = 3 pts | Straight-sets (2-0) bonus = +1 pt
 // Tiebreak: Points -> H2H -> Set diff -> Game diff
 import type { Fixture, StandingRow, Team } from "./types";
@@ -41,8 +41,8 @@ export function computeStandings(
       let g2 = 0;
       f.sets!.forEach(([a, b], idx) => {
         // The deciding 3rd set is a championship tiebreak (first to 10). It still
-        // counts as a set won (match goes 2-1), but its points are NOT games —
-        // exclude them from the games-for/against tally.
+        // counts as a set won (match goes 2-1), but its points are NOT games,
+        // so they are excluded from the games-for/against tally.
         const isChampionshipTiebreak = idx === 2;
         if (!isChampionshipTiebreak) {
           g1 += a;

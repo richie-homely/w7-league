@@ -1,4 +1,4 @@
-// League structure, schedule, and fixture generation — ported from the v0.8 artifact.
+// League structure, schedule, and fixture generation, ported from the v0.8 artifact.
 import type { Division, Team } from "./types";
 
 export const VERSION = "v1.0";
@@ -189,27 +189,27 @@ export function upperTierSlotsRemaining(teamsByDiv: Record<string, Team[]>): num
   );
 }
 
-// "Please note" banner copy — now tier-specific (Team View, Status, Knockout).
+// "Please note" banner copy, now tier-specific (Team View, Status, Knockout).
 export const CONFIRMATION_NOTE_LOWER =
-  "Lower tier — groupings and fixtures are now confirmed. Let the games begin.";
+  "Lower tier: groupings and fixtures are now confirmed. Let the games begin.";
 
 export const CONFIRMATION_NOTE_RESULTS =
   "Post your game results from Playtomic into the relevant league WhatsApp group and we'll update the leaderboards frequently.";
 
 export function confirmationNoteUpper(slotsRemaining?: number): string {
   if (slotsRemaining === 0)
-    return "Upper tier — all slots filled; groupings and fixtures now confirmed.";
+    return "Upper tier: all slots filled. Groupings and fixtures now confirmed.";
   const count =
     typeof slotsRemaining === "number"
       ? `${slotsRemaining} team slot${slotsRemaining === 1 ? "" : "s"} remaining`
       : "the last team slots still open";
-  return `Upper tier — ${count}. The final ${
+  return `Upper tier: ${count}. The final ${
     slotsRemaining === 1 ? "team" : "teams"
   } will slot into the current fixture list once finalised, so games can commence on this basis.`;
 }
 
 // Mirror of the Postgres is_admin() allowlist. This is only for client-side UX
-// (showing "not authorised" messaging) — the real write gate is RLS in the DB.
+// (showing "not authorised" messaging); the real write gate is RLS in the DB.
 export const ADMIN_EMAILS = [
   "richiecarroll65@gmail.com", // Richie Carroll
   "welcome@w7padel.com", // David Hennebry
