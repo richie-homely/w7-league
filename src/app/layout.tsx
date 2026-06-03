@@ -15,8 +15,14 @@ export const metadata: Metadata = {
     description: "W7 Padel Summer Leagues 2026 — live standings, fixtures and knockout brackets. Wicklow Town.",
     url: "https://league.w7padel.com",
     siteName: "W7 Padel Summer Leagues",
-    images: [{ url: "/w7-logo.png", alt: "W7 Padel Summer Leagues 2026" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "W7 Padel Summer Leagues 2026" }],
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "W7 Padel · Summer Leagues 2026",
+    description: "W7 Padel Summer Leagues 2026 — live standings, fixtures and knockout brackets. Wicklow Town.",
+    images: ["/og-image.png"],
   },
 };
 
