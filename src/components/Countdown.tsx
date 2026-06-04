@@ -103,7 +103,7 @@ export function CountdownBanner() {
             SATURDAY · 6 JUNE 2026
           </div>
           <div style={{ fontFamily: F.body, fontSize: 12, color: C.mute, marginTop: 6 }}>
-            Round 1 fixtures released the morning of. Bring your A game.
+            Bring your A game.
           </div>
         </div>
         <div style={{ flex: "0 0 auto" }}>
