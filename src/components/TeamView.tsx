@@ -10,6 +10,7 @@ import { computeStandings } from "@/lib/standings";
 import { Badge, ScoreCell, TeamName } from "./ui";
 import { CountdownBanner, ConfirmationBanner } from "./Countdown";
 import { StandingsTable } from "./StandingsTable";
+import { ShareStandings } from "./ShareStandings";
 
 export function TeamView({
   teams,
@@ -20,6 +21,7 @@ export function TeamView({
 }) {
   const [selectedDivId, setSelectedDivId] = useState(DIVISIONS[0].id);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
   const division = DIVISIONS.find((d) => d.id === selectedDivId)!;
   const divTeams = teams[selectedDivId] || [];
   const selectedTeam = divTeams.find((t) => t.id === selectedTeamId);
@@ -333,7 +335,26 @@ export function TeamView({
             >
               STANDINGS · {division.name} ({division.tierLabel})
             </div>
-            <div style={{ fontSize: 11, color: C.mute }}>Top 4 → tier knockout</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 11, color: C.mute }}>Top 4 → tier knockout</span>
+              <button
+                onClick={() => setShareOpen(true)}
+                style={{
+                  background: "transparent",
+                  color: C.accent,
+                  border: `1px solid ${C.accent}`,
+                  borderRadius: 6,
+                  padding: "5px 10px",
+                  fontFamily: F.body,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                📸 Share table
+              </button>
+            </div>
           </div>
           <StandingsTable rows={standings} highlightTeamId={selectedTeamId} />
           <div style={{ marginTop: 12, fontSize: 11, color: C.mute, lineHeight: 1.5 }}>
@@ -343,6 +364,10 @@ export function TeamView({
           </div>
         </div>
       </div>
+
+      {shareOpen && (
+        <ShareStandings division={division} rows={standings} onClose={() => setShareOpen(false)} />
+      )}
     </div>
   );
 }

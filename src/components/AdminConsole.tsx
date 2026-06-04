@@ -15,9 +15,15 @@ import {
   fmtDate,
   weekRangeForRound,
 } from "@/lib/league";
+import { parseSets, setsWon } from "@/lib/scoring";
 import { createClient } from "@/lib/supabase/client";
 import { useLeagueData } from "@/lib/useLeagueData";
 import { Logo, ScoreCell, TeamName } from "./ui";
+
+// Two distinct side colours so the admin can match each team to its score
+// column at a glance (team 1 = neon, team 2 = info blue).
+const SIDE1 = C.accent;
+const SIDE2 = C.info;
 
 // ---------------------------------------------------------------------------
 // Shell: handles auth state, renders login / not-authorised / console.
@@ -624,6 +630,12 @@ function FixtureRow({
 
   const isComplete = fixture.status === "completed" && !!fixture.sets;
 
+  // Live winner detection: parse whatever is currently in view (the editing
+  // inputs, or the saved result) and flag the winner once a side clinches 2 sets.
+  const liveSets = parseSets(editing ? sets : fromFixture());
+  const { s1, s2 } = setsWon(liveSets);
+  const winner = s1 >= 2 && s1 > s2 ? 1 : s2 >= 2 && s2 > s1 ? 2 : 0;
+
   const handleSave = () => {
     const clean = sets
       .map(([a, b]) => [parseInt(a, 10), parseInt(b, 10)] as SetScore)
@@ -651,14 +663,18 @@ function FixtureRow({
       }}
     >
       <div style={{ fontFamily: F.mono, fontSize: 11, color: C.mute }}>{fixture.code ?? "-"}</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <TeamName team={t1} size="sm" mute={t1?.placeholder} showRatings />
-        {fixture.homeTeamId === t1?.id && <HomeTag />}
-      </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <TeamName team={t2} size="sm" mute={t2?.placeholder} showRatings />
-        {fixture.homeTeamId === t2?.id && <HomeTag />}
-      </div>
+      <TeamCell
+        team={t1}
+        sideColor={SIDE1}
+        isHome={fixture.homeTeamId === t1?.id}
+        won={winner === 1}
+      />
+      <TeamCell
+        team={t2}
+        sideColor={SIDE2}
+        isHome={fixture.homeTeamId === t2?.id}
+        won={winner === 2}
+      />
       <div>
         {editing ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -673,7 +689,7 @@ function FixtureRow({
                     next[i] = [e.target.value, next[i][1]];
                     setSets(next);
                   }}
-                  style={inputStyle}
+                  style={{ ...inputStyle, borderColor: SIDE1, caretColor: SIDE1 }}
                 />
                 <span style={{ color: C.mute }}>-</span>
                 <input
@@ -685,7 +701,7 @@ function FixtureRow({
                     next[i] = [next[i][0], e.target.value];
                     setSets(next);
                   }}
-                  style={inputStyle}
+                  style={{ ...inputStyle, borderColor: SIDE2, caretColor: SIDE2 }}
                 />
               </div>
             ))}
@@ -722,6 +738,56 @@ function FixtureRow({
         )}
       </div>
     </div>
+  );
+}
+
+function TeamCell({
+  team,
+  sideColor,
+  isHome,
+  won,
+}: {
+  team: Team | undefined;
+  sideColor: string;
+  isHome: boolean;
+  won: boolean;
+}) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        borderLeft: `3px solid ${sideColor}`,
+        paddingLeft: 8,
+        borderRadius: 4,
+        background: won ? "rgba(74, 222, 128, 0.10)" : "transparent",
+        padding: "4px 6px 4px 8px",
+      }}
+    >
+      <TeamName team={team} size="sm" mute={team?.placeholder} showRatings />
+      {isHome && <HomeTag />}
+      {won && <WinnerTag />}
+    </div>
+  );
+}
+
+function WinnerTag() {
+  return (
+    <span
+      style={{
+        fontSize: 10,
+        fontWeight: 700,
+        letterSpacing: "0.06em",
+        color: C.bg,
+        background: C.green,
+        borderRadius: 3,
+        padding: "1px 6px",
+        whiteSpace: "nowrap",
+      }}
+    >
+      ✓ WINNER
+    </span>
   );
 }
 
