@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Session } from "@supabase/supabase-js";
 import { C, F } from "@/theme/tokens";
@@ -253,6 +253,9 @@ function AdminView({
   const [selectedRound, setSelectedRound] = useState(1);
   const [showSettings, setShowSettings] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
+  // Quick entry: pick the two teams, jump straight to their fixture.
+  const [quickA, setQuickA] = useState("");
+  const [quickB, setQuickB] = useState("");
 
   const fail = (label: string, error: unknown) => {
     const msg = error instanceof Error ? error.message : String(error);
@@ -346,6 +349,19 @@ function AdminView({
     .filter((f) => f.divisionId === selectedDivId && f.round === selectedRound)
     .sort((a, b) => (a.code ?? "").localeCompare(b.code ?? ""));
 
+  const quickTeams = (teamsByDiv[selectedDivId] ?? []).filter((t) => !t.placeholder);
+  const quickFixture = useMemo(() => {
+    if (!quickA || !quickB || quickA === quickB) return null;
+    return (
+      fixtures.find(
+        (f) =>
+          f.divisionId === selectedDivId &&
+          ((f.team1Id === quickA && f.team2Id === quickB) ||
+            (f.team1Id === quickB && f.team2Id === quickA))
+      ) ?? null
+    );
+  }, [quickA, quickB, fixtures, selectedDivId]);
+
   return (
     <div style={{ padding: "20px", maxWidth: 1400, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
@@ -390,7 +406,11 @@ function AdminView({
           {DIVISIONS.map((d) => (
             <button
               key={d.id}
-              onClick={() => setSelectedDivId(d.id)}
+              onClick={() => {
+                setSelectedDivId(d.id);
+                setQuickA("");
+                setQuickB("");
+              }}
               style={{
                 padding: "8px 14px",
                 background: selectedDivId === d.id ? C.accent : C.card,
@@ -430,6 +450,79 @@ function AdminView({
             </button>
           ))}
         </div>
+      </div>
+
+      <div
+        style={{
+          background: C.card,
+          border: `1px solid ${C.accent}`,
+          borderRadius: 10,
+          padding: 14,
+          marginBottom: 16,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: F.display,
+            fontSize: 13,
+            color: C.accent,
+            letterSpacing: "0.08em",
+            marginBottom: 10,
+          }}
+        >
+          QUICK SCORE ENTRY · PICK THE TWO TEAMS
+        </div>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <select value={quickA} onChange={(e) => setQuickA(e.target.value)} style={selectStyle}>
+            <option value="">Team A…</option>
+            {quickTeams.map((t) => (
+              <option key={t.id} value={t.id} disabled={t.id === quickB}>
+                {t.p1} / {t.p2}
+              </option>
+            ))}
+          </select>
+          <span style={{ color: C.mute, fontWeight: 700 }}>vs</span>
+          <select value={quickB} onChange={(e) => setQuickB(e.target.value)} style={selectStyle}>
+            <option value="">Team B…</option>
+            {quickTeams.map((t) => (
+              <option key={t.id} value={t.id} disabled={t.id === quickA}>
+                {t.p1} / {t.p2}
+              </option>
+            ))}
+          </select>
+          {(quickA || quickB) && (
+            <button
+              onClick={() => {
+                setQuickA("");
+                setQuickB("");
+              }}
+              style={ghostBtn}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {quickFixture && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 11, color: C.mute, marginBottom: 6 }}>
+              Round {quickFixture.round}
+              {quickFixture.status === "completed" ? " · result entered" : " · awaiting result"}
+            </div>
+            <FixtureRow
+              key={quickFixture.id}
+              fixture={quickFixture}
+              teams={teamsByDiv[quickFixture.divisionId] ?? []}
+              busy={busy === quickFixture.id}
+              onScore={handleScore}
+              onClearScore={handleClearScore}
+            />
+          </div>
+        )}
+        {quickA && quickB && quickA !== quickB && !quickFixture && (
+          <div style={{ marginTop: 10, color: C.amber, fontSize: 12 }}>
+            No fixture found between these teams in this division.
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -648,6 +741,35 @@ function FixtureRow({
     setEditing(false);
   };
 
+  // Auto-advance: refs to the 6 score inputs (index = setIndex*2 + side).
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  useEffect(() => {
+    if (editing) {
+      const id = setTimeout(() => inputsRef.current[0]?.focus(), 0);
+      return () => clearTimeout(id);
+    }
+  }, [editing]);
+
+  const setVal = (i: number, side: 0 | 1, v: string) => {
+    const next = [...sets] as [string, string][];
+    next[i] = side === 0 ? [v, next[i][1]] : [next[i][0], v];
+    setSets(next);
+    // Regular sets (0,1) are single-digit games, so jump to the next field as
+    // soon as a digit lands. The 3rd-set tiebreak can be two digits, so leave it.
+    if (i < 2 && /^\d$/.test(v)) {
+      const nextEl = inputsRef.current[i * 2 + side + 1];
+      nextEl?.focus();
+      nextEl?.select();
+    }
+  };
+
+  const onScoreKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSave();
+    }
+  };
+
   return (
     <div
       style={{
@@ -681,26 +803,28 @@ function FixtureRow({
             {sets.map((s, i) => (
               <div key={i} style={{ display: "flex", alignItems: "center", gap: 2 }}>
                 <input
+                  ref={(el) => {
+                    inputsRef.current[i * 2] = el;
+                  }}
                   type="number"
                   min="0"
                   value={s[0]}
-                  onChange={(e) => {
-                    const next = [...sets] as [string, string][];
-                    next[i] = [e.target.value, next[i][1]];
-                    setSets(next);
-                  }}
+                  onChange={(e) => setVal(i, 0, e.target.value)}
+                  onKeyDown={onScoreKeyDown}
+                  onFocus={(e) => e.target.select()}
                   style={{ ...inputStyle, borderColor: SIDE1, caretColor: SIDE1 }}
                 />
                 <span style={{ color: C.mute }}>-</span>
                 <input
+                  ref={(el) => {
+                    inputsRef.current[i * 2 + 1] = el;
+                  }}
                   type="number"
                   min="0"
                   value={s[1]}
-                  onChange={(e) => {
-                    const next = [...sets] as [string, string][];
-                    next[i] = [next[i][0], e.target.value];
-                    setSets(next);
-                  }}
+                  onChange={(e) => setVal(i, 1, e.target.value)}
+                  onKeyDown={onScoreKeyDown}
+                  onFocus={(e) => e.target.select()}
                   style={{ ...inputStyle, borderColor: SIDE2, caretColor: SIDE2 }}
                 />
               </div>
@@ -819,6 +943,17 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 4,
   textAlign: "center",
   fontFamily: F.mono,
+};
+const selectStyle: React.CSSProperties = {
+  padding: "8px 10px",
+  background: C.bg,
+  border: `1px solid ${C.border}`,
+  color: C.text,
+  borderRadius: 6,
+  fontFamily: F.body,
+  fontSize: 13,
+  minWidth: 200,
+  cursor: "pointer",
 };
 const primaryBtn: React.CSSProperties = {
   padding: "6px 14px",

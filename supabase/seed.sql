@@ -55,7 +55,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
 
   -- ── G4 (upper) — finalised, 12/12 ────────────────────────────────────────────
   ('g3-high',  1, 'Peter Finnegan',       'Davy O''Sullivan',    5.05, 4.58, false),
-  ('g3-high',  2, 'Gavin O''Donoghue',    'Barry Kelly',         3.49, 5.10, false),
+  ('g3-high',  2, 'Christopher Byrne',    'Barry Kelly',         3.49, 5.10, false),
   ('g3-high',  3, 'Shane Donohoe',        'Dylan Orr',           4.48, 4.01, false),
   ('g3-high',  4, 'Robert Pickerill',     'David Hennebry',      4.43, 3.57, false),
   ('g3-high',  5, 'Dean Noble',           'Chris Ffrench',       3.94, 2.86, false),

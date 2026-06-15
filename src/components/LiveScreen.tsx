@@ -261,6 +261,8 @@ export function LiveScreen() {
         {panel.id === "playoff" && <LivePanelPlayoff teams={teamsByDiv} fixtures={fixtures} />}
       </div>
 
+      <LiveSponsorFooter />
+
       <button
         onClick={exit}
         style={{
@@ -367,6 +369,58 @@ function LivePanelStatus({ settings }: { settings: Settings }) {
           {CONTACT.email}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Persistent sponsor strip at the bottom of every live-screen panel. Hides
+// itself if the sponsor image is missing, so nothing breaks before it's added.
+// Drop the logo at /public/sponsor.png to enable it.
+function LiveSponsorFooter() {
+  const [ok, setOk] = useState(true);
+  if (!ok) return null;
+  return (
+    <div
+      style={{
+        padding: "14px 40px",
+        borderTop: `2px solid ${C.accent}`,
+        background: C.bg2,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 32,
+        position: "relative",
+        zIndex: 1,
+      }}
+    >
+      <span
+        style={{
+          fontFamily: F.display,
+          fontSize: 26,
+          color: C.accent,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+        }}
+      >
+        This screen is kindly brought to you by
+      </span>
+      <span
+        style={{
+          background: "#fff",
+          borderRadius: 12,
+          padding: "12px 22px",
+          display: "inline-flex",
+          alignItems: "center",
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/sponsor.png"
+          alt="Screen sponsor"
+          style={{ height: 60, display: "block" }}
+          onError={() => setOk(false)}
+        />
+      </span>
     </div>
   );
 }
