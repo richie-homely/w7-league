@@ -415,9 +415,9 @@ function LiveSponsorFooter() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/sponsor.png"
+          src="/sponsor.jpg"
           alt="Screen sponsor"
-          style={{ height: 60, display: "block" }}
+          style={{ height: 46, width: "auto", display: "block" }}
           onError={() => setOk(false)}
         />
       </span>
