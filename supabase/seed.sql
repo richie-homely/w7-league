@@ -17,7 +17,7 @@ insert into public.teams (division_id, seed, p1, p2, r1, r2, placeholder) values
   ('g1-low',  3, 'Patrick Kennelly',      'Aisling O''Brien',    1.99, 1.92, false),
   ('g1-low',  4, 'Mark Tindale',          'Mark Williams',       1.30, 1.92, false),
   ('g1-low',  5, 'Shaun Humby',           'Thomas McKeon',       1.60, 1.61, false),
-  ('g1-low',  6, 'Derek Connell',         'Suman Reddy',         1.36, 1.20, false),
+  ('g1-low',  6, 'Sandeep Krishna',       'Suman Reddy',         1.36, 1.20, false),
   ('g1-low',  7, 'Ross Hamilton',         'Lucy McGettigan',     1.50, 1.04, false),
   ('g1-low',  8, 'Gary Brady',            'Ciaran O''Donoghue',  0.87, 1.30, false),
   ('g1-low',  9, 'Richie Carroll',        'Fionn O''Higgins',    1.40, 0.83, false),
