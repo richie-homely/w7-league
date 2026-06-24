@@ -21,14 +21,21 @@ export function divisionById(id: string): Division | undefined {
   return DIVISIONS.find((d) => d.id === id);
 }
 
-// Completion progress for a division, based on fully-playable fixtures (both
-// teams confirmed, i.e. tbc === null). Fixtures involving a TBC slot are
-// excluded so the percentage reflects games that can actually be played.
+// Completion progress for a division. Playability is judged by the teams'
+// CURRENT placeholder status (not the fixture's tbc flag, which is stamped at
+// generation time and goes stale once a TBC slot is filled in place). A full
+// 12-team division therefore counts all 12*11/2 = 66 fixtures.
 export function divisionProgress(
   divisionId: string,
+  teamsByDiv: Record<string, Team[]>,
   fixtures: Fixture[]
 ): { completed: number; total: number; pct: number } {
-  const playable = fixtures.filter((f) => f.divisionId === divisionId && f.tbc === null);
+  const realIds = new Set(
+    (teamsByDiv[divisionId] ?? []).filter((t) => !t.placeholder).map((t) => t.id)
+  );
+  const playable = fixtures.filter(
+    (f) => f.divisionId === divisionId && realIds.has(f.team1Id) && realIds.has(f.team2Id)
+  );
   const total = playable.length;
   const completed = playable.filter((f) => f.status === "completed").length;
   return { completed, total, pct: total ? Math.round((completed / total) * 100) : 0 };

@@ -165,7 +165,7 @@ export function TeamView({
       )}
 
       <div style={{ marginBottom: 16 }}>
-        <LeagueProgress fixtures={fixtures} />
+        <LeagueProgress teams={teams} fixtures={fixtures} />
       </div>
 
       <div

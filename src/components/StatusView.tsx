@@ -154,7 +154,7 @@ export function StatusView({
       </div>
 
       <div style={{ marginTop: 20 }}>
-        <LeagueProgress fixtures={fixtures} />
+        <LeagueProgress teams={teams} fixtures={fixtures} />
       </div>
 
       <div

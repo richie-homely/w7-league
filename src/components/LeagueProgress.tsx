@@ -1,12 +1,18 @@
 import { C, F } from "@/theme/tokens";
-import type { Fixture } from "@/lib/types";
+import type { Fixture, Team } from "@/lib/types";
 import { DIVISIONS, divisionProgress } from "@/lib/league";
 
 // Per-division completion bars (G1–G5). Lower tier in neon, upper in info blue.
-export function LeagueProgress({ fixtures }: { fixtures: Fixture[] }) {
+export function LeagueProgress({
+  teams,
+  fixtures,
+}: {
+  teams: Record<string, Team[]>;
+  fixtures: Fixture[];
+}) {
   const overall = DIVISIONS.reduce(
     (acc, d) => {
-      const p = divisionProgress(d.id, fixtures);
+      const p = divisionProgress(d.id, teams, fixtures);
       acc.completed += p.completed;
       acc.total += p.total;
       return acc;
@@ -34,7 +40,7 @@ export function LeagueProgress({ fixtures }: { fixtures: Fixture[] }) {
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
         {DIVISIONS.map((d) => {
-          const { completed, total, pct } = divisionProgress(d.id, fixtures);
+          const { completed, total, pct } = divisionProgress(d.id, teams, fixtures);
           const tColor = d.tier === "lower" ? C.accent : C.info;
           return (
             <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
