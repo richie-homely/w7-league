@@ -1,5 +1,5 @@
 // League structure, schedule, and fixture generation, ported from the v0.8 artifact.
-import type { Division, Team } from "./types";
+import type { Division, Fixture, Team } from "./types";
 
 export const VERSION = "v1.0";
 export const BUILD_DATE = "29 May 2026";
@@ -19,6 +19,19 @@ export const DIVISIONS: Division[] = [
 
 export function divisionById(id: string): Division | undefined {
   return DIVISIONS.find((d) => d.id === id);
+}
+
+// Completion progress for a division, based on fully-playable fixtures (both
+// teams confirmed, i.e. tbc === null). Fixtures involving a TBC slot are
+// excluded so the percentage reflects games that can actually be played.
+export function divisionProgress(
+  divisionId: string,
+  fixtures: Fixture[]
+): { completed: number; total: number; pct: number } {
+  const playable = fixtures.filter((f) => f.divisionId === divisionId && f.tbc === null);
+  const total = playable.length;
+  const completed = playable.filter((f) => f.status === "completed").length;
+  return { completed, total, pct: total ? Math.round((completed / total) * 100) : 0 };
 }
 
 // ---------------------------------------------------------------------------

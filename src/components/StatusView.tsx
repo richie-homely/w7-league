@@ -1,8 +1,9 @@
 import { C, F } from "@/theme/tokens";
-import type { Settings, Team, Tier } from "@/lib/types";
+import type { Fixture, Settings, Team, Tier } from "@/lib/types";
 import { CONTACT, upperTierSlotsRemaining } from "@/lib/league";
 import { Logo } from "./ui";
 import { ConfirmationBanner } from "./Countdown";
+import { LeagueProgress } from "./LeagueProgress";
 
 export function ContactBar({ compact = false }: { compact?: boolean }) {
   const items = [
@@ -123,9 +124,11 @@ function TierStatusCard({ tier, status }: { tier: Tier; status: "full" | "availa
 export function StatusView({
   settings,
   teams,
+  fixtures,
 }: {
   settings: Settings;
   teams: Record<string, Team[]>;
+  fixtures: Fixture[];
 }) {
   return (
     <div style={{ padding: "24px 20px", maxWidth: 1100, margin: "0 auto" }}>
@@ -148,6 +151,10 @@ export function StatusView({
       <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
         <TierStatusCard tier="lower" status={settings.lowerStatus || "available"} />
         <TierStatusCard tier="upper" status={settings.upperStatus || "available"} />
+      </div>
+
+      <div style={{ marginTop: 20 }}>
+        <LeagueProgress fixtures={fixtures} />
       </div>
 
       <div

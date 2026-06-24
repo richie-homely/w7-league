@@ -11,6 +11,7 @@ import { Badge, ScoreCell, TeamName } from "./ui";
 import { CountdownBanner, ConfirmationBanner } from "./Countdown";
 import { StandingsTable } from "./StandingsTable";
 import { ShareStandings } from "./ShareStandings";
+import { LeagueProgress } from "./LeagueProgress";
 
 export function TeamView({
   teams,
@@ -151,6 +152,10 @@ export function TeamView({
           </span>
         </div>
       )}
+
+      <div style={{ marginBottom: 16 }}>
+        <LeagueProgress fixtures={fixtures} />
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 20 }}>
         <div>
