@@ -22,6 +22,7 @@ export function computeStandings(
     GF: 0,
     GA: 0,
     h2h: {},
+    form: [],
     rank: 0,
   }));
   const byId = Object.fromEntries(rows.map((r) => [r.teamId, r]));
@@ -31,6 +32,8 @@ export function computeStandings(
       (f) =>
         f.divisionId === divisionId && f.status === "completed" && f.sets
     )
+    // Chronological so each team's `form` reads oldest-to-newest.
+    .sort((a, b) => a.round - b.round || (a.code ?? "").localeCompare(b.code ?? ""))
     .forEach((f) => {
       const r1 = byId[f.team1Id];
       const r2 = byId[f.team2Id];
@@ -73,6 +76,8 @@ export function computeStandings(
         winner.Bonus++;
       }
       winner.h2h[loser.teamId] = (winner.h2h[loser.teamId] || 0) + 1;
+      winner.form.push("W");
+      loser.form.push("L");
     });
 
   rows.sort((a, b) => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { track } from "@vercel/analytics";
 import { C, F } from "@/theme/tokens";
@@ -12,6 +12,7 @@ import { CountdownBanner, ConfirmationBanner } from "./Countdown";
 import { StandingsTable } from "./StandingsTable";
 import { ShareStandings } from "./ShareStandings";
 import { LeagueProgress } from "./LeagueProgress";
+import { LatestResults } from "./LatestResults";
 
 export function TeamView({
   teams,
@@ -23,6 +24,16 @@ export function TeamView({
   const [selectedDivId, setSelectedDivId] = useState(DIVISIONS[0].id);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  // Stack the two-column layout on phones. Starts false so the first client
+  // render matches the server HTML, then corrects after mount.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 768px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
   const division = DIVISIONS.find((d) => d.id === selectedDivId)!;
   const divTeams = teams[selectedDivId] || [];
   const selectedTeam = divTeams.find((t) => t.id === selectedTeamId);
@@ -157,8 +168,14 @@ export function TeamView({
         <LeagueProgress fixtures={fixtures} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 20 }}>
-        <div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1.4fr",
+          gap: 20,
+        }}
+      >
+        <div style={{ order: isMobile ? 2 : 0 }}>
           <div
             style={{
               background: C.card,
@@ -320,6 +337,7 @@ export function TeamView({
             border: `1px solid ${C.border}`,
             borderRadius: 10,
             padding: 16,
+            order: isMobile ? 1 : 0,
           }}
         >
           <div
@@ -328,6 +346,8 @@ export function TeamView({
               alignItems: "baseline",
               justifyContent: "space-between",
               marginBottom: 12,
+              flexWrap: "wrap",
+              gap: 8,
             }}
           >
             <div
@@ -361,13 +381,24 @@ export function TeamView({
               </button>
             </div>
           </div>
-          <StandingsTable rows={standings} highlightTeamId={selectedTeamId} />
+          <div style={{ overflowX: "auto" }}>
+            <StandingsTable
+              rows={standings}
+              highlightTeamId={selectedTeamId}
+              dense={isMobile}
+              showForm
+            />
+          </div>
           <div style={{ marginTop: 12, fontSize: 11, color: C.mute, lineHeight: 1.5 }}>
             <span style={{ color: C.accent }}>●</span> Win = 3 pts &nbsp; · &nbsp;
             <span style={{ color: C.accent }}>+1</span> bonus for straight-sets win &nbsp; · &nbsp;
             Tiebreak: H2H → Set diff → Game diff
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <LatestResults teams={teams} fixtures={fixtures} />
       </div>
 
       {shareOpen && (

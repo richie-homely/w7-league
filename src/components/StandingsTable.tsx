@@ -7,10 +7,12 @@ export function StandingsTable({
   rows,
   highlightTeamId,
   dense = false,
+  showForm = false,
 }: {
   rows: StandingRow[];
   highlightTeamId?: string | null;
   dense?: boolean;
+  showForm?: boolean;
 }) {
   const cell: CSSProperties = {
     padding: dense ? "6px 6px" : "10px 8px",
@@ -35,6 +37,7 @@ export function StandingsTable({
           <th style={num}>Sets</th>
           <th style={num}>Games</th>
           <th style={{ ...num, color: C.accent }}>Pts</th>
+          {showForm && <th style={{ ...num, minWidth: 56 }}>Form</th>}
         </tr>
       </thead>
       <tbody>
@@ -77,10 +80,15 @@ export function StandingsTable({
                     <span style={{ fontSize: 9, color: C.mute, marginLeft: 3 }}>+{r.Bonus}</span>
                   )}
                 </td>
+                {showForm && (
+                  <td style={{ ...num, textAlign: "center" }}>
+                    <FormDots form={r.form} />
+                  </td>
+                )}
               </tr>
               {cutoffLine && (
                 <tr>
-                  <td colSpan={8} style={{ padding: 0 }}>
+                  <td colSpan={showForm ? 9 : 8} style={{ padding: 0 }}>
                     <div
                       style={{
                         height: 2,
@@ -112,5 +120,28 @@ export function StandingsTable({
         })}
       </tbody>
     </table>
+  );
+}
+
+// Last-5 results as W/L dots (oldest to newest, left to right).
+function FormDots({ form }: { form: ("W" | "L")[] }) {
+  const last = form.slice(-5);
+  if (last.length === 0) return <span style={{ color: C.mute }}>-</span>;
+  return (
+    <span style={{ display: "inline-flex", gap: 3, alignItems: "center", justifyContent: "center" }}>
+      {last.map((r, i) => (
+        <span
+          key={i}
+          title={r === "W" ? "Win" : "Loss"}
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: 4,
+            background: r === "W" ? C.green : C.red,
+            display: "inline-block",
+          }}
+        />
+      ))}
+    </span>
   );
 }

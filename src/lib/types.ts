@@ -60,6 +60,7 @@ export interface StandingRow {
   GF: number;
   GA: number;
   h2h: Record<string, number>;
+  form: ("W" | "L")[]; // chronological results (oldest first)
   rank: number;
 }
 
