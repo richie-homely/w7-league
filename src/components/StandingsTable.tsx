@@ -1,18 +1,20 @@
 import { Fragment, type CSSProperties } from "react";
 import { C, F } from "@/theme/tokens";
-import type { StandingRow } from "@/lib/types";
-import { TeamName } from "./ui";
+import type { StandingRow, Team } from "@/lib/types";
+import { ClickableTeam } from "./TeamH2H";
 
 export function StandingsTable({
   rows,
   highlightTeamId,
   dense = false,
   showForm = false,
+  onTeam,
 }: {
   rows: StandingRow[];
   highlightTeamId?: string | null;
   dense?: boolean;
   showForm?: boolean;
+  onTeam?: (team: Team) => void;
 }) {
   const cell: CSSProperties = {
     padding: dense ? "6px 6px" : "10px 8px",
@@ -67,7 +69,13 @@ export function StandingsTable({
                   </span>
                 </td>
                 <td style={cell}>
-                  <TeamName team={r.team} size={dense ? "sm" : "md"} mute={r.team.placeholder} />
+                  <ClickableTeam
+                    team={r.team}
+                    size={dense ? "sm" : "md"}
+                    mute={r.team.placeholder}
+                    showRatings={false}
+                    onClick={onTeam}
+                  />
                 </td>
                 <td style={num}>{r.P}</td>
                 <td style={num}>{r.W}</td>

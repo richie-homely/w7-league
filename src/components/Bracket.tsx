@@ -1,11 +1,23 @@
+"use client";
+
+import { useState } from "react";
 import { C, F } from "@/theme/tokens";
 import type { BracketMatch as BracketMatchType, BracketSlot, Fixture, Team, Tier } from "@/lib/types";
 import { TIER_PRIZES, buildBracket, isPlaceholderSlot, tierQualifiers } from "@/lib/bracket";
 import { upperTierSlotsRemaining } from "@/lib/league";
 import { Logo } from "./ui";
 import { ConfirmationBanner } from "./Countdown";
+import { TeamH2H } from "./TeamH2H";
 
-function TeamSlot({ slot, tierColor }: { slot: BracketSlot; tierColor: string }) {
+function TeamSlot({
+  slot,
+  tierColor,
+  onTeam,
+}: {
+  slot: BracketSlot;
+  tierColor: string;
+  onTeam?: (team: Team) => void;
+}) {
   if (!slot) return null;
   if (isPlaceholderSlot(slot)) {
     return (
@@ -15,8 +27,19 @@ function TeamSlot({ slot, tierColor }: { slot: BracketSlot; tierColor: string })
     );
   }
   const t = slot.team;
+  const clickable = onTeam && !t.placeholder;
   return (
-    <div style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: 8 }}>
+    <div
+      onClick={clickable ? () => onTeam(t) : undefined}
+      title={clickable ? "View head-to-head record" : undefined}
+      style={{
+        padding: "8px 10px",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        cursor: clickable ? "pointer" : "default",
+      }}
+    >
       <div
         style={{
           width: 22,
@@ -68,7 +91,15 @@ function TeamSlot({ slot, tierColor }: { slot: BracketSlot; tierColor: string })
   );
 }
 
-function BracketMatch({ match, tierColor }: { match: BracketMatchType; tierColor: string }) {
+function BracketMatch({
+  match,
+  tierColor,
+  onTeam,
+}: {
+  match: BracketMatchType;
+  tierColor: string;
+  onTeam?: (team: Team) => void;
+}) {
   return (
     <div
       style={{
@@ -92,9 +123,9 @@ function BracketMatch({ match, tierColor }: { match: BracketMatchType; tierColor
       >
         {match.id}
       </div>
-      <TeamSlot slot={match.a} tierColor={tierColor} />
+      <TeamSlot slot={match.a} tierColor={tierColor} onTeam={onTeam} />
       <div style={{ height: 1, background: C.border, margin: "0 10px" }} />
-      <TeamSlot slot={match.b} tierColor={tierColor} />
+      <TeamSlot slot={match.b} tierColor={tierColor} onTeam={onTeam} />
     </div>
   );
 }
@@ -103,10 +134,12 @@ function TierBracket({
   tier,
   teams,
   fixtures,
+  onTeam,
 }: {
   tier: Tier;
   teams: Record<string, Team[]>;
   fixtures: Fixture[];
+  onTeam?: (team: Team) => void;
 }) {
   const tierLabel = tier === "lower" ? "LOWER TIER" : "UPPER TIER";
   const tierRange = tier === "lower" ? "0.5 – 2.4" : "2.5 – 5.5";
@@ -186,7 +219,7 @@ function TierBracket({
               {s.label}
             </div>
             {s.matches.map((m) => (
-              <BracketMatch key={m.id} match={m} tierColor={tierColor} />
+              <BracketMatch key={m.id} match={m} tierColor={tierColor} onTeam={onTeam} />
             ))}
           </div>
         ))}
@@ -206,8 +239,8 @@ function TierBracket({
       >
         <div style={{ fontSize: 10, color: C.mute, letterSpacing: "0.15em" }}>3RD PLACE PLAYOFF</div>
         <div style={{ flex: 1, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <TeamSlot slot={bracket.third[0].a} tierColor={tierColor} />
-          <TeamSlot slot={bracket.third[0].b} tierColor={tierColor} />
+          <TeamSlot slot={bracket.third[0].a} tierColor={tierColor} onTeam={onTeam} />
+          <TeamSlot slot={bracket.third[0].b} tierColor={tierColor} onTeam={onTeam} />
         </div>
       </div>
     </div>
@@ -221,6 +254,7 @@ export function KnockoutView({
   teams: Record<string, Team[]>;
   fixtures: Fixture[];
 }) {
+  const [h2hTeam, setH2hTeam] = useState<Team | null>(null);
   return (
     <div style={{ padding: "20px", maxWidth: 1400, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
@@ -233,14 +267,23 @@ export function KnockoutView({
           </div>
         </div>
       </div>
-      <TierBracket tier="upper" teams={teams} fixtures={fixtures} />
-      <TierBracket tier="lower" teams={teams} fixtures={fixtures} />
+      <TierBracket tier="upper" teams={teams} fixtures={fixtures} onTeam={setH2hTeam} />
+      <TierBracket tier="lower" teams={teams} fixtures={fixtures} onTeam={setH2hTeam} />
       <ConfirmationBanner upperSlotsRemaining={upperTierSlotsRemaining(teams)} />
       <div style={{ fontSize: 11, color: C.mute, lineHeight: 1.6, padding: "8px 4px" }}>
         <strong style={{ color: C.text }}>Seeding:</strong> Qualifiers ranked by points across the tier, tiebreak: set difference → game difference.&nbsp;&nbsp;
         <strong style={{ color: C.text }}>Bracket:</strong> 8-team brackets run QF→SF→F. 12-team brackets give the top 4 seeds a bye into the QF, with seeds 5–12 playing Round 1.&nbsp;&nbsp;
         <strong style={{ color: C.text }}>Note:</strong> qualifying teams update live as league results are entered.
       </div>
+      {h2hTeam && (
+        <TeamH2H
+          team={h2hTeam}
+          fixtures={fixtures}
+          teams={teams}
+          onClose={() => setH2hTeam(null)}
+          onTeam={setH2hTeam}
+        />
+      )}
     </div>
   );
 }

@@ -7,7 +7,8 @@ import { C, F } from "@/theme/tokens";
 import type { Fixture, Team } from "@/lib/types";
 import { DIVISIONS, fmtDate, upperTierSlotsRemaining, weekRangeForRound } from "@/lib/league";
 import { computeStandings } from "@/lib/standings";
-import { Badge, ScoreCell, TeamName } from "./ui";
+import { Badge, ScoreCell } from "./ui";
+import { ClickableTeam, TeamH2H } from "./TeamH2H";
 import { CountdownBanner, ConfirmationBanner } from "./Countdown";
 import { StandingsTable } from "./StandingsTable";
 import { ShareStandings } from "./ShareStandings";
@@ -24,6 +25,7 @@ export function TeamView({
   const [selectedDivId, setSelectedDivId] = useState(DIVISIONS[0].id);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
+  const [h2hTeam, setH2hTeam] = useState<Team | null>(null);
   // Stack the two-column layout on phones. Starts false so the first client
   // render matches the server HTML, then corrects after mount.
   const [isMobile, setIsMobile] = useState(false);
@@ -301,7 +303,7 @@ export function TeamView({
                             {isHome ? "HOME" : "AWAY"}
                           </span>
                         </div>
-                        <TeamName team={opponent} size="sm" showRatings />
+                        <ClickableTeam team={opponent} size="sm" showRatings onClick={setH2hTeam} />
                       </div>
                       <div style={{ textAlign: "right" }}>
                         {done && f.sets ? (
@@ -387,6 +389,7 @@ export function TeamView({
               highlightTeamId={selectedTeamId}
               dense={isMobile}
               showForm
+              onTeam={setH2hTeam}
             />
           </div>
           <div style={{ marginTop: 12, fontSize: 11, color: C.mute, lineHeight: 1.5 }}>
@@ -398,11 +401,21 @@ export function TeamView({
       </div>
 
       <div style={{ marginTop: 16 }}>
-        <LatestResults teams={teams} fixtures={fixtures} />
+        <LatestResults teams={teams} fixtures={fixtures} onTeam={setH2hTeam} />
       </div>
 
       {shareOpen && (
         <ShareStandings division={division} rows={standings} onClose={() => setShareOpen(false)} />
+      )}
+
+      {h2hTeam && (
+        <TeamH2H
+          team={h2hTeam}
+          fixtures={fixtures}
+          teams={teams}
+          onClose={() => setH2hTeam(null)}
+          onTeam={setH2hTeam}
+        />
       )}
     </div>
   );
