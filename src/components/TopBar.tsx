@@ -5,7 +5,7 @@ import { C, F } from "@/theme/tokens";
 import { VERSION, BUILD_DATE } from "@/lib/league";
 import { Logo } from "./ui";
 
-export type PublicMode = "team" | "status" | "knockout";
+export type PublicMode = "team" | "results" | "status" | "knockout";
 
 export function TopBar({
   mode,
@@ -16,6 +16,7 @@ export function TopBar({
 }) {
   const tabs: { id: PublicMode; label: string }[] = [
     { id: "team", label: "Team View" },
+    { id: "results", label: "Results" },
     { id: "status", label: "Status" },
     { id: "knockout", label: "Knockout" },
   ];

@@ -1,8 +1,8 @@
 // League structure, schedule, and fixture generation, ported from the v0.8 artifact.
 import type { Division, Fixture, Team } from "./types";
 
-export const VERSION = "v1.0";
-export const BUILD_DATE = "29 May 2026";
+export const VERSION = "v1.1";
+export const BUILD_DATE = "4 Jul 2026";
 
 export const LEAGUE_START = new Date("2026-06-06"); // Saturday
 export const LEAGUE_DEADLINE = new Date("2026-08-15");

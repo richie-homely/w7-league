@@ -6,6 +6,7 @@ import { CONTACT, VERSION, BUILD_DATE } from "@/lib/league";
 import { useLeagueData } from "@/lib/useLeagueData";
 import { TopBar, type PublicMode } from "./TopBar";
 import { TeamView } from "./TeamView";
+import { ResultsView } from "./ResultsView";
 import { StatusView, ContactBar } from "./StatusView";
 import { KnockoutView } from "./Bracket";
 import { KeanoCredit } from "./KeanoCredit";
@@ -64,6 +65,7 @@ export function LeagueApp() {
         </div>
       )}
       {mode === "team" && <TeamView teams={teamsByDiv} fixtures={fixtures} />}
+      {mode === "results" && <ResultsView teams={teamsByDiv} fixtures={fixtures} />}
       {mode === "status" && <StatusView settings={settings} teams={teamsByDiv} fixtures={fixtures} />}
       {mode === "knockout" && <KnockoutView teams={teamsByDiv} fixtures={fixtures} />}
       <Footer />
