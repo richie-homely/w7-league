@@ -53,7 +53,7 @@ function ResultRow({
         </div>
       </div>
       <div style={{ textAlign: "right" }}>
-        {walkover && !fixture.sets ? (
+        {walkover ? (
           <Badge color={C.amber} dark>
             Walkover
           </Badge>

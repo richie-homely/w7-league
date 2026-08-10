@@ -18,7 +18,12 @@ export function LatestResults({
   onTeam?: (team: Team) => void;
 }) {
   const done = fixtures
-    .filter((f) => f.status === "completed" && f.sets && f.sets.length > 0)
+    .filter(
+      (f) =>
+        (f.status === "completed" || f.status === "walkover") &&
+        f.sets &&
+        f.sets.length > 0
+    )
     .sort((a, b) => (b.enteredAt ?? 0) - (a.enteredAt ?? 0) || b.round - a.round)
     .slice(0, limit);
 
@@ -95,7 +100,21 @@ export function LatestResults({
                   {nameEl(f.divisionId, loserId, { fontSize: 12, color: C.mute, lineHeight: 1.25 })}
                 </div>
                 <div style={{ alignSelf: "center" }}>
-                  <ScoreCell sets={winnerSets} />
+                  {f.status === "walkover" ? (
+                    <span
+                      style={{
+                        fontFamily: F.mono,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: C.amber,
+                        letterSpacing: "0.06em",
+                      }}
+                    >
+                      W/O
+                    </span>
+                  ) : (
+                    <ScoreCell sets={winnerSets} />
+                  )}
                 </div>
               </div>
             );

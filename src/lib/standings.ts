@@ -30,14 +30,35 @@ export function computeStandings(
   fixtures
     .filter(
       (f) =>
-        f.divisionId === divisionId && f.status === "completed" && f.sets
+        f.divisionId === divisionId &&
+        (f.status === "completed" || f.status === "walkover") &&
+        f.sets
     )
-    // Chronological so each team's `form` reads oldest-to-newest.
+    // ONE chronological pass over played results AND walkovers, so each team's
+    // `form` reads oldest-to-newest regardless of how a round was decided.
     .sort((a, b) => a.round - b.round || (a.code ?? "").localeCompare(b.code ?? ""))
     .forEach((f) => {
       const r1 = byId[f.team1Id];
       const r2 = byId[f.team2Id];
       if (!r1 || !r2) return;
+      if (f.status === "walkover") {
+        // Walkover (withdrawn/disengaged opponent): a plain 3-pt win — no bonus,
+        // and no set/game tallies, so the tiebreak columns only ever contain
+        // padel that was actually played. Winner is encoded by the sets
+        // convention [[1,0]] (team1 wins) / [[0,1]] (team2 wins).
+        const t1Won = f.sets![0][0] > f.sets![0][1];
+        const winner = t1Won ? r1 : r2;
+        const loser = t1Won ? r2 : r1;
+        r1.P++;
+        r2.P++;
+        winner.W++;
+        loser.L++;
+        winner.Pts += 3;
+        winner.h2h[loser.teamId] = (winner.h2h[loser.teamId] || 0) + 1;
+        winner.form.push("W");
+        loser.form.push("L");
+        return;
+      }
       let s1 = 0;
       let s2 = 0;
       let g1 = 0;

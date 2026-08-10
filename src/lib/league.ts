@@ -37,7 +37,9 @@ export function divisionProgress(
     (f) => f.divisionId === divisionId && realIds.has(f.team1Id) && realIds.has(f.team2Id)
   );
   const total = playable.length;
-  const completed = playable.filter((f) => f.status === "completed").length;
+  const completed = playable.filter(
+    (f) => f.status === "completed" || f.status === "walkover"
+  ).length;
   return { completed, total, pct: total ? Math.round((completed / total) * 100) : 0 };
 }
 

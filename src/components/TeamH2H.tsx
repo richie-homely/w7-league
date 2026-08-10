@@ -192,7 +192,7 @@ export function TeamH2H({
                 {done ? (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "flex-end" }}>
                     {result && <Badge color={result === "W" ? C.green : C.red}>{result}</Badge>}
-                    {mySets && mySets.length > 0 ? (
+                    {mySets && mySets.length > 0 && fixture?.status !== "walkover" ? (
                       <ScoreCell sets={mySets} />
                     ) : (
                       <Badge color={C.amber} dark>

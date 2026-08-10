@@ -256,7 +256,7 @@ export function TeamView({
                   const youAreT1 = f.team1Id === selectedTeam.id;
                   const isHome = f.homeTeamId === selectedTeam.id;
                   const wk = weekRangeForRound(f.round);
-                  const done = f.status === "completed";
+                  const done = f.status === "completed" || f.status === "walkover";
                   let result: "W" | "L" | null = null;
                   if (done && f.sets) {
                     let s1 = 0;
@@ -310,13 +310,27 @@ export function TeamView({
                           <div>
                             <Badge color={result === "W" ? C.green : C.red}>{result}</Badge>
                             <div style={{ marginTop: 4 }}>
-                              <ScoreCell
-                                sets={
-                                  youAreT1
-                                    ? f.sets
-                                    : f.sets.map(([a, b]) => [b, a] as [number, number])
-                                }
-                              />
+                              {f.status === "walkover" ? (
+                                <span
+                                  style={{
+                                    fontFamily: F.mono,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    color: C.amber,
+                                    letterSpacing: "0.06em",
+                                  }}
+                                >
+                                  W/O
+                                </span>
+                              ) : (
+                                <ScoreCell
+                                  sets={
+                                    youAreT1
+                                      ? f.sets
+                                      : f.sets.map(([a, b]) => [b, a] as [number, number])
+                                  }
+                                />
+                              )}
                             </div>
                           </div>
                         ) : (
