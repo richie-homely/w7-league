@@ -19,27 +19,49 @@ export const TIER_PRIZES = [
   { rank: 4, label: "4TH PLACE", amount: "€50" },
 ] as const;
 
+/* How many qualify, per tier.
+ *
+ * Upper tier: 2 divisions x top 4 = 8 -> straight quarter-finals.
+ * Lower tier: 3 divisions x top 5 = 15, plus the single best 6th place across
+ * the tier = 16 -> a full first round with NO byes, so no team goes straight
+ * through and there are eight extra knockout games for members. */
+const QUALIFY_PER_DIV: Record<Tier, number> = { lower: 5, upper: 4 };
+const EXTRA_SPOTS: Record<Tier, number> = { lower: 1, upper: 0 };
+
+/** Tier ranking order: points -> set difference -> game difference. */
+function byMerit(a: Qualifier, b: Qualifier): number {
+  if (b.Pts !== a.Pts) return b.Pts - a.Pts;
+  const sd = b.SF - b.SA - (a.SF - a.SA);
+  if (sd !== 0) return sd;
+  return b.GF - b.GA - (a.GF - a.GA);
+}
+
 export function tierQualifiers(
   tier: Tier,
   teamsByDiv: Record<string, Team[]>,
   fixtures: Fixture[]
 ): Qualifier[] {
   const tierDivs = DIVISIONS.filter((d) => d.tier === tier);
+  const per = QUALIFY_PER_DIV[tier];
   const all: Qualifier[] = [];
+  const nextBest: Qualifier[] = [];       // each division's first non-qualifier
   tierDivs.forEach((d) => {
     const rows = computeStandings(d.id, teamsByDiv, fixtures);
-    rows.slice(0, 4).forEach((r) =>
+    rows.slice(0, per).forEach((r) =>
       all.push({ ...r, divName: d.name, divId: d.id, seed: 0 })
     );
+    const runnerUp = rows[per];
+    if (runnerUp) nextBest.push({ ...runnerUp, divName: d.name, divId: d.id, seed: 0 });
   });
-  // Sort across tier by points -> set diff -> game diff
-  all.sort((a, b) => {
-    if (b.Pts !== a.Pts) return b.Pts - a.Pts;
-    const sdA = a.SF - a.SA;
-    const sdB = b.SF - b.SA;
-    if (sdB !== sdA) return sdB - sdA;
-    return b.GF - b.GA - (a.GF - a.GA);
-  });
+  // Fill the remaining spots with the best next-placed teams across the tier.
+  // NOTE: this compares teams from different divisions, which is only sound
+  // once they have all played the same number of games — mid-season a division
+  // that is further through its fixtures looks stronger on raw points. The
+  // bracket flags that in `meta` rather than pretending the pick is settled.
+  nextBest.sort(byMerit);
+  all.push(...nextBest.slice(0, EXTRA_SPOTS[tier]));
+
+  all.sort(byMerit);
   all.forEach((q, i) => (q.seed = i + 1));
   return all;
 }
@@ -68,19 +90,36 @@ export function tierQualifiers(
 
 /** Seed pairs that meet in the first round of each bracket size. */
 function firstRoundPairs(n: number): [number, number][] {
-  return n <= 8
-    ? [
-        [1, 8],
-        [4, 5],
-        [2, 7],
-        [3, 6],
-      ]
-    : [
-        [5, 12],
-        [8, 9],
-        [6, 11],
-        [7, 10],
-      ];
+  if (n <= 8) {
+    return [
+      [1, 8],
+      [4, 5],
+      [2, 7],
+      [3, 6],
+    ];
+  }
+  if (n <= 12) {
+    // legacy shape: top 4 bye into the quarter-finals, 5-12 play Round 1.
+    // Retained only for a short tier; the lower tier now fills 16.
+    return [
+      [5, 12],
+      [8, 9],
+      [6, 11],
+      [7, 10],
+    ];
+  }
+  // 16 teams, no byes — the standard bracket, so seeds 1 and 2 can only meet
+  // in the final. Order is R1A..R1H, and consecutive pairs feed one QF.
+  return [
+    [1, 16],
+    [8, 9],
+    [5, 12],
+    [4, 13],
+    [3, 14],
+    [6, 11],
+    [7, 10],
+    [2, 15],
+  ];
 }
 
 /** Which bye seed meets each Round 1 winner in the 12-team bracket (QF1..QF4). */
@@ -202,6 +241,7 @@ function buildMeta(
 ): BracketMeta {
   const round = n <= 8 ? "quarter-final" : "Round 1";      // adjective form
   const inRound = n <= 8 ? "the quarter-finals" : "Round 1";
+  const noByes = n > 12;
   if (filled < 2) {
     return {
       crossDivision: true,
@@ -212,7 +252,7 @@ function buildMeta(
     const tail =
       qfPossible > 0
         ? " A quarter-final could still pair division rivals depending on who comes through."
-        : n > 8
+        : n > 8 && !noByes
         ? " No quarter-final can produce one either, whoever comes through."
         : "";
     return {
@@ -255,6 +295,27 @@ export function buildBracket(qualifiers: Qualifier[]): Bracket {
         { id: "QF3", a: get(p3[0]), b: get(p3[1]) },
         { id: "QF4", a: get(p4[0]), b: get(p4[1]) },
       ],
+      sf: [
+        { id: "SF1", a: placeholder("Winner QF1"), b: placeholder("Winner QF2") },
+        { id: "SF2", a: placeholder("Winner QF3"), b: placeholder("Winner QF4") },
+      ],
+      f: [{ id: "F1", a: placeholder("Winner SF1"), b: placeholder("Winner SF2") }],
+      third: [{ id: "P3", a: placeholder("Loser SF1"), b: placeholder("Loser SF2") }],
+      meta: buildMeta(n, clashes, 0, 0, qualifiers.length),
+    };
+  }
+
+  if (n > 12) {
+    // 16-team bracket: everyone plays Round 1, nobody goes straight through.
+    const ties = firstRoundPairs(n);
+    const ids = ["R1A", "R1B", "R1C", "R1D", "R1E", "R1F", "R1G", "R1H"];
+    return {
+      r1: ties.map((p, i) => ({ id: ids[i], a: get(p[0]), b: get(p[1]) })),
+      qf: [0, 1, 2, 3].map((i) => ({
+        id: `QF${i + 1}`,
+        a: placeholder(`Winner ${ids[i * 2]}`),
+        b: placeholder(`Winner ${ids[i * 2 + 1]}`),
+      })),
       sf: [
         { id: "SF1", a: placeholder("Winner QF1"), b: placeholder("Winner QF2") },
         { id: "SF2", a: placeholder("Winner QF3"), b: placeholder("Winner QF4") },

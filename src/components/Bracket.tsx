@@ -191,7 +191,9 @@ function TierBracket({
             {tierLabel} KNOCKOUTS
           </div>
           <div style={{ fontSize: 13, color: C.mute, marginTop: 6 }}>
-            Playtomic rating {tierRange} · Top 4 from each division qualify · {qualifiers.length} teams in the bracket · Dates TBC
+            Playtomic rating {tierRange} · {tier === "lower"
+              ? "Top 5 from each division + best 6th"
+              : "Top 4 from each division"} qualify · {qualifiers.length} teams in the bracket · Dates TBC
           </div>
           {bracket.meta && (
             <div
@@ -307,7 +309,7 @@ export function KnockoutView({
       <ConfirmationBanner upperSlotsRemaining={upperTierSlotsRemaining(teams)} />
       <div style={{ fontSize: 11, color: C.mute, lineHeight: 1.6, padding: "8px 4px" }}>
         <strong style={{ color: C.text }}>Seeding:</strong> Qualifiers ranked by points across the tier, tiebreak: set difference → game difference.&nbsp;&nbsp;
-        <strong style={{ color: C.text }}>Bracket:</strong> 8-team brackets run QF→SF→F. 12-team brackets give the top 4 seeds a bye into the QF, with seeds 5–12 playing Round 1.&nbsp;&nbsp;
+        <strong style={{ color: C.text }}>Bracket:</strong> the upper tier runs QF→SF→F with its 8 qualifiers. The lower tier fills a 16-team bracket — top 5 from each division plus the best 6th-placed team across the tier — so <em>every</em> qualifier plays in Round 1 and nobody gets a bye.&nbsp;&nbsp;
         <strong style={{ color: C.text }}>Draw:</strong> the first knockout round is arranged so teams avoid division rivals they already met in the round robin — a division winner draws another division&rsquo;s fourth place, and so on. Seeds are never changed, only which side of the draw a team sits on; the higher seed stays put and the lower seed moves.&nbsp;&nbsp;
         <strong style={{ color: C.text }}>Note:</strong> qualifying teams update live as league results are entered.
       </div>
