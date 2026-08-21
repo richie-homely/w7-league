@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { C, F } from "@/theme/tokens";
+import { C, F, divColor } from "@/theme/tokens";
 import type { BracketMatch as BracketMatchType, BracketSlot, Fixture, Team, Tier } from "@/lib/types";
 import { TIER_PRIZES, buildBracket, isPlaceholderSlot, tierQualifiers } from "@/lib/bracket";
 import { upperTierSlotsRemaining } from "@/lib/league";
@@ -28,16 +28,18 @@ function TeamSlot({
   }
   const t = slot.team;
   const clickable = onTeam && !t.placeholder;
+  const dc = divColor(slot.divName);
   return (
     <div
       onClick={clickable ? () => onTeam(t) : undefined}
-      title={clickable ? "View head-to-head record" : undefined}
+      title={clickable ? `${slot.divName} · view head-to-head record` : slot.divName}
       style={{
-        padding: "8px 10px",
+        padding: "8px 10px 8px 7px",
         display: "flex",
         alignItems: "center",
         gap: 8,
         cursor: clickable ? "pointer" : "default",
+        borderLeft: `3px solid ${dc}`,
       }}
     >
       <div
@@ -83,8 +85,26 @@ function TeamSlot({
         >
           {t.p2}
         </div>
-        <div style={{ fontSize: 9, color: tierColor, letterSpacing: "0.1em", marginTop: 2 }}>
-          {slot.divName} · {slot.Pts} PTS
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
+          <span
+            style={{
+              fontFamily: F.mono,
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: "0.06em",
+              color: dc,
+              background: `${dc}1f`,
+              border: `1px solid ${dc}59`,
+              borderRadius: 3,
+              padding: "1px 4px",
+              lineHeight: 1.4,
+            }}
+          >
+            {slot.divName}
+          </span>
+          <span style={{ fontSize: 9, color: C.mute, letterSpacing: "0.1em" }}>
+            {slot.Pts} PTS
+          </span>
         </div>
       </div>
     </div>

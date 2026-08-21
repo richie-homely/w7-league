@@ -15,7 +15,27 @@ export const C = {
   amber: "#ffb84d",
   green: "#4ade80",
   info: "#7DD8FF",
+  violet: "#b98cff",
 } as const;
+
+/** One colour per division, so a knockout card shows at a glance who a team
+ *  came through with — the draw deliberately pairs teams from DIFFERENT
+ *  divisions, which you can only see if the divisions are visually distinct.
+ *
+ *  Keyed by division NAME (G1..G5), never by id: the ids are g1-low, g2-low,
+ *  g3-low, g3-high, g4-high and they do NOT line up with the names — the
+ *  division shown as "G4" has id "g3-high". Keying off id silently mis-colours. */
+export const DIV_COLORS: Record<string, string> = {
+  G1: "#D4FF3A",
+  G2: "#7DD8FF",
+  G3: "#ffb84d",
+  G4: "#4ade80",
+  G5: "#b98cff",
+};
+
+export function divColor(div: string | undefined): string {
+  return (div && DIV_COLORS[div.toUpperCase()]) || "#8a8a8a";
+}
 
 export const F = {
   display:
