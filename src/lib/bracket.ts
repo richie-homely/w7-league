@@ -91,11 +91,18 @@ export function tierQualifiers(
 /** Seed pairs that meet in the first round of each bracket size. */
 function firstRoundPairs(n: number): [number, number][] {
   if (n <= 8) {
+    // QF2 and QF4 are swapped versus the textbook 1v8 / 4v5 / 2v7 / 3v6 order
+    // (Richie, 21 Aug 2026). It carries the cross-division principle up into the
+    // semi-finals: each half now holds one division's winner and the OTHER
+    // division's runner-up, so a division's top two can only meet in the final.
+    // The textbook order put seeds 1 and 4 (both G4) in one half and 2 and 3
+    // (both G5) in the other. Cost: seed 1's half contains seed 3 rather than
+    // seed 4, so the top seed's semi-final is marginally harder.
     return [
       [1, 8],
-      [4, 5],
-      [2, 7],
       [3, 6],
+      [2, 7],
+      [4, 5],
     ];
   }
   if (n <= 12) {
