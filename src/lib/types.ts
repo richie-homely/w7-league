@@ -81,10 +81,17 @@ export interface BracketMatch {
   b: BracketSlot;
 }
 
+export interface BracketMeta {
+  /** true when no first-round tie pairs teams from the same division */
+  crossDivision: boolean;
+  note: string;
+}
+
 export interface Bracket {
   r1: BracketMatch[];
   qf: BracketMatch[];
   sf: BracketMatch[];
   f: BracketMatch[];
   third: BracketMatch[];
+  meta?: BracketMeta;
 }
