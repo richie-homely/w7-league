@@ -68,6 +68,10 @@ export interface Qualifier extends StandingRow {
   divName: string;
   divId: string;
   seed: number;
+  /** Set when the occupant of this qualifying slot is not yet decided — a
+   *  play-off is outstanding. The slot still seeds normally so the bracket
+   *  shape holds; only the name is withheld. */
+  pending?: string;
 }
 
 export type BracketSlot =

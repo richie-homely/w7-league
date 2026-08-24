@@ -28,6 +28,19 @@ export const TIER_PRIZES = [
 const QUALIFY_PER_DIV: Record<Tier, number> = { lower: 5, upper: 4 };
 const EXTRA_SPOTS: Record<Tier, number> = { lower: 1, upper: 0 };
 
+/* Qualifying slots whose occupant is still to be decided by a play-off.
+ *
+ * Keyed by division and finishing position, NOT by team: the point is that the
+ * SLOT is undecided. If tonight's last group game reshuffles the table, whoever
+ * lands in that position is still the team awaiting a play-off, and the bracket
+ * keeps telling the truth without being edited again.
+ *
+ * G1 5th, 24 Aug 2026 (Richie): one group game left tonight, then a play-off
+ * for the final G1 slot. Clear this entry once the play-off has been played. */
+const PENDING_SLOTS: { divId: string; position: number; label: string }[] = [
+  { divId: "g1-low", position: 5, label: "G1 play-off" },
+];
+
 /** Tier ranking order: points -> set difference -> game difference. */
 function byMerit(a: Qualifier, b: Qualifier): number {
   if (b.Pts !== a.Pts) return b.Pts - a.Pts;
@@ -47,9 +60,13 @@ export function tierQualifiers(
   const nextBest: Qualifier[] = [];       // each division's first non-qualifier
   tierDivs.forEach((d) => {
     const rows = computeStandings(d.id, teamsByDiv, fixtures);
-    rows.slice(0, per).forEach((r) =>
-      all.push({ ...r, divName: d.name, divId: d.id, seed: 0 })
-    );
+    rows.slice(0, per).forEach((r, i) => {
+      const pend = PENDING_SLOTS.find(
+        (p) => p.divId === d.id && p.position === i + 1
+      );
+      all.push({ ...r, divName: d.name, divId: d.id, seed: 0,
+                 ...(pend ? { pending: pend.label } : {}) });
+    });
     const runnerUp = rows[per];
     if (runnerUp) nextBest.push({ ...runnerUp, divName: d.name, divId: d.id, seed: 0 });
   });

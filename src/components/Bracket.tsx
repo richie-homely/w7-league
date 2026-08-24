@@ -27,7 +27,10 @@ function TeamSlot({
     );
   }
   const t = slot.team;
-  const clickable = onTeam && !t.placeholder;
+  // A slot awaiting a play-off keeps its seed and division — we know which
+  // division it belongs to and roughly how strong it is — but not who fills it.
+  const pending = slot.pending;
+  const clickable = onTeam && !t.placeholder && !pending;
   const dc = divColor(slot.divName);
   return (
     <div
@@ -40,6 +43,7 @@ function TeamSlot({
         gap: 8,
         cursor: clickable ? "pointer" : "default",
         borderLeft: `3px solid ${dc}`,
+        opacity: pending ? 0.72 : 1,
       }}
     >
       <div
@@ -71,7 +75,7 @@ function TeamSlot({
             opacity: t.placeholder ? 0.45 : 1,
           }}
         >
-          {t.p1}
+          {pending ? "TBC" : t.p1}
         </div>
         <div
           style={{
@@ -83,7 +87,7 @@ function TeamSlot({
             opacity: t.placeholder ? 0.45 : 1,
           }}
         >
-          {t.p2}
+          {pending ? `awaiting ${pending}` : t.p2}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 3 }}>
           <span
@@ -103,7 +107,7 @@ function TeamSlot({
             {slot.divName}
           </span>
           <span style={{ fontSize: 9, color: C.mute, letterSpacing: "0.1em" }}>
-            {slot.Pts} PTS
+            {pending ? "PLAY-OFF PENDING" : `${slot.Pts} PTS`}
           </span>
         </div>
       </div>
