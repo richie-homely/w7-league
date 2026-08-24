@@ -2,6 +2,7 @@
 // Win = 3 pts | Straight-sets (2-0) bonus = +1 pt
 // Tiebreak: Points -> H2H -> Set diff -> Game diff
 import type { Fixture, StandingRow, Team } from "./types";
+import { divisionLock } from "./league";
 
 export function computeStandings(
   divisionId: string,
@@ -27,12 +28,20 @@ export function computeStandings(
   }));
   const byId = Object.fromEntries(rows.map((r) => [r.teamId, r]));
 
+  // A closed division ignores anything entered after its places were settled —
+  // a dead rubber played later must not retrospectively change who qualified.
+  const lock = divisionLock(divisionId);
+  const lockedAt = lock ? Date.parse(lock.at) : null;   // enteredAt is epoch ms
+  const countable = (f: Fixture) =>
+    lockedAt === null || !f.enteredAt || f.enteredAt <= lockedAt;
+
   fixtures
     .filter(
       (f) =>
         f.divisionId === divisionId &&
         (f.status === "completed" || f.status === "walkover") &&
-        f.sets
+        f.sets &&
+        countable(f)
     )
     // ONE chronological pass over played results AND walkovers, so each team's
     // `form` reads oldest-to-newest regardless of how a round was decided.

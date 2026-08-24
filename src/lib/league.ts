@@ -17,6 +17,26 @@ export const DIVISIONS: Division[] = [
   { id: "g4-high", name: "G5", tier: "upper", tierLabel: "2.5 – 5.5" },
 ];
 
+/* Divisions whose table is CLOSED.
+ *
+ * Once a division's qualifying places are settled — and especially once a
+ * play-off has been played to decide the last one — any remaining group
+ * fixtures are dead rubbers. If one were entered afterwards it would move the
+ * table and could retrospectively change who qualified, after the knockout draw
+ * had been published. Locking freezes the table at the moment the places were
+ * decided: results entered after `at` still store and still display, they just
+ * do not count towards standings or qualification.
+ *
+ * Set `at` to the moment the places were settled. Empty = nothing locked.
+ */
+export const LOCKED_DIVISIONS: Record<string, { at: string; note: string }> = {
+  // "g1-low": { at: "2026-08-24T23:00:00+01:00", note: "places settled by play-off" },
+};
+
+export function divisionLock(divisionId: string) {
+  return LOCKED_DIVISIONS[divisionId];
+}
+
 export function divisionById(id: string): Division | undefined {
   return DIVISIONS.find((d) => d.id === id);
 }
