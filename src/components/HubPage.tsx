@@ -174,9 +174,17 @@ export function HubPage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px 8px" }}>
-        {/* Hero line */}
-        <div style={{ marginBottom: 26 }}>
+      {/* Hero — the W7 courts as a full-bleed backdrop, fading into the page.
+          The photo lives at /public/courts.jpg; until it exists the gradient
+          alone renders and the hero looks like the plain page. */}
+      <div
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.75) 55%, ${C.bg} 100%), url('/courts.jpg')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 35%",
+        }}
+      >
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 20px 40px" }}>
           <div
             style={{
               fontFamily: F.display,
@@ -184,17 +192,29 @@ export function HubPage() {
               lineHeight: 1,
               letterSpacing: "0.01em",
               textTransform: "uppercase",
+              textShadow: "0 2px 18px rgba(0,0,0,0.8)",
             }}
           >
             Find your <span style={{ color: C.accent }}>league</span>.
           </div>
-          <p style={{ fontSize: 14.5, color: C.mute, lineHeight: 1.6, maxWidth: 640, marginTop: 10 }}>
+          <p
+            style={{
+              fontSize: 14.5,
+              color: "#c8c8c8",
+              lineHeight: 1.6,
+              maxWidth: 640,
+              marginTop: 10,
+              textShadow: "0 1px 10px rgba(0,0,0,0.9)",
+            }}
+          >
             Competitive padel for every level at W7. The Summer Leagues are live, the
             Autumn/Winter Box League is open for entry, and there&apos;s more on the way —
             tell us which formats you want and we&apos;ll run the ones you ask for.
           </p>
         </div>
+      </div>
 
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 20px" }}>
         {/* Featured: live + open */}
         <div
           style={{

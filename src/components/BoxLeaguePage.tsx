@@ -125,30 +125,53 @@ export function BoxLeaguePage() {
         </div>
       </div>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "36px 20px 8px" }}>
-        <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
-          {regOpen ? "REGISTRATION OPEN · FIRST COME, FIRST SERVED" : "REGISTRATION CLOSED"}
+      {/* Hero over the courts photo (/public/courts.jpg) — gradient-only until
+          the photo lands, so nothing breaks without it. */}
+      <div
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(10,10,10,0.55) 0%, rgba(10,10,10,0.78) 60%, ${C.bg} 100%), url('/courts.jpg')`,
+          backgroundSize: "cover",
+          backgroundPosition: "center 35%",
+        }}
+      >
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 20px 36px" }}>
+          <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
+            {regOpen ? "REGISTRATION OPEN · FIRST COME, FIRST SERVED" : "REGISTRATION CLOSED"}
+          </div>
+          <h1
+            style={{
+              fontFamily: F.display,
+              fontSize: "clamp(34px, 7vw, 60px)",
+              lineHeight: 1,
+              letterSpacing: "0.01em",
+              textTransform: "uppercase",
+              margin: "10px 0 0",
+              textShadow: "0 2px 18px rgba(0,0,0,0.8)",
+            }}
+          >
+            Autumn/Winter <span style={{ color: C.accent }}>Box League</span>
+          </h1>
+          <p
+            style={{
+              fontSize: 15,
+              color: C.text,
+              lineHeight: 1.65,
+              maxWidth: 640,
+              marginTop: 16,
+              opacity: 0.95,
+              textShadow: "0 1px 10px rgba(0,0,0,0.9)",
+            }}
+          >
+            Our Autumn/Winter Padel Box League starts <strong>Monday 14 September</strong> 🎾 Teams
+            are placed into boxes based on their <strong>combined Playtomic ratings</strong>, so
+            every match is competitive and against players of a similar standard. It&apos;s a great
+            way to play more competitive matches, meet new players and build your Playtomic rating
+            over the next {BOX_LEAGUE.durationMonths} months.
+          </p>
         </div>
-        <h1
-          style={{
-            fontFamily: F.display,
-            fontSize: "clamp(34px, 7vw, 60px)",
-            lineHeight: 1,
-            letterSpacing: "0.01em",
-            textTransform: "uppercase",
-            margin: "10px 0 0",
-          }}
-        >
-          Autumn/Winter <span style={{ color: C.accent }}>Box League</span>
-        </h1>
-        <p style={{ fontSize: 15, color: C.text, lineHeight: 1.65, maxWidth: 640, marginTop: 16, opacity: 0.92 }}>
-          Our Autumn/Winter Padel Box League starts <strong>Monday 14 September</strong> 🎾 Teams are
-          placed into boxes based on their <strong>combined Playtomic ratings</strong>, so every match
-          is competitive and against players of a similar standard. It&apos;s a great way to play more
-          competitive matches, meet new players and build your Playtomic rating over the next{" "}
-          {BOX_LEAGUE.durationMonths} months.
-        </p>
+      </div>
 
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 20px 8px" }}>
         {/* Key facts */}
         <div
           style={{
