@@ -23,7 +23,7 @@ export default function RulesPage() {
         </div>
         <div style={{ flex: 1 }} />
         <Link
-          href="/"
+          href="/summer-2026"
           style={{
             fontSize: 12,
             color: C.mute,

@@ -83,7 +83,7 @@ export function RegisterForm() {
           <button onClick={() => setSent(false)} style={ghostBtn}>
             ← Edit details
           </button>
-          <Link href="/" style={{ ...ghostBtn, textDecoration: "none" }}>
+          <Link href="/summer-2026" style={{ ...ghostBtn, textDecoration: "none" }}>
             Back to league
           </Link>
         </div>

@@ -33,7 +33,9 @@ export function TopBar({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <Logo style={{ width: 44, height: 44 }} />
+        <Link href="/" title="All W7 leagues & competitions">
+          <Logo style={{ width: 44, height: 44 }} />
+        </Link>
         <div>
           <div
             style={{
@@ -53,6 +55,22 @@ export function TopBar({
       </div>
       <div style={{ flex: 1 }} />
       <div style={{ display: "flex", gap: 4, background: C.card, borderRadius: 8, padding: 4 }}>
+        <Link
+          href="/"
+          style={{
+            padding: "8px 16px",
+            background: "transparent",
+            color: C.mute,
+            borderRadius: 6,
+            fontFamily: F.body,
+            fontWeight: 600,
+            fontSize: 13,
+            letterSpacing: "0.02em",
+            textDecoration: "none",
+          }}
+        >
+          ← Leagues
+        </Link>
         {tabs.map((t) => {
           const active = mode === t.id;
           return (

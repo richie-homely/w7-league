@@ -1,5 +1,5 @@
-import { LeagueApp } from "@/components/LeagueApp";
+import { HubPage } from "@/components/HubPage";
 
 export default function Home() {
-  return <LeagueApp />;
+  return <HubPage />;
 }

@@ -90,7 +90,7 @@ function AdminBar({
       </div>
       <div style={{ flex: 1 }} />
       <Link
-        href="/"
+        href="/summer-2026"
         style={{ fontSize: 12, color: C.mute, textDecoration: "none", padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 6 }}
       >
         ← Public site
