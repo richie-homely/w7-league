@@ -26,14 +26,10 @@ export interface Competition {
   detail: string;
   href?: string; // internal page, when one exists
   cta?: { label: string; href: string; external?: boolean };
+  /** When set, the card carries an inline register-interest form (stored in
+   *  the `interest` table) instead of a link CTA. */
+  interestFormat?: string;
 }
-
-const interestMailto = (format: string) =>
-  `mailto:${CONTACT.email}?subject=${encodeURIComponent(
-    `Register interest: ${format}`
-  )}&body=${encodeURIComponent(
-    `Hi W7,\n\nI'd be interested in the ${format}.\n\nName:\nPlaytomic rating (if known):\nPreferred nights:\n\nThanks!`
-  )}`;
 
 // ---------------------------------------------------------------------------
 // Roll of honour — past seasons & winners, newest first. Append a season here
@@ -84,7 +80,7 @@ export const COMPETITIONS: Competition[] = [
     tagline: "One of each · all levels",
     detail:
       "Mixed pairs league night. Tell us you're in and we'll build it around the demand.",
-    cta: { label: "Register interest", href: interestMailto("Mixed League"), external: true },
+    interestFormat: "Mixed League",
   },
   {
     id: "parent-child",
@@ -93,11 +89,7 @@ export const COMPETITIONS: Competition[] = [
     tagline: "Family doubles",
     detail:
       "Play alongside your kid (or your parent). Weekend slots, friendly format, all ages.",
-    cta: {
-      label: "Register interest",
-      href: interestMailto("Parent & Child League"),
-      external: true,
-    },
+    interestFormat: "Parent & Child League",
   },
   {
     id: "over-50s",
@@ -106,7 +98,7 @@ export const COMPETITIONS: Competition[] = [
     tagline: "Daytime padel, proper competition",
     detail:
       "A daytime league for the over-50s crowd. Social first, competitive close behind.",
-    cta: { label: "Register interest", href: interestMailto("Over 50s League"), external: true },
+    interestFormat: "Over 50s League",
   },
   {
     id: "suggest",
@@ -115,10 +107,6 @@ export const COMPETITIONS: Competition[] = [
     tagline: "Ladies' night? Corporate? Juniors?",
     detail:
       "If there's a format you'd sign up for that isn't listed, tell us — the formats that run are the ones people ask for.",
-    cta: {
-      label: "Suggest a format",
-      href: interestMailto("a new league format (my suggestion inside)"),
-      external: true,
-    },
+    interestFormat: "New format suggestion",
   },
 ];

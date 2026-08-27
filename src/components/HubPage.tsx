@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { CONTACT } from "@/lib/league";
@@ -10,6 +11,7 @@ import {
   type CompetitionStatus,
 } from "@/lib/competitions";
 import { Logo } from "./ui";
+import { InterestForm } from "./InterestForm";
 import { KeanoCredit } from "./KeanoCredit";
 
 const STATUS_STYLE: Record<CompetitionStatus, { label: string; color: string }> = {
@@ -54,6 +56,7 @@ function StatusBadge({ status }: { status: CompetitionStatus }) {
 
 function CompetitionCard({ comp }: { comp: Competition }) {
   const featured = comp.status !== "soon";
+  const [formOpen, setFormOpen] = useState(false);
   const body = (
     <div
       style={{
@@ -108,6 +111,31 @@ function CompetitionCard({ comp }: { comp: Competition }) {
           >
             {comp.cta.label} →
           </span>
+        </div>
+      )}
+      {comp.interestFormat && (
+        <div style={{ marginTop: 6 }}>
+          {formOpen ? (
+            <InterestForm format={comp.interestFormat} />
+          ) : (
+            <button
+              onClick={() => setFormOpen(true)}
+              style={{
+                padding: "8px 14px",
+                background: "transparent",
+                color: C.text,
+                border: `1px solid ${C.border}`,
+                borderRadius: 8,
+                fontFamily: F.body,
+                fontSize: 13,
+                fontWeight: 700,
+                letterSpacing: "0.02em",
+                cursor: "pointer",
+              }}
+            >
+              Register interest →
+            </button>
+          )}
         </div>
       )}
     </div>

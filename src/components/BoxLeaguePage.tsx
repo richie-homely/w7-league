@@ -5,6 +5,8 @@ import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { CONTACT } from "@/lib/league";
 import { BOX_LEAGUE } from "@/lib/competitions";
+import { useBoxData } from "@/lib/box";
+import { BoxLeagueLive } from "./BoxLeagueLive";
 import { Logo } from "./ui";
 import { KeanoCredit } from "./KeanoCredit";
 
@@ -99,6 +101,8 @@ export function BoxLeaguePage() {
   // pre-close state is the correct default for SSR while entries are live.
   const now = useNow();
   const regOpen = now === null || now < BOX_LEAGUE.regClose.getTime();
+  // Boxes render automatically once teams are seeded after entries close.
+  const { teams, matches } = useBoxData();
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
@@ -229,9 +233,12 @@ export function BoxLeaguePage() {
           </ol>
           <p style={{ fontSize: 12.5, color: C.mute, lineHeight: 1.6, marginTop: 8 }}>
             All league rules, format and full terms &amp; conditions can be viewed in Playtomic when
-            signing up. Boxes, fixtures and standings will appear on this page once entries close.
+            signing up.{" "}
+            {teams.length === 0 && "Boxes, fixtures and standings will appear on this page once entries close."}
           </p>
         </div>
+
+        {teams.length > 0 && <BoxLeagueLive teams={teams} matches={matches} />}
       </div>
 
       {/* Footer */}
