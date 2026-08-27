@@ -2,8 +2,6 @@
 // The Summer League keeps its own config in lib/league.ts; this file only owns
 // the hub cards and the Box League key facts (announcement of 27 Aug 2026).
 
-import { CONTACT } from "./league";
-
 export const BOX_LEAGUE = {
   name: "Autumn/Winter Box League",
   start: new Date("2026-09-14"), // Monday
@@ -12,8 +10,9 @@ export const BOX_LEAGUE = {
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
   durationMonths: 6,
-  // Registration is handled in Playtomic under Events.
-  registerUrl: CONTACT.playtomic,
+  // Direct link to the Box League event in Playtomic (it lives under Events).
+  registerUrl:
+    "https://app.playtomic.com/tournaments/e59d3263-c5cb-4f96-8745-46f32711d1be",
 } as const;
 
 export type CompetitionStatus = "live" | "open" | "soon";

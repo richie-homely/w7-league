@@ -246,11 +246,12 @@ export function BoxLeaguePage() {
           <ol style={{ fontSize: 14, color: C.text, lineHeight: 1.8, paddingLeft: 20, marginTop: 10, opacity: 0.9 }}>
             <li>Get your partner sorted — entries are per team of two.</li>
             <li>
-              Open{" "}
+              Tap{" "}
               <a href={BOX_LEAGUE.registerUrl} style={{ color: C.info, fontWeight: 600 }}>
-                Playtomic
+                Enter on Playtomic
               </a>{" "}
-              and find the Box League under <strong>Events</strong>.
+              — it opens the Box League directly. If you&apos;re browsing the Playtomic app
+              instead, you&apos;ll find it under the <strong>Events</strong> section.
             </li>
             <li>Book your place — €{BOX_LEAGUE.entryPerPerson} per person.</li>
           </ol>
