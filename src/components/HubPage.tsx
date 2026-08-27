@@ -12,6 +12,8 @@ import {
 } from "@/lib/competitions";
 import { Logo } from "./ui";
 import { InterestForm } from "./InterestForm";
+import { SocialsSection } from "./SocialsSection";
+import { CoachingSection } from "./CoachingSection";
 import { KeanoCredit } from "./KeanoCredit";
 
 const STATUS_STYLE: Record<CompetitionStatus, { label: string; color: string }> = {
@@ -253,6 +255,12 @@ export function HubPage() {
             <CompetitionCard key={c.id} comp={c} />
           ))}
         </div>
+
+        {/* Socials calendar (live from Playtomic via the pipeline) */}
+        <SocialsSection />
+
+        {/* Coaching & lessons */}
+        <CoachingSection />
 
         {/* Roll of honour: past seasons & winners */}
         <div

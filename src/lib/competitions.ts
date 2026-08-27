@@ -31,6 +31,44 @@ export interface Competition {
 }
 
 // ---------------------------------------------------------------------------
+// Coaching — the lesson types shown in the hub's coaching section. Copy is
+// deliberately config: tweak titles/blurbs/details here as the offer evolves.
+// ---------------------------------------------------------------------------
+export interface CoachingOption {
+  id: string;
+  title: string;
+  blurb: string;
+  detail: string; // e.g. who it's for / group size
+}
+
+export const COACHING: CoachingOption[] = [
+  {
+    id: "one-to-one",
+    title: "1-to-1 Lessons",
+    blurb: "Private coaching built around your game.",
+    detail: "Technique, tactics and match play — all levels, beginner to advanced.",
+  },
+  {
+    id: "small-group",
+    title: "Small-Group Lessons",
+    blurb: "Split the court (and the cost) with 2–4 players.",
+    detail: "Bring your own group or we'll match you with players at your level.",
+  },
+  {
+    id: "beginners",
+    title: "Beginner Intro Sessions",
+    blurb: "Never played? Start here.",
+    detail: "The rules, the glass, the basics — rackets and balls provided.",
+  },
+  {
+    id: "juniors",
+    title: "Junior Coaching",
+    blurb: "Kids' sessions and camps.",
+    detail: "Fun first, fundamentals close behind — ask us what's running this term.",
+  },
+];
+
+// ---------------------------------------------------------------------------
 // Roll of honour — past seasons & winners, newest first. Append a season here
 // when its final is played and it appears on the hub automatically. Until the
 // first entry exists the hub shows a teaser instead.
