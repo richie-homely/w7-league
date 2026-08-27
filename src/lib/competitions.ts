@@ -138,10 +138,28 @@ export const COMPETITIONS: Competition[] = [
     interestFormat: "Over 50s League",
   },
   {
+    id: "weekend-comps",
+    title: "Weekend Day Competitions",
+    status: "soon",
+    tagline: "One-day tournaments · big prizes",
+    detail:
+      "Show up, play all day, win big. One-day weekend competitions with serious prizes on the line — formats for every level.",
+    interestFormat: "Weekend Day Competitions",
+  },
+  {
+    id: "juniors",
+    title: "Junior Competitions",
+    status: "soon",
+    tagline: "For the next generation",
+    detail:
+      "Competitions for junior players — fun formats, real prizes, and a pathway from the coaching programme into competitive padel.",
+    interestFormat: "Junior Competitions",
+  },
+  {
     id: "suggest",
     title: "Your idea here",
     status: "soon",
-    tagline: "Ladies' night? Corporate? Juniors?",
+    tagline: "Ladies' night? Corporate? Americano?",
     detail:
       "If there's a format you'd sign up for that isn't listed, tell us — the formats that run are the ones people ask for.",
     interestFormat: "New format suggestion",
