@@ -10,8 +10,8 @@ import {
   type Competition,
   type CompetitionStatus,
 } from "@/lib/competitions";
-import { Logo } from "./ui";
 import { InterestForm } from "./InterestForm";
+import { SiteNav } from "./SiteNav";
 import { SocialsSection } from "./SocialsSection";
 import { CoachingSection } from "./CoachingSection";
 import { KeanoCredit } from "./KeanoCredit";
@@ -161,20 +161,7 @@ export function HubPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
-      {/* Header */}
-      <div style={{ borderBottom: `1px solid ${C.border}`, padding: "18px 20px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", gap: 14 }}>
-          <Logo style={{ width: 48, height: 48 }} />
-          <div>
-            <div style={{ fontFamily: F.display, fontSize: 24, letterSpacing: "0.03em", lineHeight: 1 }}>
-              W7 LEAGUES &amp; COMPETITIONS
-            </div>
-            <div style={{ fontSize: 11.5, color: C.mute, marginTop: 4 }}>
-              W7 Padel · Wicklow Town
-            </div>
-          </div>
-        </div>
-      </div>
+      <SiteNav />
 
       {/* Hero — the W7 courts as a full-bleed backdrop, fading into the page.
           The photo lives at /public/courts.jpg; until it exists the gradient

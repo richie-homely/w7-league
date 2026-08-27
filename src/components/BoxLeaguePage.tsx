@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { CONTACT } from "@/lib/league";
 import { BOX_LEAGUE } from "@/lib/competitions";
 import { useBoxData } from "@/lib/box";
 import { BoxLeagueLive } from "./BoxLeagueLive";
-import { Logo } from "./ui";
+import { SiteNav } from "./SiteNav";
 import { KeanoCredit } from "./KeanoCredit";
 
 // Clock kept in state and only ever set from timer callbacks: the server render
@@ -106,24 +105,7 @@ export function BoxLeaguePage() {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
-      {/* Header */}
-      <div style={{ borderBottom: `1px solid ${C.border}`, padding: "14px 20px" }}>
-        <div
-          style={{
-            maxWidth: 900,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            flexWrap: "wrap",
-          }}
-        >
-          <Link href="/" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none" }}>
-            <Logo style={{ width: 40, height: 40 }} />
-            <span style={{ fontSize: 12, color: C.mute, fontWeight: 600 }}>← All leagues</span>
-          </Link>
-        </div>
-      </div>
+      <SiteNav />
 
       {/* Hero over the courts photo (/public/courts.jpg) — gradient-only until
           the photo lands, so nothing breaks without it. */}
