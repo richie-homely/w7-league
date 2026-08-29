@@ -120,6 +120,27 @@ export function BoxLeaguePage() {
           <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
             {regOpen ? "REGISTRATION OPEN · FIRST COME, FIRST SERVED" : "REGISTRATION CLOSED"}
           </div>
+          {BOX_LEAGUE.registeredPlayers > 0 && (
+            <div
+              style={{
+                marginTop: 10,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "rgba(212,255,58,0.12)",
+                border: `1px solid ${C.accent}55`,
+                borderRadius: 999,
+                padding: "5px 14px",
+              }}
+            >
+              <span style={{ fontFamily: F.display, fontSize: 20, color: C.accent, lineHeight: 1 }}>
+                {BOX_LEAGUE.registeredPlayers}
+              </span>
+              <span style={{ fontSize: 12.5, color: C.text, fontWeight: 600 }}>
+                players registered so far
+              </span>
+            </div>
+          )}
           <h1
             style={{
               fontFamily: F.display,

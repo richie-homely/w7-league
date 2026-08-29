@@ -38,7 +38,9 @@ const EXTRA_SPOTS: Record<Tier, number> = { lower: 1, upper: 0 };
  * G1 5th, 24 Aug 2026 (Richie): one group game left tonight, then a play-off
  * for the final G1 slot. Clear this entry once the play-off has been played. */
 const PENDING_SLOTS: { divId: string; position: number; label: string }[] = [
-  { divId: "g1-low", position: 5, label: "G1 play-off" },
+  // G1 5th was pending a play-off; Jack Colaluca / Oussama won it on 27 Aug 2026
+  // and hold the slot, so nothing is outstanding. Add an entry here if another
+  // qualifying place ever goes to a decider.
 ];
 
 /** Tier ranking order: points -> set difference -> game difference. */

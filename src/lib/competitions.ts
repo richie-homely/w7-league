@@ -7,6 +7,9 @@ export const BOX_LEAGUE = {
   start: new Date("2026-09-14"), // Monday
   regClose: new Date("2026-09-08T00:00:00+01:00"), // closes end of Mon 7 Sep
   maxTeams: 60,
+  // Players signed up so far (Playtomic event). Players, not teams — a team is
+  // two, so 74 players is roughly 37 of the 60 team places. Update as it moves.
+  registeredPlayers: 74,
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
   durationMonths: 6,
