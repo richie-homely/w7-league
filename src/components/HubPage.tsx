@@ -93,6 +93,35 @@ function CompetitionCard({ comp }: { comp: Competition }) {
       <div style={{ fontFamily: F.body, fontSize: 12.5, color: featured ? C.accent : C.mute, fontWeight: 600 }}>
         {comp.tagline}
       </div>
+      {comp.entrants && (
+        <div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: F.display, fontSize: 19, color: C.accent, lineHeight: 1 }}>
+              {comp.entrants.players}
+            </span>
+            <span style={{ fontSize: 12.5, color: C.text, fontWeight: 600 }}>
+              players registered
+            </span>
+            <span style={{ fontSize: 12, color: C.mute }}>
+              · {comp.entrants.teams} of {comp.entrants.maxTeams} teams
+            </span>
+          </div>
+          <div
+            style={{
+              height: 4, borderRadius: 999, background: C.bg2,
+              marginTop: 6, overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${Math.min(100, (comp.entrants.teams / comp.entrants.maxTeams) * 100)}%`,
+                background: C.accent,
+              }}
+            />
+          </div>
+        </div>
+      )}
       <div style={{ fontFamily: F.body, fontSize: 13.5, color: C.text, lineHeight: 1.55, opacity: 0.9, flex: 1 }}>
         {comp.detail}
       </div>

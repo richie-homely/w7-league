@@ -30,6 +30,10 @@ export interface Competition {
   detail: string;
   href?: string; // internal page, when one exists
   cta?: { label: string; href: string; external?: boolean };
+  /** Live entry count, shown on the card so the hub tells you how full it is
+   *  without a click. Players and teams both, because the cap is in TEAMS and a
+   *  bare player count next to it reads as far fuller than it is. */
+  entrants?: { players: number; teams: number; maxTeams: number };
   /** When set, the card carries an inline register-interest form (stored in
    *  the `interest` table) instead of a link CTA. */
   interestFormat?: string;
@@ -114,6 +118,11 @@ export const COMPETITIONS: Competition[] = [
       "Teams placed into boxes by combined Playtomic rating for competitive matches at your level, over 6 months. Registration closes Mon 7 Sep — first come, first served.",
     href: "/box",
     cta: { label: "Details & how to enter", href: "/box" },
+    entrants: {
+      players: BOX_LEAGUE.registeredPlayers,
+      teams: Math.floor(BOX_LEAGUE.registeredPlayers / 2),
+      maxTeams: BOX_LEAGUE.maxTeams,
+    },
   },
   {
     id: "mixed",
