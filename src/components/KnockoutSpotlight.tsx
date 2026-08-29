@@ -20,29 +20,48 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
   const a = named(match.a);
   const b = named(match.b);
   if (!a && !b) return null;
-  const side = (q: Qualifier | null) => {
+  // Both players, on their own lines. A padel team is two people and the fixture
+  // list is the thing players scan for their own name, so showing only the first
+  // hides half the field.
+  const side = (q: Qualifier | null, right: boolean) => {
     if (!q) return <span style={{ color: C.mute, fontStyle: "italic" }}>TBC</span>;
     const dc = divColor(q.divName);
+    const badge = (
+      <span
+        style={{
+          fontFamily: F.mono, fontSize: 9, fontWeight: 700, color: dc,
+          background: `${dc}1f`, border: `1px solid ${dc}55`, borderRadius: 3,
+          padding: "0 4px", flexShrink: 0, lineHeight: "16px",
+        }}
+      >
+        {q.seed}
+      </span>
+    );
+    const names = (
+      <span style={{ minWidth: 0, textAlign: right ? "right" : "left" }}>
+        {[q.team.p1, q.team.p2].filter(Boolean).map((n, i) => (
+          <span
+            key={i}
+            style={{
+              display: "block", fontSize: 12.5, lineHeight: 1.35,
+              color: i === 0 ? C.text : C.mute, fontWeight: i === 0 ? 600 : 500,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}
+          >
+            {n}
+          </span>
+        ))}
+      </span>
+    );
     return (
-      <span style={{ display: "inline-flex", alignItems: "baseline", gap: 6, minWidth: 0 }}>
-        <span
-          style={{
-            fontFamily: F.mono, fontSize: 9, fontWeight: 700, color: dc,
-            background: `${dc}1f`, border: `1px solid ${dc}55`, borderRadius: 3,
-            padding: "0 4px", flexShrink: 0,
-          }}
-        >
-          {q.seed}
-        </span>
-        <span
-          style={{
-            fontSize: 12.5, color: C.text, fontWeight: 600,
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          }}
-          title={`${q.team.p1} / ${q.team.p2} · ${q.divName}`}
-        >
-          {q.team.p1}
-        </span>
+      <span
+        style={{
+          display: "inline-flex", alignItems: "flex-start", gap: 6, minWidth: 0,
+          flexDirection: right ? "row-reverse" : "row",
+        }}
+      >
+        {badge}
+        {names}
       </span>
     );
   };
@@ -61,9 +80,9 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
         minWidth: 0,
       }}
     >
-      {side(a)}
+      {side(a, false)}
       <span style={{ fontFamily: F.mono, fontSize: 9.5, color: C.mute }}>v</span>
-      <span style={{ textAlign: "right", minWidth: 0 }}>{side(b)}</span>
+      <span style={{ textAlign: "right", minWidth: 0 }}>{side(b, true)}</span>
     </div>
   );
 }

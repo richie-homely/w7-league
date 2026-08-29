@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { BoxGrid } from "./BoxGrid";
 import { C, F } from "@/theme/tokens";
 import { CONTACT } from "@/lib/league";
 import { BOX_LEAGUE } from "@/lib/competitions";
@@ -137,7 +138,10 @@ export function BoxLeaguePage() {
                 {BOX_LEAGUE.registeredPlayers}
               </span>
               <span style={{ fontSize: 12.5, color: C.text, fontWeight: 600 }}>
-                players registered so far
+                players registered
+              </span>
+              <span style={{ fontSize: 12.5, color: C.mute }}>
+                · {Math.floor(BOX_LEAGUE.registeredPlayers / 2)} of {BOX_LEAGUE.maxTeams} teams
               </span>
             </div>
           )}
@@ -152,7 +156,7 @@ export function BoxLeaguePage() {
               textShadow: "0 2px 18px rgba(0,0,0,0.8)",
             }}
           >
-            Autumn/Winter <span style={{ color: C.accent }}>Box League</span>
+            Autumn/Winter Padel <span style={{ color: C.accent }}>Box League</span>
           </h1>
           <p
             style={{
@@ -172,6 +176,18 @@ export function BoxLeaguePage() {
             over the next {BOX_LEAGUE.durationMonths} months.
           </p>
         </div>
+        <div style={{ marginTop: 30 }}>
+          <div
+            style={{
+              fontFamily: F.display, fontSize: 24, textTransform: "uppercase",
+              letterSpacing: "0.02em", marginBottom: 4,
+            }}
+          >
+            Provisional <span style={{ color: C.accent }}>boxes</span>
+          </div>
+          <BoxGrid />
+        </div>
+
       </div>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 20px 8px" }}>

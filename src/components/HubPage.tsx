@@ -198,7 +198,7 @@ export function HubPage() {
             }}
           >
             Competitive padel for every level at W7. The Summer Leagues are live, the
-            Autumn/Winter Box League is open for entry, and there&apos;s more on the way —
+            Autumn/Winter Padel Box League is open for entry, and there&apos;s more on the way —
             tell us which formats you want and we&apos;ll run the ones you ask for.
           </p>
         </div>

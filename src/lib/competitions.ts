@@ -3,12 +3,14 @@
 // the hub cards and the Box League key facts (announcement of 27 Aug 2026).
 
 export const BOX_LEAGUE = {
-  name: "Autumn/Winter Box League",
+  name: "Autumn/Winter Padel Box League",
   start: new Date("2026-09-14"), // Monday
   regClose: new Date("2026-09-08T00:00:00+01:00"), // closes end of Mon 7 Sep
   maxTeams: 60,
-  // Players signed up so far (Playtomic event). Players, not teams — a team is
-  // two, so 74 players is roughly 37 of the 60 team places. Update as it moves.
+  // Players signed up so far, from Playtomic Manager ("74/120 Players
+  // Registered"). Players, not teams: 74 players is 37 of the 60 team places.
+  // NB the PUBLIC event page shows spots REMAINING ("46 of 120 spots"), which
+  // reads like a registered count and is not — 120 minus that is the figure.
   registeredPlayers: 74,
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
@@ -105,7 +107,7 @@ export const COMPETITIONS: Competition[] = [
   },
   {
     id: "box-autumn-2026",
-    title: "Autumn/Winter Box League",
+    title: "Autumn/Winter Padel Box League",
     status: "open",
     tagline: "Starts Mon 14 Sep · up to 60 teams · €40 per team",
     detail:
