@@ -34,7 +34,7 @@ export const BOX_LEAGUE_SPONSOR: SponsorSlot = {
 
 /** Naming rights on the court the finals are played on. */
 export const FINALS_COURT_SPONSOR: SponsorSlot = {
-  name: "Wicklow Motors",
+  name: "Wicklow Motors Court 1",
   placeholder: true,
   context: "Court 1 naming rights",
 };
