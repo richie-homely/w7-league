@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { BoxGrid } from "./BoxGrid";
+import { SponsorBanner, SponsorCta } from "./Sponsor";
+import { BOX_LEAGUE_SPONSOR } from "@/lib/sponsors";
 import { C, F } from "@/theme/tokens";
 import { CONTACT } from "@/lib/league";
 import { BOX_LEAGUE } from "@/lib/competitions";
@@ -177,15 +179,24 @@ export function BoxLeaguePage() {
           </p>
         </div>
         <div style={{ marginTop: 30 }}>
+          <SponsorBanner slot={BOX_LEAGUE_SPONSOR} />
           <div
             style={{
               fontFamily: F.display, fontSize: 24, textTransform: "uppercase",
-              letterSpacing: "0.02em", marginBottom: 4,
+              letterSpacing: "0.02em", margin: "22px 0 4px",
             }}
           >
             Provisional <span style={{ color: C.accent }}>boxes</span>
           </div>
           <BoxGrid />
+          <div style={{ marginTop: 24 }}>
+            <SponsorCta
+              headline="Sponsor a box"
+              body="Six boxes, 37 teams and six months of league nights. Box naming rights, match-ball
+                    and prize sponsorship available for the Autumn/Winter season."
+              subject="Box League sponsorship enquiry"
+            />
+          </div>
         </div>
 
       </div>

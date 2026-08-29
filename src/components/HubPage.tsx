@@ -12,6 +12,7 @@ import {
 } from "@/lib/competitions";
 import { InterestForm } from "./InterestForm";
 import { KnockoutSpotlight } from "./KnockoutSpotlight";
+import { SponsorCta } from "./Sponsor";
 import { SiteNav } from "./SiteNav";
 import { SocialsSection } from "./SocialsSection";
 import { CoachingSection } from "./CoachingSection";
@@ -249,6 +250,10 @@ export function HubPage() {
           {featured.map((c) => (
             <CompetitionCard key={c.id} comp={c} />
           ))}
+        </div>
+
+        <div style={{ marginBottom: 34 }}>
+          <SponsorCta />
         </div>
 
         {/* Upcoming formats */}

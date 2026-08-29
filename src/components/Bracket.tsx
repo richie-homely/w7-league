@@ -7,6 +7,8 @@ import { TIER_PRIZES, buildBracket, isPlaceholderSlot, tierQualifiers } from "@/
 import { upperTierSlotsRemaining } from "@/lib/league";
 import { Logo } from "./ui";
 import { ConfirmationBanner } from "./Countdown";
+import { SponsorInline } from "./Sponsor";
+import { FINALS, FINALS_COURT_SPONSOR } from "@/lib/sponsors";
 import { TeamH2H } from "./TeamH2H";
 
 function TeamSlot({
@@ -264,6 +266,42 @@ function TierBracket({
             ))}
           </div>
         ))}
+      </div>
+
+      <div
+        style={{
+          marginTop: 16,
+          padding: "12px 16px",
+          background: C.bg2,
+          border: `1px solid ${tierColor}44`,
+          borderLeft: `3px solid ${tierColor}`,
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 10, color: C.mute, letterSpacing: "0.15em" }}>
+            FINALS DAY {FINALS.provisional && "· PROVISIONAL"}
+          </div>
+          <div style={{ fontFamily: F.display, fontSize: 20, marginTop: 3 }}>
+            {FINALS.dates}
+          </div>
+          <div style={{ marginTop: 4 }}>
+            <SponsorInline slot={FINALS_COURT_SPONSOR} prefix={FINALS.court} />
+          </div>
+        </div>
+        <a
+          href={`mailto:welcome@w7padel.com?subject=${encodeURIComponent(
+            "Finals day sponsorship enquiry"
+          )}`}
+          style={{ fontSize: 12.5, color: C.accent, fontWeight: 600, textDecoration: "none" }}
+        >
+          Sponsor finals day →
+        </a>
       </div>
 
       <div
