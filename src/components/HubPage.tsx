@@ -11,6 +11,7 @@ import {
   type CompetitionStatus,
 } from "@/lib/competitions";
 import { InterestForm } from "./InterestForm";
+import { KnockoutSpotlight } from "./KnockoutSpotlight";
 import { SiteNav } from "./SiteNav";
 import { SocialsSection } from "./SocialsSection";
 import { CoachingSection } from "./CoachingSection";
@@ -204,6 +205,9 @@ export function HubPage() {
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 20px" }}>
+        {/* The knockouts lead the page — they are what the season is for. */}
+        <KnockoutSpotlight />
+
         {/* Featured: live + open */}
         <div
           style={{
