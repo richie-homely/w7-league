@@ -77,17 +77,30 @@ function CompetitionCard({ comp }: { comp: Competition }) {
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-        <div
-          style={{
-            fontFamily: F.display,
-            fontSize: featured ? 26 : 22,
-            color: C.text,
-            letterSpacing: "0.02em",
-            lineHeight: 1.05,
-            textTransform: "uppercase",
-          }}
-        >
-          {comp.title}
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, minWidth: 0 }}>
+          {comp.logo && (
+            // Decorative: the title right beside it already says what this is,
+            // so alt text here would only make a screen reader say it twice.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={comp.logo}
+              alt=""
+              aria-hidden
+              style={{ width: 46, height: 46, flexShrink: 0, marginTop: 1 }}
+            />
+          )}
+          <div
+            style={{
+              fontFamily: F.display,
+              fontSize: featured ? 26 : 22,
+              color: C.text,
+              letterSpacing: "0.02em",
+              lineHeight: 1.05,
+              textTransform: "uppercase",
+            }}
+          >
+            {comp.title}
+          </div>
         </div>
         <StatusBadge status={comp.status} />
       </div>

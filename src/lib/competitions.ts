@@ -43,6 +43,10 @@ export interface Competition {
   /** When set, the card carries an inline register-interest form (stored in
    *  the `interest` table) instead of a link CTA. */
   interestFormat?: string;
+  /** Competition's own mark, shown beside the title on the hub card. Only for
+   *  formats that have earned one — a row of near-identical badges would stop
+   *  the eye distinguishing anything. */
+  logo?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,9 +123,10 @@ export const COMPETITIONS: Competition[] = [
     id: "box-autumn-2026",
     title: "Autumn/Winter Padel Box League",
     status: "open",
-    tagline: "Starts Mon 14 Sep · up to 60 teams · €40 per team",
+    logo: "/box-league-logo.png",
+    tagline: `Starts Mon 14 Sep · up to ${BOX_LEAGUE.maxTeams} teams · €${BOX_LEAGUE.entryPerTeam} per team`,
     detail:
-      "Teams placed into boxes by combined Playtomic rating for competitive matches at your level, over 6 months. Registration closes Mon 7 Sep — first come, first served.",
+      "Sold out in five days and 40 more teams released. Placed into boxes by combined Playtomic rating so every match is against your own level, over 6 months. Entries close Mon 7 Sep.",
     href: "/box",
     cta: { label: "Details & how to enter", href: "/box" },
     entrants: {

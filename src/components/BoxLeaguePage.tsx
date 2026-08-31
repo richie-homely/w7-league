@@ -124,6 +124,21 @@ export function BoxLeaguePage() {
         }}
       >
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 20px 36px" }}>
+          {/* The mark, not a repeat of the wordmark below it — it carries the
+              3x3 ladder, which is the one thing about the format a newcomer
+              needs to grasp before reading anything. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/box-league-logo.png"
+            alt="W7 Padel Box League"
+            style={{
+              width: 92,
+              height: 92,
+              display: "block",
+              marginBottom: 16,
+              filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.85))",
+            }}
+          />
           <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
             {isFull
               ? `FULL · ALL ${BOX_LEAGUE.maxTeams} TEAM PLACES TAKEN`
