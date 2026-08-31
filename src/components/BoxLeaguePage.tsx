@@ -126,9 +126,11 @@ export function BoxLeaguePage() {
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 20px 36px" }}>
           <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
             {isFull
-              ? "FULL · ALL 60 TEAM PLACES TAKEN"
+              ? `FULL · ALL ${BOX_LEAGUE.maxTeams} TEAM PLACES TAKEN`
               : regOpen
-                ? "REGISTRATION OPEN · FIRST COME, FIRST SERVED"
+                ? BOX_LEAGUE.extraPlacesNote
+                  ? BOX_LEAGUE.extraPlacesNote
+                  : "REGISTRATION OPEN · FIRST COME, FIRST SERVED"
                 : "REGISTRATION CLOSED"}
           </div>
           {BOX_LEAGUE.registeredPlayers > 0 && (
@@ -220,7 +222,15 @@ export function BoxLeaguePage() {
           }}
         >
           <Fact label="STARTS" value="MON 14 SEP" sub={`Runs ~${BOX_LEAGUE.durationMonths} months`} />
-          <Fact label="SPACES" value={`${BOX_LEAGUE.maxTeams} TEAMS`} sub="Fixed pairs · boxes by combined rating" />
+          <Fact
+            label="SPACES"
+            value={`${BOX_LEAGUE.maxTeams} TEAMS`}
+            sub={
+              isFull
+                ? "Fixed pairs · boxes by combined rating"
+                : `${BOX_LEAGUE.maxTeams - Math.floor(BOX_LEAGUE.registeredPlayers / 2)} left · fixed pairs, boxes by rating`
+            }
+          />
           <Fact
             label="ENTRY"
             value={`€${BOX_LEAGUE.entryPerTeam} / TEAM`}

@@ -6,12 +6,18 @@ export const BOX_LEAGUE = {
   name: "Autumn/Winter Padel Box League",
   start: new Date("2026-09-14"), // Monday
   regClose: new Date("2026-09-08T00:00:00+01:00"), // closes end of Mon 7 Sep
-  maxTeams: 60,
-  // FULL as of 31 Aug 2026: 120/120 players, all 60 team places taken.
+  // Raised from 60 to 100 teams on 31 Aug 2026, after the original cap sold out
+  // in five days. 200 player places.
+  maxTeams: 100,
   // Players, not teams — the cap is in teams and a bare player count beside it
   // reads as twice as full as it is. NB the PUBLIC event page shows spots
   // REMAINING, which looks like a registered count and is not.
   registeredPlayers: 120,
+  // Shown in place of the plain "registration open" strap while the released
+  // places are the story. Selling out once is the best argument for the second
+  // batch, so the page should say so rather than quietly reopening. Set to
+  // undefined when it stops being news.
+  extraPlacesNote: "SOLD OUT IN 5 DAYS · 40 MORE TEAMS JUST RELEASED",
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
   durationMonths: 6,
