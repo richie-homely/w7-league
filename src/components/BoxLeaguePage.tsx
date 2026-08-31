@@ -102,7 +102,11 @@ export function BoxLeaguePage() {
   // Treat registration as open until the client clock proves otherwise — the
   // pre-close state is the correct default for SSR while entries are live.
   const now = useNow();
-  const regOpen = now === null || now < BOX_LEAGUE.regClose.getTime();
+  // Full closes entry regardless of the date. A page still shouting FIRST COME,
+  // FIRST SERVED at somebody who cannot get in is worse than no banner at all.
+  const isFull = BOX_LEAGUE.registeredPlayers >= BOX_LEAGUE.maxTeams * 2;
+  const regOpen =
+    !isFull && (now === null || now < BOX_LEAGUE.regClose.getTime());
   // Boxes render automatically once teams are seeded after entries close.
   const { teams, matches } = useBoxData();
 
@@ -121,7 +125,11 @@ export function BoxLeaguePage() {
       >
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "48px 20px 36px" }}>
           <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
-            {regOpen ? "REGISTRATION OPEN · FIRST COME, FIRST SERVED" : "REGISTRATION CLOSED"}
+            {isFull
+              ? "FULL · ALL 60 TEAM PLACES TAKEN"
+              : regOpen
+                ? "REGISTRATION OPEN · FIRST COME, FIRST SERVED"
+                : "REGISTRATION CLOSED"}
           </div>
           {BOX_LEAGUE.registeredPlayers > 0 && (
             <div

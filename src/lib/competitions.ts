@@ -7,11 +7,11 @@ export const BOX_LEAGUE = {
   start: new Date("2026-09-14"), // Monday
   regClose: new Date("2026-09-08T00:00:00+01:00"), // closes end of Mon 7 Sep
   maxTeams: 60,
-  // Players signed up so far, from Playtomic Manager ("112/120 Players
-  // Registered"). Players, not teams: 112 players is 56 of the 60 team places.
-  // NB the PUBLIC event page shows spots REMAINING ("8 of 120 spots"), which
-  // reads like a registered count and is not — 120 minus that is the figure.
-  registeredPlayers: 112,
+  // FULL as of 31 Aug 2026: 120/120 players, all 60 team places taken.
+  // Players, not teams — the cap is in teams and a bare player count beside it
+  // reads as twice as full as it is. NB the PUBLIC event page shows spots
+  // REMAINING, which looks like a registered count and is not.
+  registeredPlayers: 120,
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
   durationMonths: 6,
