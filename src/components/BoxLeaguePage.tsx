@@ -201,8 +201,9 @@ export function BoxLeaguePage() {
             <strong>combined Playtomic ratings</strong>, so every match is against a similar
             standard. You play the other four teams in your box —{" "}
             <strong>four games over four weeks</strong>, one a week. At the end of each round the{" "}
-            <strong>top team goes up a box and the bottom team goes down</strong>, then the next
-            round starts. Keep winning and you climb toward Box 1 over the{" "}
+            <strong>top two teams go up a box and the bottom two go down</strong>, then the next
+            round starts. Only the middle team holds its place, so the ladder moves fast — keep
+            winning and you can climb toward Box 1 quickly over the{" "}
             {BOX_LEAGUE.durationMonths} months.
           </p>
         </div>
@@ -240,7 +241,7 @@ export function BoxLeaguePage() {
           }}
         >
           <Fact label="STARTS" value="MON 14 SEP" sub={`4-week rounds · runs ~${BOX_LEAGUE.durationMonths} months`} />
-          <Fact label="FORMAT" value="5 PER BOX" sub="4 games in 4 weeks · top up, bottom down" />
+          <Fact label="FORMAT" value="5 PER BOX" sub="4 games in 4 weeks · top 2 up, bottom 2 down" />
           <Fact
             label="SPACES"
             value={`${BOX_LEAGUE.maxTeams} TEAMS`}

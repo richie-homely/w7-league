@@ -137,11 +137,14 @@ def make_card(logo):
     d.text((x - 6, 216), "PADEL BOX", font=font("impact.ttf", 104), fill=WHITE)
     d.text((x - 6, 318), "LEAGUE", font=font("impact.ttf", 104), fill=LIME)
     d.line([(x, 442), (x + 470, 442)], fill=(44, 44, 44), width=3)
-    d.text((x, 462), "100 TEAMS  ·  BOXES BY RATING", font=font("arialbd.ttf", 29), fill=WHITE)
-    d.text((x, 505), "STARTS MON 14 SEP  ·  WICKLOW TOWN",
-           font=font("arialbd.ttf", 23), fill=MUTE)
+    d.text((x, 462), "BOXES OF 5  ·  4 GAMES IN 4 WEEKS", font=font("arialbd.ttf", 27), fill=WHITE)
+    d.text((x, 505), "TOP 2 UP, BOTTOM 2 DOWN  ·  STARTS 14 SEP",
+           font=font("arialbd.ttf", 21), fill=MUTE)
 
-    out = os.path.join(PUB, "og-box.png")
+    # NEW filename each time the card content changes: chat apps cache these
+    # hard, and rewriting the bytes behind a known URL leaves the stale tile in
+    # circulation for days.
+    out = os.path.join(PUB, "og-box-v2.png")
     img.save(out, "PNG", optimize=True)
     kb = os.path.getsize(out) / 1024
     print(f"wrote {out}  {W}x{H}  {kb:.0f}KB")

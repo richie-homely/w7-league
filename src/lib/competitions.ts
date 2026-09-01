@@ -126,7 +126,7 @@ export const COMPETITIONS: Competition[] = [
     logo: "/box-league-logo.png",
     tagline: `Starts Mon 14 Sep · up to ${BOX_LEAGUE.maxTeams} teams · €${BOX_LEAGUE.entryPerTeam} per team`,
     detail:
-      "Sold out in five days and 40 more teams released. Boxes of five by combined Playtomic rating — four games over four weeks, then the top team goes up and the bottom goes down. Six months of it. Entries close Mon 7 Sep.",
+      "Sold out in five days and 40 more teams released. Boxes of five by combined Playtomic rating — four games over four weeks, then the top two go up a box and the bottom two go down. Six months of it. Entries close Mon 7 Sep.",
     href: "/box",
     cta: { label: "Details & how to enter", href: "/box" },
     entrants: {
