@@ -2,9 +2,11 @@
 // Ported from the v0.8 artifact.
 import type {
   Bracket,
+  BracketMatch,
   BracketMeta,
   BracketSlot,
   Fixture,
+  KnockoutResult,
   Qualifier,
   Team,
   Tier,
@@ -302,6 +304,76 @@ function buildMeta(
   };
 }
 
+/* PLAYED KNOCKOUT TIES.
+ *
+ * Keyed by the two teamIds, NOT by match id. A tie's QF number depends on
+ * seeding, and seeding still moves while group fixtures are outstanding — so
+ * "QF2" is not a stable address for a result, whereas the two teams in it are.
+ *
+ * Add a line when a tie is played. Winners resolve into the next round
+ * automatically; nothing else needs editing. */
+export const KNOCKOUT_RESULTS: {
+  teams: [string, string];
+  winnerTeamId: string;
+  score: string;
+  playedOn: string;
+}[] = [
+  {
+    // Upper-tier QF: G3 1st (unbeaten, 10 from 10) v G4 4th. 1 Sep 2026.
+    teams: [
+      "bc24d564-247f-4116-a5e2-3dde99a7b204", // Davy O'Sullivan & Peter Finnegan
+      "58da7df0-c02b-4088-b319-294555c74ae9", // Dylan Furlong & Jack Furlong
+    ],
+    winnerTeamId: "bc24d564-247f-4116-a5e2-3dde99a7b204",
+    score: "6-0, 6-4",
+    playedOn: "2026-09-01",
+  },
+];
+
+function slotTeamId(s: BracketSlot): string | null {
+  return s && !("placeholder" in s) ? s.teamId : null;
+}
+
+/** Attach played results and push winners into the round above.
+ *
+ * Later rounds are built as placeholders reading "Winner QF1" / "Loser SF1".
+ * Once a tie has a result, the placeholder that names it is replaced by the
+ * actual qualifier, so the bracket fills in as ties are played rather than
+ * staying a static draw. */
+function applyResults(b: Bracket): Bracket {
+  const rounds: BracketMatch[][] = [b.r1, b.qf, b.sf, b.f, b.third];
+  const winners = new Map<string, BracketSlot>();
+  const losers = new Map<string, BracketSlot>();
+
+  for (const round of rounds) {
+    for (const m of round) {
+      // resolve any placeholder now that an earlier round may have decided it
+      for (const side of ["a", "b"] as const) {
+        const slot = m[side];
+        if (slot && "placeholder" in slot) {
+          const win = /^Winner (.+)$/.exec(slot.label);
+          const lose = /^Loser (.+)$/.exec(slot.label);
+          const found = win ? winners.get(win[1]) : lose ? losers.get(lose[1]) : undefined;
+          if (found) m[side] = found;
+        }
+      }
+      const ida = slotTeamId(m.a);
+      const idb = slotTeamId(m.b);
+      if (!ida || !idb) continue;
+      const rec = KNOCKOUT_RESULTS.find(
+        (r) => r.teams.includes(ida) && r.teams.includes(idb),
+      );
+      if (!rec) continue;
+      const winner: "a" | "b" = rec.winnerTeamId === ida ? "a" : "b";
+      m.result = { winner, score: rec.score, playedOn: rec.playedOn };
+      winners.set(m.id, winner === "a" ? m.a : m.b);
+      losers.set(m.id, winner === "a" ? m.b : m.a);
+    }
+  }
+  return b;
+}
+
+
 export function buildBracket(qualifiers: Qualifier[]): Bracket {
   const n = qualifiers.length;
   const { order, clashes } = separateDivisions(qualifiers);
@@ -313,7 +385,7 @@ export function buildBracket(qualifiers: Qualifier[]): Bracket {
 
   if (n <= 8) {
     const [p1, p2, p3, p4] = firstRoundPairs(n);
-    return {
+    return applyResults({
       r1: [],
       qf: [
         { id: "QF1", a: get(p1[0]), b: get(p1[1]) },
@@ -328,14 +400,14 @@ export function buildBracket(qualifiers: Qualifier[]): Bracket {
       f: [{ id: "F1", a: placeholder("Winner SF1"), b: placeholder("Winner SF2") }],
       third: [{ id: "P3", a: placeholder("Loser SF1"), b: placeholder("Loser SF2") }],
       meta: buildMeta(n, clashes, 0, 0, qualifiers.length),
-    };
+    });
   }
 
   if (n > 12) {
     // 16-team bracket: everyone plays Round 1, nobody goes straight through.
     const ties = firstRoundPairs(n);
     const ids = ["R1A", "R1B", "R1C", "R1D", "R1E", "R1F", "R1G", "R1H"];
-    return {
+    return applyResults({
       r1: ties.map((p, i) => ({ id: ids[i], a: get(p[0]), b: get(p[1]) })),
       qf: [0, 1, 2, 3].map((i) => ({
         id: `QF${i + 1}`,
@@ -349,14 +421,14 @@ export function buildBracket(qualifiers: Qualifier[]): Bracket {
       f: [{ id: "F1", a: placeholder("Winner SF1"), b: placeholder("Winner SF2") }],
       third: [{ id: "P3", a: placeholder("Loser SF1"), b: placeholder("Loser SF2") }],
       meta: buildMeta(n, clashes, 0, 0, qualifiers.length),
-    };
+    });
   }
 
   // 12-team bracket: top 4 get byes, 5-12 play R1
   const arranged = assignByes(order, firstRoundPairs(n));
   const ties = arranged.pairs;
   const ids = ["R1A", "R1B", "R1C", "R1D"];
-  return {
+  return applyResults({
     r1: ties.map((p, i) => ({ id: ids[i], a: get(p[0]), b: get(p[1]) })),
     qf: [
       { id: "QF1", a: get(BYE_SEEDS[0]), b: placeholder("Winner R1A") },
@@ -371,7 +443,7 @@ export function buildBracket(qualifiers: Qualifier[]): Bracket {
     f: [{ id: "F1", a: placeholder("Winner SF1"), b: placeholder("Winner SF2") }],
     third: [{ id: "P3", a: placeholder("Loser SF1"), b: placeholder("Loser SF2") }],
     meta: buildMeta(n, clashes, arranged.guaranteed, arranged.possible, qualifiers.length),
-  };
+  });
 }
 
 export function isPlaceholderSlot(

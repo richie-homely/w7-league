@@ -15,10 +15,15 @@ function TeamSlot({
   slot,
   tierColor,
   onTeam,
+  won,
 }: {
   slot: BracketSlot;
   tierColor: string;
   onTeam?: (team: Team) => void;
+  /** undefined while the tie is unplayed; true/false once it has a result. The
+   *  loser is dimmed rather than struck through, so the card still reads as a
+   *  fixture that happened and not as a team removed from the draw. */
+  won?: boolean;
 }) {
   if (!slot) return null;
   if (isPlaceholderSlot(slot)) {
@@ -45,7 +50,9 @@ function TeamSlot({
         gap: 8,
         cursor: clickable ? "pointer" : "default",
         borderLeft: `3px solid ${dc}`,
-        opacity: pending ? 0.72 : 1,
+        opacity: pending ? 0.72 : won === false ? 0.45 : 1,
+        background: won ? `${tierColor}14` : undefined,
+        fontWeight: won ? 700 : undefined,
       }}
     >
       <div
@@ -147,11 +154,26 @@ function BracketMatch({
           borderBottom: `1px solid ${C.border}`,
         }}
       >
-        {match.id}
+        <span>{match.id}</span>
+        {match.result && (
+          <span style={{ float: "right", color: C.accent, letterSpacing: "0.06em" }}>
+            {match.result.score}
+          </span>
+        )}
       </div>
-      <TeamSlot slot={match.a} tierColor={tierColor} onTeam={onTeam} />
+      <TeamSlot
+        slot={match.a}
+        tierColor={tierColor}
+        onTeam={onTeam}
+        won={match.result ? match.result.winner === "a" : undefined}
+      />
       <div style={{ height: 1, background: C.border, margin: "0 10px" }} />
-      <TeamSlot slot={match.b} tierColor={tierColor} onTeam={onTeam} />
+      <TeamSlot
+        slot={match.b}
+        tierColor={tierColor}
+        onTeam={onTeam}
+        won={match.result ? match.result.winner === "b" : undefined}
+      />
     </div>
   );
 }

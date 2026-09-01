@@ -79,10 +79,22 @@ export type BracketSlot =
   | { placeholder: true; label: string }
   | null;
 
+/** A played knockout tie. Kept on the match so the card can show the score and
+ *  mark the winner, and so later rounds can resolve their placeholders. */
+export interface KnockoutResult {
+  /** which side won — "a" or "b" as the match holds them */
+  winner: "a" | "b";
+  /** as played, e.g. "6-0, 6-4" */
+  score: string;
+  /** ISO date */
+  playedOn: string;
+}
+
 export interface BracketMatch {
   id: string;
   a: BracketSlot;
   b: BracketSlot;
+  result?: KnockoutResult;
 }
 
 export interface BracketMeta {
