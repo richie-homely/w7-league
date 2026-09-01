@@ -23,7 +23,10 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
   // Both players, on their own lines. A padel team is two people and the fixture
   // list is the thing players scan for their own name, so showing only the first
   // hides half the field.
-  const side = (q: Qualifier | null, right: boolean) => {
+  // undefined until the tie is played; then true for the winner, false for the
+  // loser. The loser is dimmed rather than removed — this panel is the first
+  // thing on the page and a half-empty tie reads as a data bug.
+  const side = (q: Qualifier | null, right: boolean, won?: boolean) => {
     if (!q) return <span style={{ color: C.mute, fontStyle: "italic" }}>TBC</span>;
     const dc = divColor(q.divName);
     const badge = (
@@ -44,7 +47,8 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
             key={i}
             style={{
               display: "block", fontSize: 12.5, lineHeight: 1.35,
-              color: i === 0 ? C.text : C.mute, fontWeight: i === 0 ? 600 : 500,
+              color: i === 0 ? C.text : C.mute,
+              fontWeight: won ? 800 : i === 0 ? 600 : 500,
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
             }}
           >
@@ -58,6 +62,7 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
         style={{
           display: "inline-flex", alignItems: "flex-start", gap: 6, minWidth: 0,
           flexDirection: right ? "row-reverse" : "row",
+          opacity: won === false ? 0.5 : 1,
         }}
       >
         {badge}
@@ -80,9 +85,22 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
         minWidth: 0,
       }}
     >
-      {side(a, false)}
-      <span style={{ fontFamily: F.mono, fontSize: 9.5, color: C.mute }}>v</span>
-      <span style={{ textAlign: "right", minWidth: 0 }}>{side(b, true)}</span>
+      {side(a, false, match.result ? match.result.winner === "a" : undefined)}
+      {match.result ? (
+        <span
+          style={{
+            fontFamily: F.mono, fontSize: 10.5, fontWeight: 700, color: C.accent,
+            whiteSpace: "nowrap", textAlign: "center", lineHeight: 1.25,
+          }}
+        >
+          {match.result.score}
+        </span>
+      ) : (
+        <span style={{ fontFamily: F.mono, fontSize: 9.5, color: C.mute }}>v</span>
+      )}
+      <span style={{ textAlign: "right", minWidth: 0 }}>
+        {side(b, true, match.result ? match.result.winner === "b" : undefined)}
+      </span>
     </div>
   );
 }
