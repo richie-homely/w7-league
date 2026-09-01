@@ -83,9 +83,9 @@ export function BoxGrid() {
       </div>
       <div style={{ fontSize: 13, color: C.mute, marginBottom: 14, maxWidth: 620, lineHeight: 1.6 }}>
         {totalTeams} teams entered so far, sorted by combined Playtomic rating and cut into{" "}
-        {boxes.length} boxes of five. You play the other four in your box — four games over four
-        weeks — then the top TWO teams move up a box and the bottom TWO move down, so only the
-        middle team holds its place. Where the entry count will not divide by five, a box of four
+        {boxes.length} boxes of five. You play the other four in your box over four weeks,
+        arranging each match directly with your opponents — then the top TWO teams move up a box
+        and the bottom TWO move down, so only the middle team holds its place. Where the entry count will not divide by five, a box of four
         plays three games and takes a bye. Click a box to see who is in it. Nothing is final until
         entry closes.
       </div>

@@ -200,7 +200,9 @@ export function BoxLeaguePage() {
             are placed into boxes of <strong>five</strong> by their{" "}
             <strong>combined Playtomic ratings</strong>, so every match is against a similar
             standard. You play the other four teams in your box —{" "}
-            <strong>four games over four weeks</strong>, one a week. At the end of each round the{" "}
+            <strong>four games over four weeks</strong>, each one arranged directly between you and
+            your opponents, so it fits around your week rather than a fixed slot. At the end of each
+            round the{" "}
             <strong>top two teams go up a box and the bottom two go down</strong>, then the next
             round starts. Only the middle team holds its place, so the ladder moves fast — keep
             winning and you can climb toward Box 1 quickly over the{" "}
@@ -257,6 +259,35 @@ export function BoxLeaguePage() {
             sub={`€${BOX_LEAGUE.entryPerPerson} per person`}
           />
           <Fact label="ENTRIES CLOSE" value="MON 7 SEP" sub="First come, first served" />
+        </div>
+
+        {/* The format in five steps. It lived in one hero sentence, which is
+            fine for someone already sold and useless for someone deciding. */}
+        <div style={{ marginTop: 30 }}>
+          <div style={{ fontFamily: F.display, fontSize: 24, textTransform: "uppercase",
+                        letterSpacing: "0.02em", marginBottom: 12 }}>
+            How it works
+          </div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {[
+              ["Your box", "Five teams of a similar standard, cut by combined Playtomic rating. Boxes are redrawn every round, so you keep meeting new opponents at your level."],
+              ["Four games", "You play each of the other four teams once over the four weeks. A box of four plays three and takes a bye."],
+              ["You pick the time", "There are no fixed fixture slots. Arrange each match directly with your opponents and book the court whenever suits you both."],
+              ["Log the result", "Enter the score on this page with the email you registered with. It counts once your opponents confirm it."],
+              ["Up or down", "Top two teams move up a box, bottom two move down, and the next round starts. Only the middle team holds its place, so the ladder moves quickly."],
+            ].map(([h, t], i) => (
+              <div key={h} style={{ display: "flex", gap: 12, background: C.card,
+                                    border: `1px solid ${C.border}`, borderRadius: 10,
+                                    padding: "12px 14px" }}>
+                <div style={{ fontFamily: F.display, fontSize: 20, color: C.accent,
+                              lineHeight: 1, minWidth: 22 }}>{i + 1}</div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700 }}>{h}</div>
+                  <div style={{ fontSize: 13, color: C.mute, lineHeight: 1.55, marginTop: 2 }}>{t}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Countdown + CTA */}
