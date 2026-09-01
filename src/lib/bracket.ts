@@ -328,6 +328,16 @@ export const KNOCKOUT_RESULTS: {
     score: "6-0, 6-4",
     playedOn: "2026-09-01",
   },
+  {
+    // Lower-tier R1: G2 (5th seed) v G3 (13th seed). 1 Sep 2026.
+    teams: [
+      "e5775ed4-cb67-41a5-a15a-6468c5c845d2", // Mark O'Sullivan 1 & Brian O'Sullivan
+      "3019c2c8-9682-4543-aaaa-9cb9d7df63af", // David VanDuyvenvoorde & Karl Lawler
+    ],
+    winnerTeamId: "e5775ed4-cb67-41a5-a15a-6468c5c845d2",
+    score: "6-0, 6-2",
+    playedOn: "2026-09-01",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
