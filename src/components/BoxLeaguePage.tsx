@@ -197,10 +197,13 @@ export function BoxLeaguePage() {
             }}
           >
             Our Autumn/Winter Padel Box League starts <strong>Monday 14 September</strong> 🎾 Teams
-            are placed into boxes based on their <strong>combined Playtomic ratings</strong>, so
-            every match is competitive and against players of a similar standard. It&apos;s a great
-            way to play more competitive matches, meet new players and build your Playtomic rating
-            over the next {BOX_LEAGUE.durationMonths} months.
+            are placed into boxes of <strong>five</strong> by their{" "}
+            <strong>combined Playtomic ratings</strong>, so every match is against a similar
+            standard. You play the other four teams in your box —{" "}
+            <strong>four games over four weeks</strong>, one a week. At the end of each round the{" "}
+            <strong>top team goes up a box and the bottom team goes down</strong>, then the next
+            round starts. Keep winning and you climb toward Box 1 over the{" "}
+            {BOX_LEAGUE.durationMonths} months.
           </p>
         </div>
         <div style={{ marginTop: 30 }}>
@@ -236,7 +239,8 @@ export function BoxLeaguePage() {
             marginTop: 28,
           }}
         >
-          <Fact label="STARTS" value="MON 14 SEP" sub={`Runs ~${BOX_LEAGUE.durationMonths} months`} />
+          <Fact label="STARTS" value="MON 14 SEP" sub={`4-week rounds · runs ~${BOX_LEAGUE.durationMonths} months`} />
+          <Fact label="FORMAT" value="5 PER BOX" sub="4 games in 4 weeks · top up, bottom down" />
           <Fact
             label="SPACES"
             value={`${BOX_LEAGUE.maxTeams} TEAMS`}

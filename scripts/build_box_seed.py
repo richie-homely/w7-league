@@ -93,18 +93,24 @@ ROSTER = [
     (67, "Ken", 0.50, "Maria Neilan", 0.50),
 ]
 
-TARGET_BOX = 6      # teams per box; the remainder is spread, not dumped in one
+BOX_SIZE = 5        # 5 teams = 4 games, one a week for four weeks
+SPILL_SIZE = 4      # the remainder box: 3 games and a bye, never 5 games
 
 
-def boxes_for(n, target=TARGET_BOX):
-    """Sizes for n teams, as even as possible around `target`.
+def boxes_for(n, target=BOX_SIZE):
+    """Sizes for n teams: as many boxes of 5 as possible, remainder in 4s.
 
-    A box league is only fair if the boxes are comparable, so 37 teams becomes
-    6/6/6/6/6/7 rather than six sixes and a lonely single.
+    The format is four games in four weeks, so a box MUST hold five teams -
+    each plays the other four, one a week. Spreading a remainder into boxes of
+    six would quietly hand those players a fifth fixture with no week to play
+    it in. Boxes of four instead give three games and a bye, which is a
+    scheduling inconvenience rather than a broken promise.
     """
-    count = max(1, round(n / target))
-    base, extra = divmod(n, count)
-    return [base + (1 if i >= count - extra else 0) for i in range(count)]
+    for spill in range(target):                  # 0..4 boxes of SPILL_SIZE
+        rest = n - spill * SPILL_SIZE
+        if rest >= 0 and rest % target == 0:
+            return [target] * (rest // target) + [SPILL_SIZE] * spill
+    return [n]                                   # tiny entry: one box, play it out
 
 
 def main():
