@@ -12,7 +12,7 @@ export const BOX_LEAGUE = {
   // Players, not teams — the cap is in teams and a bare player count beside it
   // reads as twice as full as it is. NB the PUBLIC event page shows spots
   // REMAINING, which looks like a registered count and is not.
-  registeredPlayers: 120,
+  registeredPlayers: 134,
   // Shown in place of the plain "registration open" strap while the released
   // places are the story. Selling out once is the best argument for the second
   // batch, so the page should say so rather than quietly reopening. Set to
