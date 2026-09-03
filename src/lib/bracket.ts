@@ -338,6 +338,17 @@ export const KNOCKOUT_RESULTS: {
     score: "6-0, 6-2",
     playedOn: "2026-09-01",
   },
+  {
+    // Upper-tier QF: G4 1st seed (Spillane & Wynne) v G3 (Pickerill & Hennebry).
+    // 3 Sep 2026 — Pickerill & Hennebry won 7-6, 6-2 (Playtomic result card).
+    teams: [
+      "221b18e7-ea20-481d-8998-55f469ce57e0", // Leah Spillane & Ashley Wynne
+      "33b592a2-065a-47d7-a371-fb1d59528dc5", // Robert Pickerill & David Hennebry
+    ],
+    winnerTeamId: "33b592a2-065a-47d7-a371-fb1d59528dc5",
+    score: "7-6, 6-2",
+    playedOn: "2026-09-03",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
