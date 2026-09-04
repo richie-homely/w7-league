@@ -360,6 +360,17 @@ export const KNOCKOUT_RESULTS: {
     score: "6-1, 6-1",
     playedOn: "2026-09-04",
   },
+  {
+    // Lower-tier R1: G1 (Wojnar & Maguire) v G3 (Ana J & Fraser). 4 Sep 2026,
+    // from the Playtomic result card — three sets, Wojnar & Maguire won.
+    teams: [
+      "62da68dd-80f6-4d26-ae14-a449466bf150", // Wesley Wojnar & Tom Maguire
+      "897c9acd-784a-48d1-b15b-73cde3134014", // Ana J & Kieran Fraser
+    ],
+    winnerTeamId: "62da68dd-80f6-4d26-ae14-a449466bf150",
+    score: "6-3, 5-7, 6-2",
+    playedOn: "2026-09-04",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
