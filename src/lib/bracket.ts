@@ -349,6 +349,17 @@ export const KNOCKOUT_RESULTS: {
     score: "7-6, 6-2",
     playedOn: "2026-09-03",
   },
+  {
+    // Upper-tier QF: G4 2nd seed (Fitz & David) v G3 (Noble & Ffrench).
+    // Reported by Richie 4 Sep 2026 — Fitz & David won 6-1, 6-1.
+    teams: [
+      "1ea17980-ae90-4a26-ad3a-2fbad7dc27d4", // John Fitz 202 & David
+      "ea541a70-f65c-44bc-8034-c23b23feada6", // Dean Noble & Chris Ffrench
+    ],
+    winnerTeamId: "1ea17980-ae90-4a26-ad3a-2fbad7dc27d4",
+    score: "6-1, 6-1",
+    playedOn: "2026-09-04",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
