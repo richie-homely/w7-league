@@ -98,6 +98,15 @@ function Fact({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
+// Mirrors scripts/build_box_seed.py: as many boxes of five as possible, remainder in fours.
+function boxCount(teams: number): number {
+  for (let spill = 0; spill < 5; spill++) {
+    const rest = teams - spill * 4;
+    if (rest >= 0 && rest % 5 === 0) return rest / 5 + spill;
+  }
+  return 1;
+}
+
 export function BoxLeaguePage() {
   // Treat registration as open until the client clock proves otherwise — the
   // pre-close state is the correct default for SSR while entries are live.
@@ -223,8 +232,7 @@ export function BoxLeaguePage() {
           <div style={{ marginTop: 24 }}>
             <SponsorCta
               headline="Sponsor a box"
-              body="Six boxes, 37 teams and six months of league nights. Box naming rights, match-ball
-                    and prize sponsorship available for the Autumn/Winter season."
+              body={`${Math.floor(BOX_LEAGUE.registeredPlayers / 2)} teams in ${boxCount(Math.floor(BOX_LEAGUE.registeredPlayers / 2))} boxes and six months of league nights. Box naming rights, match-ball and prize sponsorship available for the Autumn/Winter season.`}
               subject="Box League sponsorship enquiry"
             />
           </div>

@@ -44,8 +44,8 @@ function Footer() {
   );
 }
 
-export function LeagueApp() {
-  const [mode, setMode] = useState<PublicMode>("team");
+export function LeagueApp({ initialMode = "team" }: { initialMode?: PublicMode } = {}) {
+  const [mode, setMode] = useState<PublicMode>(initialMode);
   const { teamsByDiv, fixtures, settings, error } = useLeagueData();
 
   return (
