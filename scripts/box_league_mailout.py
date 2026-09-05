@@ -52,7 +52,9 @@ def sb_get(q):
 
 def contacts_by_team_name():
     """{team name: [emails]} from the newest launch pack + the extras CSV."""
-    packs = sorted(glob.glob(os.path.join(ROOT, "supabase", "box_league_launch_pack_*.sql")))
+    # the pack lives in data/ (gitignored) because it carries player emails — the repo is public
+    packs = sorted(glob.glob(os.path.join(ROOT, "data", "box_league_launch_pack_*.sql"))
+                   + glob.glob(os.path.join(ROOT, "supabase", "box_league_launch_pack_*.sql")))
     out = defaultdict(list)
     if packs:
         for m in re.finditer(r"select id, '([^']+)' from public\.box_teams where name = '((?:[^']|'')+)'", open(packs[-1], encoding="utf-8").read()):
