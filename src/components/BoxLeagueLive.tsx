@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
-import { findBoxForEmail, rememberEmail, rememberedEmail } from "@/lib/box";
+import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail } from "@/lib/box";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -520,6 +520,31 @@ export function BoxLeagueLive({
   const [findEmail, setFindEmail] = useState(() => rememberedEmail());
   const [finding, setFinding] = useState(false);
   const [findMsg, setFindMsg] = useState<string | null>(null);
+  // Add a teammate's email: the registered address proves the team, the new one joins it.
+  // This is the route for Apple "Hide My Email" relay addresses, which players don't know.
+  const [addOpen, setAddOpen] = useState(false);
+  const [addEmail, setAddEmail] = useState("");
+  const [addBusy, setAddBusy] = useState(false);
+  const [addMsg, setAddMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  async function addTeammate() {
+    if (!findEmail.includes("@")) {
+      setAddMsg({ ok: false, text: "Enter your own registered email first." });
+      return;
+    }
+    if (!addEmail.includes("@")) {
+      setAddMsg({ ok: false, text: "Enter your teammate's email." });
+      return;
+    }
+    setAddBusy(true);
+    setAddMsg(null);
+    const res = await addTeamContact(findEmail, addEmail);
+    setAddBusy(false);
+    setAddMsg(res);
+    if (res.ok) {
+      rememberEmail(findEmail);
+      setAddEmail("");
+    }
+  }
   async function findMine() {
     if (!findEmail.includes("@")) {
       setFindMsg("Enter the email you registered with.");
@@ -584,7 +609,30 @@ export function BoxLeagueLive({
             Show all {allBoxes.length} boxes
           </button>
         )}
+        <button onClick={() => setAddOpen(!addOpen)} style={ghostBtn}>
+          {addOpen ? "Close" : "Add a teammate's email"}
+        </button>
         {findMsg && <div style={{ color: C.red, fontSize: 12.5, flex: "1 1 100%" }}>{findMsg}</div>}
+        {addOpen && (
+          <div style={{ flex: "1 1 100%", display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center", borderTop: `1px solid ${C.border}`, paddingTop: 10 }}>
+            <div style={{ fontSize: 12, color: C.mute, flex: "1 1 100%", lineHeight: 1.5 }}>
+              Registered with an Apple &quot;Hide My Email&quot; address, or a teammate not recognised? Enter <strong>your</strong> registered email above, then the email your teammate actually uses here — it joins your team and works for scores straight away.
+            </div>
+            <input
+              style={{ ...inputStyle, flex: "1 1 220px" }}
+              type="email"
+              value={addEmail}
+              onChange={(e) => setAddEmail(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addTeammate()}
+              placeholder="Teammate's email"
+              aria-label="Teammate's email"
+            />
+            <button onClick={addTeammate} disabled={addBusy} style={actionBtn}>
+              {addBusy ? "Adding…" : "Add to my team"}
+            </button>
+            {addMsg && <div style={{ color: addMsg.ok ? C.green : C.red, fontSize: 12.5, flex: "1 1 100%" }}>{addMsg.text}</div>}
+          </div>
+        )}
       </div>
       {banner && (
         <div

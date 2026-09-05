@@ -107,6 +107,24 @@ export async function findBoxForEmail(
   return { box: d.box, teamId: d.team_id };
 }
 
+/** A registered player adds a teammate's email (box_add_contact). */
+export async function addTeamContact(existingEmail: string, newEmail: string): Promise<{ ok: boolean; text: string }> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("box_add_contact", {
+    p_existing_email: existingEmail.trim(),
+    p_new_email: newEmail.trim(),
+  });
+  if (error) return { ok: false, text: "Adding emails isn't switched on yet — contact the desk and we'll add it." };
+  const code = data as string;
+  return (
+    {
+      ok_added: { ok: true, text: "Added — your teammate can now log and confirm scores with that email." },
+      not_registered: { ok: false, text: "Your own email isn't registered to a team. Use the address you entered the league with." },
+      bad_email: { ok: false, text: "That doesn't look like an email address." },
+    } as Record<string, { ok: boolean; text: string }>
+  )[code] ?? { ok: false, text: "Something went wrong — try again or contact the desk." };
+}
+
 export function rpcMessage(code: string | null | undefined): { ok: boolean; text: string } {
   return (
     (code && RPC_MESSAGES[code]) || {
