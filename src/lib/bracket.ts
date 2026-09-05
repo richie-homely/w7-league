@@ -382,6 +382,18 @@ export const KNOCKOUT_RESULTS: {
     score: "6-3, 6-1",
     playedOn: "2026-09-05",
   },
+  {
+    // Lower-tier R1: G1 (Humby & McKeon) v G2 (Sullivan & Leanne S). 5 Sep 2026,
+    // from Shaun Humby's Playtomic result card. Alfie Doyle subbed for Thomas McKeon.
+    // Third set was the championship tiebreak, 10-6.
+    teams: [
+      "3f2812d0-ca30-4f49-ad0c-c5c63489cfe7", // Shaun Humby & Thomas McKeon
+      "956becb9-1337-4520-a81b-636bb678df9e", // Kayleigh Sullivan & Leanne S
+    ],
+    winnerTeamId: "3f2812d0-ca30-4f49-ad0c-c5c63489cfe7",
+    score: "5-7, 6-1, 10-6",
+    playedOn: "2026-09-05",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
