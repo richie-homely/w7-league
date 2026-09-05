@@ -41,7 +41,7 @@ export const FINALS_COURT_SPONSOR: SponsorSlot = {
 
 /** Finals weekend — provisional until the semi-finals are played. */
 export const FINALS = {
-  dates: "28 / 29 September 2026",
+  dates: "26 / 27 September 2026",
   court: "Court 1",
   provisional: true,
 };
