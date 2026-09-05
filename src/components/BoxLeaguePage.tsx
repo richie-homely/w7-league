@@ -125,6 +125,9 @@ export function BoxLeaguePage() {
   const [focusBox, setFocusBox] = useState<number | null>(null);
   const [focusMatch, setFocusMatch] = useState<string | null>(null);
   const [linkTeam, setLinkTeam] = useState<string | null>(null);
+  // The query string only exists on the client, so this has to be an effect that
+  // sets state after mount (the lint rule prefers derived state; a URL is not).
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
     const b = q.get("box");
@@ -149,6 +152,7 @@ export function BoxLeaguePage() {
       setTimeout(() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
     }
   }, [teams, matches, linkTeam, focusMatch]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>

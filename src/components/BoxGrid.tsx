@@ -36,10 +36,9 @@ export function BoxGrid({
   onPick?: (box: number | null) => void;
 } = {}) {
   const [teams, setTeams] = useState<BoxTeam[] | null>(null);
-  const [open, setOpen] = useState<number | null>(1);
-  useEffect(() => {
-    if (focusBox !== null) setOpen(focusBox);
-  }, [focusBox]);
+  const [openState, setOpen] = useState<number | null>(1);
+  // a focused box is always the open one — derived, not synced, so no effect needed
+  const open = focusBox !== null ? focusBox : openState;
 
   useEffect(() => {
     const sb = createClient();
