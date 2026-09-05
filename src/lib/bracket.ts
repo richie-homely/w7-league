@@ -371,6 +371,17 @@ export const KNOCKOUT_RESULTS: {
     score: "6-3, 5-7, 6-2",
     playedOn: "2026-09-04",
   },
+  {
+    // Lower-tier R1: G2 (Loboschi & Kaistha) v G1 (Colaluca & Oussama). 5 Sep 2026,
+    // from the Playtomic result card — Loboschi & Kaistha won in two.
+    teams: [
+      "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48", // Antonio Loboschi & Sahil Kaistha
+      "14645c79-43d7-45d6-bcf3-ba3123ba2983", // Jack Colaluca & Oussama
+    ],
+    winnerTeamId: "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48",
+    score: "6-3, 6-1",
+    playedOn: "2026-09-05",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
