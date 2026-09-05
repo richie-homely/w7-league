@@ -17,7 +17,7 @@ export const BOX_LEAGUE = {
   // places are the story. Selling out once is the best argument for the second
   // batch, so the page should say so rather than quietly reopening. Set to
   // undefined when it stops being news.
-  extraPlacesNote: "SOLD OUT IN 5 DAYS · 40 MORE TEAMS JUST RELEASED",
+  extraPlacesNote: "SOLD OUT IN 5 DAYS · 40 MORE RELEASED · LAST SLOTS REMAINING",
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
   durationMonths: 7,
