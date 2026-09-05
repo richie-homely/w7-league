@@ -74,6 +74,39 @@ export const RPC_MESSAGES: Record<string, { ok: boolean; text: string }> = {
   not_found: { ok: false, text: "Match not found — refresh and try again." },
 };
 
+// The email is the player's credential for scores, so remember it on the device
+// after the first successful entry (Richie, 5 Sep 2026) — one less thing to type
+// courtside. localStorage can throw in private browsing; fail quietly.
+const EMAIL_KEY = "w7-box-email";
+export function rememberedEmail(): string {
+  try {
+    return localStorage.getItem(EMAIL_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+export function rememberEmail(email: string): void {
+  try {
+    localStorage.setItem(EMAIL_KEY, email.trim());
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Which box is this email registered in? Uses the box_team_for_email function
+ *  (security definer — contacts are not publicly readable). Returns null when the
+ *  email is unknown and "unavailable" if the function is not deployed yet. */
+export async function findBoxForEmail(
+  email: string
+): Promise<{ box: number; teamId: string } | null | "unavailable"> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("box_team_for_email", { p_email: email.trim() });
+  if (error) return "unavailable";
+  const d = data as { team_id?: string; box?: number } | null;
+  if (!d || !d.team_id || typeof d.box !== "number") return null;
+  return { box: d.box, teamId: d.team_id };
+}
+
 export function rpcMessage(code: string | null | undefined): { ok: boolean; text: string } {
   return (
     (code && RPC_MESSAGES[code]) || {

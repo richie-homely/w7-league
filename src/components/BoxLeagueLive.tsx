@@ -7,6 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
+import { findBoxForEmail, rememberEmail, rememberedEmail } from "@/lib/box";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -77,7 +78,7 @@ function SubmitForm({
     ["", ""],
     ["", ""],
   ]);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => rememberedEmail());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,7 +123,10 @@ function SubmitForm({
     const res = await submitBoxScore(match.id, sets, email.trim());
     setBusy(false);
     if (!res.ok) setError(res.text);
-    else onDone(res);
+    else {
+      rememberEmail(email);
+      onDone(res);
+    }
   }
 
   return (
@@ -189,13 +193,17 @@ function SubmitForm({
       <div style={{ fontSize: 11, color: C.mute }}>
         Best of 3 — the deciding 3rd set is a championship tiebreak. Leave set 3 blank for a 2–0 win.
       </div>
+      <label style={{ fontSize: 11, color: C.mute, fontWeight: 700, letterSpacing: "0.08em", marginBottom: -6 }}>
+        YOUR REGISTERED EMAIL <span style={{ fontWeight: 400, letterSpacing: 0 }}>— either player, either team; remembered on this phone</span>
+      </label>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
         <input
           style={{ ...inputStyle, flex: "1 1 220px" }}
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Your registered email (either player, either team)"
+          placeholder="name@example.com"
+          autoComplete="email"
         />
         <button
           type="submit"
@@ -228,7 +236,7 @@ function ConfirmForm({
   match: BoxMatch;
   onDone: (msg: { ok: boolean; text: string }) => void;
 }) {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => rememberedEmail());
   const [busy, setBusy] = useState<false | "confirm" | "dispute">(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -242,7 +250,10 @@ function ConfirmForm({
     const res = await confirmBoxScore(match.id, email.trim(), agree);
     setBusy(false);
     if (!res.ok) setError(res.text);
-    else onDone(res);
+    else {
+      rememberEmail(email);
+      onDone(res);
+    }
   }
 
   return (
@@ -270,6 +281,7 @@ function ConfirmForm({
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Your registered email"
+          autoComplete="email"
         />
         <button
           onClick={() => act(true)}
@@ -315,12 +327,17 @@ function MatchRow({
   match,
   teamsById,
   onMessage,
+  autoOpen = false,
 }: {
   match: BoxMatch;
   teamsById: Record<string, BoxTeam>;
   onMessage: (msg: { ok: boolean; text: string }) => void;
+  /** deep-linked from an email: open the right form straight away */
+  autoOpen?: boolean;
 }) {
-  const [open, setOpen] = useState<false | "submit" | "confirm">(false);
+  const [open, setOpen] = useState<false | "submit" | "confirm">(
+    autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
+  );
   const t1 = teamsById[match.team1Id];
   const t2 = teamsById[match.team2Id];
   if (!t1 || !t2) return null;
@@ -331,7 +348,14 @@ function MatchRow({
   };
 
   return (
-    <div style={{ borderTop: `1px solid ${C.border}`, padding: "10px 0" }}>
+    <div
+      id={`match-${match.id}`}
+      style={{
+        borderTop: `1px solid ${C.border}`,
+        padding: "10px 0",
+        ...(autoOpen ? { boxShadow: `inset 3px 0 0 ${C.accent}`, paddingLeft: 10 } : {}),
+      }}
+    >
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div style={{ flex: "1 1 240px", fontSize: 13.5 }}>
           <span style={{ fontWeight: 600 }}>{t1.name}</span>
@@ -389,11 +413,13 @@ function BoxSection({
   teams,
   matches,
   onMessage,
+  focusMatch,
 }: {
   box: number;
   teams: BoxTeam[];
   matches: BoxMatch[];
   onMessage: (msg: { ok: boolean; text: string }) => void;
+  focusMatch?: string | null;
 }) {
   const standings = useMemo(() => computeBoxStandings(teams, matches), [teams, matches]);
   const teamsById = useMemo(() => Object.fromEntries(teams.map((t) => [t.id, t])), [teams]);
@@ -401,11 +427,13 @@ function BoxSection({
 
   return (
     <div
+      id={`box-live-${box}`}
       style={{
         background: C.card,
         border: `1px solid ${C.border}`,
         borderRadius: 12,
         padding: "18px 20px",
+        scrollMarginTop: 16,
       }}
     >
       <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
@@ -457,7 +485,7 @@ function BoxSection({
           MATCHES
         </div>
         {matches.map((m) => (
-          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} />
+          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} />
         ))}
       </div>
     </div>
@@ -466,12 +494,51 @@ function BoxSection({
 
 // ── Whole live section ───────────────────────────────────────────────────────
 
-export function BoxLeagueLive({ teams, matches }: { teams: BoxTeam[]; matches: BoxMatch[] }) {
+export function BoxLeagueLive({
+  teams,
+  matches,
+  focusBox = null,
+  focusMatch = null,
+  onFocusBox,
+}: {
+  teams: BoxTeam[];
+  matches: BoxMatch[];
+  /** show only this box (from a deep link, the grid, or find-my-box); null = all */
+  focusBox?: number | null;
+  /** open this match's form straight away */
+  focusMatch?: string | null;
+  onFocusBox?: (box: number | null) => void;
+}) {
   const [banner, setBanner] = useState<{ ok: boolean; text: string } | null>(null);
-  const boxes = useMemo(
+  const allBoxes = useMemo(
     () => [...new Set(teams.filter((t) => t.active).map((t) => t.box))].sort((a, b) => a - b),
     [teams]
   );
+  const boxes = focusBox !== null && allBoxes.includes(focusBox) ? [focusBox] : allBoxes;
+
+  // Find my box: the registered email tells us the team, the team tells us the box.
+  const [findEmail, setFindEmail] = useState(() => rememberedEmail());
+  const [finding, setFinding] = useState(false);
+  const [findMsg, setFindMsg] = useState<string | null>(null);
+  async function findMine() {
+    if (!findEmail.includes("@")) {
+      setFindMsg("Enter the email you registered with.");
+      return;
+    }
+    setFinding(true);
+    setFindMsg(null);
+    const res = await findBoxForEmail(findEmail);
+    setFinding(false);
+    if (res === "unavailable") {
+      setFindMsg("Box lookup isn't switched on yet — scroll to your box below.");
+    } else if (!res) {
+      setFindMsg("That email isn't registered to a team. Use the address you entered the league with, or contact the desk.");
+    } else {
+      rememberEmail(findEmail);
+      onFocusBox?.(res.box);
+      setTimeout(() => document.getElementById(`box-live-${res.box}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+    }
+  }
 
   return (
     <div style={{ marginTop: 36 }}>
@@ -483,6 +550,42 @@ export function BoxLeagueLive({ teams, matches }: { teams: BoxTeam[]; matches: B
         registered email address, and it counts once the opposing team confirms (entering the same
         score also confirms it). Win = 3 pts, straight-sets win = +1 bonus.
       </p>
+      <div
+        style={{
+          background: C.card,
+          border: `1px solid ${C.border}`,
+          borderRadius: 10,
+          padding: "12px 14px",
+          marginTop: 12,
+          display: "flex",
+          gap: 10,
+          flexWrap: "wrap",
+          alignItems: "center",
+        }}
+      >
+        <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: C.mute, flex: "1 1 100%" }}>
+          FIND MY BOX
+        </div>
+        <input
+          style={{ ...inputStyle, flex: "1 1 220px" }}
+          type="email"
+          value={findEmail}
+          onChange={(e) => setFindEmail(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && findMine()}
+          placeholder="Your registered email"
+          autoComplete="email"
+          aria-label="Your registered email"
+        />
+        <button onClick={findMine} disabled={finding} style={actionBtn}>
+          {finding ? "Looking…" : "Show my box"}
+        </button>
+        {focusBox !== null && (
+          <button onClick={() => onFocusBox?.(null)} style={ghostBtn}>
+            Show all {allBoxes.length} boxes
+          </button>
+        )}
+        {findMsg && <div style={{ color: C.red, fontSize: 12.5, flex: "1 1 100%" }}>{findMsg}</div>}
+      </div>
       {banner && (
         <div
           style={{
@@ -515,6 +618,7 @@ export function BoxLeagueLive({ teams, matches }: { teams: BoxTeam[]; matches: B
             teams={teams.filter((t) => t.box === b && t.active)}
             matches={matches.filter((m) => m.box === b)}
             onMessage={setBanner}
+            focusMatch={focusMatch}
           />
         ))}
       </div>

@@ -26,9 +26,20 @@ function combined(t: BoxTeam) {
   return (t.r1 ?? 0) + (t.r2 ?? 0);
 }
 
-export function BoxGrid() {
+export function BoxGrid({
+  focusBox = null,
+  onPick,
+}: {
+  /** show only this box; null = all */
+  focusBox?: number | null;
+  /** a box was picked (or null to show all) — the page filters both lists */
+  onPick?: (box: number | null) => void;
+} = {}) {
   const [teams, setTeams] = useState<BoxTeam[] | null>(null);
   const [open, setOpen] = useState<number | null>(1);
+  useEffect(() => {
+    if (focusBox !== null) setOpen(focusBox);
+  }, [focusBox]);
 
   useEffect(() => {
     const sb = createClient();
@@ -47,8 +58,10 @@ export function BoxGrid() {
       arr.push(t);
       by.set(t.box, arr);
     });
-    return [...by.entries()].sort((a, b) => a[0] - b[0]);
-  }, [teams]);
+    return [...by.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .filter(([num]) => focusBox === null || num === focusBox);
+  }, [teams, focusBox]);
 
   if (teams === null) return null;
   if (!teams.length) {
@@ -90,6 +103,17 @@ export function BoxGrid() {
         entry closes.
       </div>
 
+      {focusBox !== null && (
+        <div style={{ fontSize: 12.5, color: C.mute, marginBottom: 10, display: "flex", gap: 10, alignItems: "center" }}>
+          Showing your box only.
+          <button
+            onClick={() => onPick?.(null)}
+            style={{ background: "transparent", border: `1px solid ${C.border}`, color: C.text, borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer", fontFamily: F.body }}
+          >
+            Show all boxes
+          </button>
+        </div>
+      )}
       <div style={{ display: "grid", gap: 8 }}>
         {boxes.map(([num, list]) => {
           const isOpen = open === num;
@@ -120,8 +144,19 @@ export function BoxGrid() {
                     {list.length} teams · rating {lo.toFixed(2)}–{hi.toFixed(2)}
                   </span>
                 </span>
-                <span style={{ color: C.mute, fontSize: 12, flexShrink: 0 }}>
-                  {isOpen ? "hide ▲" : "view ▼"}
+                <span style={{ display: "flex", gap: 10, alignItems: "center", flexShrink: 0 }}>
+                  <span
+                    role="link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPick?.(num);
+                      setTimeout(() => document.getElementById(`box-live-${num}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+                    }}
+                    style={{ color: C.accent, fontSize: 12, fontWeight: 700 }}
+                  >
+                    scores ↓
+                  </span>
+                  <span style={{ color: C.mute, fontSize: 12 }}>{isOpen ? "hide ▲" : "view ▼"}</span>
                 </span>
               </button>
               {isOpen && (

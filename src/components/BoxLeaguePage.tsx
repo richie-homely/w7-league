@@ -119,6 +119,37 @@ export function BoxLeaguePage() {
   // Boxes render automatically once teams are seeded after entries close.
   const { teams, matches } = useBoxData();
 
+  // One box in focus: from the grid ("scores ↓"), find-my-box, or a deep link.
+  // Deep links (the per-team emails): ?box=N · ?team=<team id> · ?match=<match id>.
+  // The link identifies the TEAM, never the person — the email stays the credential.
+  const [focusBox, setFocusBox] = useState<number | null>(null);
+  const [focusMatch, setFocusMatch] = useState<string | null>(null);
+  const [linkTeam, setLinkTeam] = useState<string | null>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    const b = q.get("box");
+    if (b && /^\d+$/.test(b)) setFocusBox(parseInt(b, 10));
+    if (q.get("team")) setLinkTeam(q.get("team"));
+    if (q.get("match")) setFocusMatch(q.get("match"));
+  }, []);
+  useEffect(() => {
+    if (!teams.length) return;
+    let box: number | null = null;
+    if (focusMatch) {
+      const m = matches.find((x) => x.id === focusMatch);
+      if (m) box = m.box;
+    }
+    if (box === null && linkTeam) {
+      const t = teams.find((x) => x.id === linkTeam);
+      if (t) box = t.box;
+    }
+    if (box !== null) {
+      setFocusBox(box);
+      const target = focusMatch ? `match-${focusMatch}` : `box-live-${box}`;
+      setTimeout(() => document.getElementById(target)?.scrollIntoView({ behavior: "smooth", block: "start" }), 300);
+    }
+  }, [teams, matches, linkTeam, focusMatch]);
+
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
       <SiteNav />
@@ -228,7 +259,7 @@ export function BoxLeaguePage() {
           >
             Provisional <span style={{ color: C.accent }}>boxes</span>
           </div>
-          <BoxGrid />
+          <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
           <div style={{ marginTop: 24 }}>
             <SponsorCta
               headline="Sponsor a box"
@@ -369,7 +400,15 @@ export function BoxLeaguePage() {
           </p>
         </div>
 
-        {teams.length > 0 && <BoxLeagueLive teams={teams} matches={matches} />}
+        {teams.length > 0 && (
+          <BoxLeagueLive
+            teams={teams}
+            matches={matches}
+            focusBox={focusBox}
+            focusMatch={focusMatch}
+            onFocusBox={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }}
+          />
+        )}
       </div>
 
       {/* Footer */}
