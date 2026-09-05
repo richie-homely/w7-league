@@ -75,7 +75,7 @@ def build(team, opponents, matches_for_team):
         "",
         f"The W7 Autumn/Winter Box League starts {START}. You are in BOX {box} as {team['name']}.",
         "",
-        f"YOUR ROUND-1 FIXTURES ({n_games} games in 4 weeks)",
+        f"YOUR CYCLE-1 FIXTURES ({n_games} games · Mon 14 Sep – Sun 11 Oct)",
     ]
     for m in matches_for_team:
         opp = opponents[m["id"]]
@@ -83,6 +83,8 @@ def build(team, opponents, matches_for_team):
     lines += [
         "",
         "  Matches are arranged directly between the two teams — message your opponents and book a court.",
+        "  DEADLINE: all four must be played by Sunday 11 October. Unplayed = void and -1 point to BOTH teams, no",
+        "  individual extensions (weather only) — so fix your four dates this week.",
         "",
         "YOUR BOX ON THE SITE",
         f"  {SITE}/box?team={team['id']}",
@@ -97,8 +99,11 @@ def build(team, opponents, matches_for_team):
         "CONFIRMING AN OPPONENT'S RESULT",
         "  Open the match, tap Confirm result, enter your registered email, and Confirm — or Dispute if the score is wrong.",
         "",
-        "UP OR DOWN",
-        "  Win = 3 points, +1 for a straight-sets win. After the four weeks the top two teams in each box move up a box and the bottom two move down.",
+        "POINTS, PRIZES, UP OR DOWN",
+        "  4 points for a 2-0 win · 3 for a win in the championship tiebreak · 1 to the losers if they took a set · 0 for losing in two.",
+        "  Top of your box at the end of the cycle wins EUR15 Playtomic credit per player. Top two go up a box, bottom two go down, 3rd stays.",
+        "  A substitute is fine if their Playtomic rating is within 0.75 of the player they replace.",
+        f"  Seven cycles to April — full rules and calendar: {SITE}/box/rules",
         "",
         "EMAIL NOT RECOGNISED?",
         "  The address must match the one used to enter the league on Playtomic. If yours is not recognised, your partner can add it from the box page, or reply to this email.",

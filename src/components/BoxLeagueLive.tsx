@@ -414,13 +414,20 @@ function BoxSection({
   matches,
   onMessage,
   focusMatch,
+  defaultOpen = false,
 }: {
   box: number;
   teams: BoxTeam[];
   matches: BoxMatch[];
   onMessage: (msg: { ok: boolean; text: string }) => void;
   focusMatch?: string | null;
+  /** open on first render (the focused box, or when only one box is shown) */
+  defaultOpen?: boolean;
 }) {
+  // Each box collapses on its own (Richie, 5 Sep 2026) — 18 boxes of table + matches
+  // is a long scroll, so a box shows its header line until asked for.
+  const [openState, setOpen] = useState<boolean | null>(null);
+  const open = openState ?? defaultOpen;
   const standings = useMemo(() => computeBoxStandings(teams, matches), [teams, matches]);
   const teamsById = useMemo(() => Object.fromEntries(teams.map((t) => [t.id, t])), [teams]);
   const played = matches.filter((m) => m.status === "confirmed").length;
@@ -436,15 +443,26 @@ function BoxSection({
         scrollMarginTop: 16,
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        style={{
+          width: "100%", display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap",
+          background: "transparent", border: 0, padding: 0, cursor: "pointer", color: C.text,
+          fontFamily: F.body, textAlign: "left",
+        }}
+      >
         <div style={{ fontFamily: F.display, fontSize: 24, letterSpacing: "0.03em" }}>
           BOX <span style={{ color: C.accent }}>{box}</span>
         </div>
         <div style={{ fontSize: 11.5, color: C.mute }}>
           {teams.length} teams · {played}/{matches.length} played
+          {!open && standings[0] && played > 0 && ` · leader ${standings[0].team.name}`}
         </div>
-      </div>
+        <div style={{ marginLeft: "auto", fontSize: 12, color: C.mute }}>{open ? "hide ▲" : "view ▼"}</div>
+      </button>
 
+      {open && (<>
       {/* Standings */}
       <div style={{ overflowX: "auto", marginTop: 12 }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -488,6 +506,7 @@ function BoxSection({
           <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} />
         ))}
       </div>
+      </>)}
     </div>
   );
 }
@@ -573,7 +592,8 @@ export function BoxLeagueLive({
       <p style={{ fontSize: 13, color: C.mute, lineHeight: 1.6, maxWidth: 640, marginTop: 6 }}>
         Play everyone in your box, then post your result here — either team can enter it using a
         registered email address, and it counts once the opposing team confirms (entering the same
-        score also confirms it). Win = 3 pts, straight-sets win = +1 bonus.
+        score also confirms it). Points: 4 for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if
+        they took a set, 0 for losing in two. Unplayed at the cycle deadline: void, −1 each.
       </p>
       <div
         style={{
@@ -667,6 +687,7 @@ export function BoxLeagueLive({
             matches={matches.filter((m) => m.box === b)}
             onMessage={setBanner}
             focusMatch={focusMatch}
+            defaultOpen={boxes.length === 1 || b === focusBox}
           />
         ))}
       </div>

@@ -20,7 +20,9 @@ export const BOX_LEAGUE = {
   extraPlacesNote: "SOLD OUT IN 5 DAYS · 40 MORE TEAMS JUST RELEASED",
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
-  durationMonths: 6,
+  durationMonths: 7,
+  cycles: 7, // 4-week cycles, Mon 14 Sep 2026 -> Sun 11 Apr 2027 (Christmas break excluded)
+  seasonEnd: new Date("2027-04-11"),
   // Direct link to the Box League event in Playtomic (it lives under Events).
   registerUrl:
     "https://app.playtomic.com/tournaments/e59d3263-c5cb-4f96-8745-46f32711d1be",

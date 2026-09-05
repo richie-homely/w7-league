@@ -9,6 +9,8 @@ import { CONTACT } from "@/lib/league";
 import { BOX_LEAGUE } from "@/lib/competitions";
 import { useBoxData } from "@/lib/box";
 import { BoxLeagueLive } from "./BoxLeagueLive";
+import { BoxCalendar } from "./BoxCalendar";
+import Link from "next/link";
 import { SiteNav } from "./SiteNav";
 import { KeanoCredit } from "./KeanoCredit";
 
@@ -250,7 +252,7 @@ export function BoxLeaguePage() {
             <strong>top two teams go up a box and the bottom two go down</strong>, then the next
             round starts. Only the middle team holds its place, so the ladder moves fast — keep
             winning and you can climb toward Box 1 quickly over the{" "}
-            {BOX_LEAGUE.durationMonths} months.
+            {BOX_LEAGUE.cycles} cycles to April.
           </p>
         </div>
         <div style={{ marginTop: 30 }}>
@@ -285,8 +287,10 @@ export function BoxLeaguePage() {
             marginTop: 28,
           }}
         >
-          <Fact label="STARTS" value="MON 14 SEP" sub={`4-week rounds · runs ~${BOX_LEAGUE.durationMonths} months`} />
+          <Fact label="STARTS" value="MON 14 SEP" sub={`${BOX_LEAGUE.cycles} four-week cycles · to Sun 11 Apr 2027`} />
           <Fact label="FORMAT" value="5 PER BOX" sub="4 games in 4 weeks · top 2 up, bottom 2 down" />
+          <Fact label="POINTS" value="4 · 3 · 1 · 0" sub="2–0 win 4 · tiebreak win 3 · losers who took a set 1" />
+          <Fact label="BOX WINNERS" value="€30 CREDIT" sub="€15 Playtomic credit per player, every cycle" />
           <Fact
             label="SPACES"
             value={`${BOX_LEAGUE.maxTeams} TEAMS`}
@@ -313,11 +317,12 @@ export function BoxLeaguePage() {
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {[
-              ["Your box", "Five teams of a similar standard, cut by combined Playtomic rating. Boxes are redrawn every round, so you keep meeting new opponents at your level."],
-              ["Four games", "You play each of the other four teams once over the four weeks. A box of four plays three and takes a bye."],
-              ["You pick the time", "There are no fixed fixture slots. Arrange each match directly with your opponents and book the court whenever suits you both."],
-              ["Log the result", "Enter the score on this page with the email you registered with. It counts once your opponents confirm it."],
-              ["Up or down", "Top two teams move up a box, bottom two move down, and the next round starts. Only the middle team holds its place, so the ladder moves quickly."],
+              ["Your box", "Five teams of a similar standard, cut by combined Playtomic rating. Boxes are redrawn every cycle, so you keep meeting new opponents at your level."],
+              ["Four games in four weeks", "You play each of the other four teams once per cycle. Unplayed at the deadline = void and −1 point to both teams, so arrange all four as soon as the cycle opens. A box of four plays three and takes a bye."],
+              ["You pick the time", "There are no fixed fixture slots. Arrange each match directly with your opponents and book the court whenever suits you both. A sub is fine if their rating is within 0.75 of the player they replace."],
+              ["Log the result", "Two sets, then a championship tiebreak if it's one apiece. Enter the score on this page with the email you registered with; it counts once your opponents confirm it."],
+              ["Points and prizes", "4 points for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if they took a set. Top of the box at the end of a cycle wins €15 Playtomic credit per player."],
+              ["Up or down", "Top two teams move up a box, bottom two move down, and the next cycle starts. Only the middle team holds its place, so the ladder moves quickly."],
             ].map(([h, t], i) => (
               <div key={h} style={{ display: "flex", gap: 12, background: C.card,
                                     border: `1px solid ${C.border}`, borderRadius: 10,
@@ -398,10 +403,14 @@ export function BoxLeaguePage() {
             <li>Book your place — €{BOX_LEAGUE.entryPerPerson} per person.</li>
           </ol>
           <p style={{ fontSize: 12.5, color: C.mute, lineHeight: 1.6, marginTop: 8 }}>
-            All league rules, format and full terms &amp; conditions can be viewed in Playtomic when
-            signing up.{" "}
+            The full <Link href="/box/rules" style={{ color: C.info, fontWeight: 600 }}>rules and format</Link> are on their own page; the
+            season calendar is below.{" "}
             {teams.length === 0 && "Boxes, fixtures and standings will appear on this page once entries close."}
           </p>
+        </div>
+
+        <div style={{ marginTop: 32 }}>
+          <BoxCalendar />
         </div>
 
         {teams.length > 0 && (

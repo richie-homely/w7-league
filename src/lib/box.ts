@@ -1,7 +1,7 @@
 "use client";
 
 // Box league data layer: types, live data hook, and box standings.
-// Same scoring as the summer league: Win = 3 pts, straight-sets bonus = +1.
+// Scoring per the Box League rules: 4 pts straight-sets win, 3 pts win in a tiebreak, 1 pt to losers who took a set.
 // Only CONFIRMED results count in standings; 'submitted' shows as provisional.
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -295,8 +295,12 @@ export function computeBoxStandings(
     const loser = t1Won ? r2 : r1;
     winner.W++;
     loser.L++;
-    winner.Pts += 3;
-    if ((t1Won && s2 === 0) || (!t1Won && s1 === 0)) winner.Pts += 1;
+    // League points (rules of 5 Sep 2026): 4 for a straight-sets win, 3 for a win
+    // after splitting the first two sets, 1 to the losers if they took a set, 0 for
+    // losing in two. Unplayed-at-deadline penalties (-1 each) are applied by W7.
+    const straight = (t1Won && s2 === 0) || (!t1Won && s1 === 0);
+    winner.Pts += straight ? 4 : 3;
+    if (!straight) loser.Pts += 1;
     winner.h2h[loser.teamId] = (winner.h2h[loser.teamId] || 0) + 1;
   }
 
