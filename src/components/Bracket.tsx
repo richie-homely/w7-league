@@ -195,6 +195,31 @@ function TierBracket({
   const qualifiers = tierQualifiers(tier, teams, fixtures);
   const bracket = buildBracket(qualifiers);
 
+  // Progress line for the header: how many ties are played, over what dates, and
+  // when the finals are. Replaces the "Dates TBC" that sat there until the first
+  // ties were played (Richie, 5 Sep 2026). Computed from the results on the
+  // bracket, so it never needs editing as ties come in.
+  const allTies = [...bracket.r1, ...bracket.qf, ...bracket.sf, ...bracket.f];
+  const played = allTies.filter((m) => m.result);
+  const shortDate = (iso: string) =>
+    new Date(iso + "T12:00:00").toLocaleDateString("en-IE", { day: "numeric", month: "short" });
+  const playedDates = played.map((m) => m.result!.playedOn).sort();
+  const currentRound = bracket.r1.length && bracket.r1.some((m) => !m.result)
+    ? { label: "round 1", ties: bracket.r1 }
+    : bracket.qf.some((m) => !m.result)
+      ? { label: "quarter-finals", ties: bracket.qf }
+      : bracket.sf.some((m) => !m.result)
+        ? { label: "semi-finals", ties: bracket.sf }
+        : { label: "final", ties: bracket.f };
+  const roundDone = currentRound.ties.filter((m) => m.result).length;
+  const datesLabel = played.length
+    ? `${roundDone} of ${currentRound.ties.length} ${currentRound.label} played` +
+      (playedDates.length
+        ? ` (${shortDate(playedDates[0])}${playedDates[0] !== playedDates[playedDates.length - 1] ? ` – ${shortDate(playedDates[playedDates.length - 1])}` : ""})`
+        : "") +
+      ` · finals ${FINALS.dates}${FINALS.provisional ? " (provisional)" : ""}`
+    : `Ties from 1 Sep · finals ${FINALS.dates}${FINALS.provisional ? " (provisional)" : ""}`;
+
   const stages: { label: string; matches: BracketMatchType[] }[] = [];
   if (bracket.r1.length) stages.push({ label: "ROUND 1", matches: bracket.r1 });
   stages.push({ label: "QUARTER FINALS", matches: bracket.qf });
@@ -221,7 +246,7 @@ function TierBracket({
           <div style={{ fontSize: 13, color: C.mute, marginTop: 6 }}>
             Playtomic rating {tierRange} · {tier === "lower"
               ? "Top 5 from each division + best 6th"
-              : "Top 4 from each division"} qualify · {qualifiers.length} teams in the bracket · Dates TBC
+              : "Top 4 from each division"} qualify · {qualifiers.length} teams in the bracket · {datesLabel}
           </div>
           {bracket.meta && (
             <div
