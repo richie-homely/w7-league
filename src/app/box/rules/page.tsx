@@ -13,7 +13,7 @@ const SECTIONS: { h: string; body: (string | string[])[] }[] = [
   {
     h: "The league",
     body: [
-      `An Autumn/Winter Padel Box League with space for up to ${BOX_LEAGUE.maxTeams} teams.`,
+      `An Autumn/Winter Padel Box League. ${BOX_LEAGUE.extraPlacesNote ?? ""} — ${BOX_LEAGUE.maxTeams} team places in all.`,
       "Depending on the number of entries and the spread of playing levels, entries may be split into two separate box leagues, so that divisions are balanced and every team plays competitive matches against opponents of a similar level.",
     ],
   },
