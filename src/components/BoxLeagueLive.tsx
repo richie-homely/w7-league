@@ -4,9 +4,9 @@
 // score entry cross-validated against registered team emails (see the
 // interest_and_box_league migration for the server-side rules).
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
-import { formatScore, parseSets } from "@/lib/scoring";
+import { formatScore, parseSets, setsWon } from "@/lib/scoring";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -81,8 +81,26 @@ function SubmitForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const setCell = (i: number, j: 0 | 1, v: string) =>
+  // Same entry feel as the summer-league admin console (Richie, 5 Sep 2026):
+  // a digit in a regular set jumps straight to the other team's cell for that
+  // set, then on to the next set; the third-set tiebreak can be two digits so
+  // it stays put. Refs are indexed setIndex*2 + side.
+  const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+  useEffect(() => {
+    const id = setTimeout(() => inputsRef.current[0]?.focus(), 0);
+    return () => clearTimeout(id);
+  }, []);
+  const setCell = (i: number, j: 0 | 1, v: string) => {
     setRaw((cur) => cur.map((s, k) => (k === i ? ((j === 0 ? [v, s[1]] : [s[0], v]) as [string, string]) : s)));
+    if (i < 2 && /^\d$/.test(v)) {
+      const nextEl = inputsRef.current[i * 2 + j + 1];
+      nextEl?.focus();
+      nextEl?.select();
+    }
+  };
+  // Live winner: flagged as soon as a side has clinched two sets of what is typed.
+  const { s1, s2 } = setsWon(parseSets(raw));
+  const winner = s1 >= 2 && s1 > s2 ? 0 : s2 >= 2 && s2 > s1 ? 1 : -1;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -126,22 +144,47 @@ function SubmitForm({
         <div style={{ fontSize: 10, color: C.mute, textAlign: "center" }}>1</div>
         <div style={{ fontSize: 10, color: C.mute, textAlign: "center" }}>2</div>
         <div style={{ fontSize: 10, color: C.mute, textAlign: "center" }}>3 (TB)</div>
-        {[team1, team2].map((t, side) => (
-          <div key={t.id} style={{ display: "contents" }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: side === 0 ? C.accent : C.info }}>{t.name}</div>
-            {[0, 1, 2].map((i) => (
-              <input
-                key={i}
-                style={setInputStyle}
-                inputMode="numeric"
-                maxLength={2}
-                value={raw[i][side as 0 | 1]}
-                onChange={(e) => setCell(i, side as 0 | 1, e.target.value.replace(/\D/g, ""))}
-                aria-label={`Set ${i + 1} games for ${t.name}`}
-              />
-            ))}
-          </div>
-        ))}
+        {[team1, team2].map((t, side) => {
+          const won = winner === side;
+          const lost = winner !== -1 && !won;
+          return (
+            <div key={t.id} style={{ display: "contents" }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  fontWeight: won ? 800 : 600,
+                  color: won ? C.green : lost ? C.mute : side === 0 ? C.accent : C.info,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  transition: "color 120ms",
+                }}
+              >
+                {won && <span aria-label="winner">🏆</span>}
+                {t.name}
+              </div>
+              {[0, 1, 2].map((i) => (
+                <input
+                  key={i}
+                  ref={(el) => {
+                    inputsRef.current[i * 2 + side] = el;
+                  }}
+                  style={{
+                    ...setInputStyle,
+                    borderColor: won ? C.green : side === 0 ? C.accent : C.info,
+                    fontWeight: won ? 700 : 500,
+                  }}
+                  inputMode="numeric"
+                  maxLength={2}
+                  value={raw[i][side as 0 | 1]}
+                  onChange={(e) => setCell(i, side as 0 | 1, e.target.value.replace(/\D/g, ""))}
+                  onFocus={(e) => e.target.select()}
+                  aria-label={`Set ${i + 1} games for ${t.name}`}
+                />
+              ))}
+            </div>
+          );
+        })}
       </div>
       <div style={{ fontSize: 11, color: C.mute }}>
         Best of 3 — the deciding 3rd set is a championship tiebreak. Leave set 3 blank for a 2–0 win.
