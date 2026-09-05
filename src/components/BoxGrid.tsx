@@ -45,6 +45,7 @@ export function BoxGrid({
     sb.from("box_teams")
       .select("id,box,seed,name,p1,p2,r1,r2")
       .eq("active", true)
+      .lt("box", 90)          // 90+ are internal test boxes
       .order("box", { ascending: true })
       .order("seed", { ascending: true })
       .then(({ data }) => setTeams((data as BoxTeam[]) ?? []));

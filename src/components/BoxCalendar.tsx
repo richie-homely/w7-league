@@ -26,7 +26,7 @@ export function BoxCalendar() {
   const onBreak = now ? inBreak(now) : false;
 
   return (
-    <div id="calendar" style={{ scrollMarginTop: 16 }}>
+    <div id="calendar" style={{ scrollMarginTop: 60 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", marginBottom: 10 }}>
         <div style={{ fontFamily: F.display, fontSize: 24, textTransform: "uppercase", letterSpacing: "0.02em" }}>
           Season <span style={{ color: C.accent }}>calendar</span>

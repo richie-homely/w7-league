@@ -585,7 +585,7 @@ export function BoxLeagueLive({
   }
 
   return (
-    <div style={{ marginTop: 36 }}>
+    <div id="scores" style={{ marginTop: 36, scrollMarginTop: 60 }}>
       <div style={{ fontFamily: F.display, fontSize: 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>
         The <span style={{ color: C.accent }}>Boxes</span>
       </div>

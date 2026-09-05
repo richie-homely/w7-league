@@ -159,6 +159,36 @@ export function BoxLeaguePage() {
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
       <SiteNav />
+      {/* In-page navigation (Richie, 5 Sep 2026): the page is long — boxes, calendar,
+          scores, rules — so give people the jumps at the top and keep them in view. */}
+      <nav
+        aria-label="Box league sections"
+        style={{
+          position: "sticky", top: 0, zIndex: 20, background: "rgba(10,10,10,0.92)",
+          backdropFilter: "blur(6px)", borderBottom: `1px solid ${C.border}`,
+          display: "flex", gap: 6, padding: "8px 16px", overflowX: "auto", whiteSpace: "nowrap",
+        }}
+      >
+        {[
+          ["#boxes", "Boxes"],
+          ["#calendar", "Calendar"],
+          ["#scores", "Scores & results"],
+          ["#scores", "Find my box"],
+          ["/box/rules", "Rules"],
+        ].map(([href, label]) => (
+          <a
+            key={label}
+            href={href}
+            style={{
+              fontSize: 12.5, fontWeight: 700, color: C.text, textDecoration: "none",
+              padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 999,
+              background: C.card,
+            }}
+          >
+            {label}
+          </a>
+        ))}
+      </nav>
 
       {/* Hero over the courts photo (/public/courts.jpg) — gradient-only until
           the photo lands, so nothing breaks without it. */}
@@ -263,7 +293,7 @@ export function BoxLeaguePage() {
               letterSpacing: "0.02em", margin: "22px 0 4px",
             }}
           >
-            Provisional <span style={{ color: C.accent }}>boxes</span>
+            <span id="boxes" style={{ scrollMarginTop: 60 }}>Provisional</span> <span style={{ color: C.accent }}>boxes</span>
           </div>
           <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
           <div style={{ marginTop: 24 }}>
