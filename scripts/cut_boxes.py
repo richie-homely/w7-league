@@ -103,15 +103,31 @@ def main():
     open(out_md, "w", encoding="utf-8").write("\n".join(md))
 
     q = lambda s: s.replace("'", "''")
+    # Update-in-place for teams already in the live table (keeps ids, contacts and any results),
+    # insert only the new teams, then rebuild cycle-1 fixtures for the real boxes.
     sql = [f"-- Box League boxes re-cut on the LATEST Playtomic ratings ({stamp}). NOT applied yet.",
-           "-- Replaces every team row; run only once the boxes are finalised and BEFORE any results exist.",
-           "begin;", "delete from public.box_teams where box <> 99;"]
+           "-- Existing teams are UPDATED in place (ids/contacts kept); new teams inserted; cycle-1 fixtures rebuilt.",
+           "-- Safe while no real results exist. Box 99 (test) is untouched.",
+           "begin;",
+           "-- park every live team on a temporary box so the (box, seed) unique key cannot collide mid-update",
+           "update public.box_teams set box = box + 1000 where box <> 99;"]
     for chunk in boxes:
         for t in chunk:
             p1, p2 = t["players"][0]["name"], t["players"][1]["name"]
-            sql.append(f"insert into public.box_teams (box, seed, name, p1, p2, r1, r2) values "
-                       f"({t['box']}, {t['seed']}, '{q(t['label'])}', '{q(p1)}', '{q(p2)}', {t['r'][0]}, {t['r'][1]});")
-    sql.append("commit;")
+            if t.get("live"):
+                sql.append(f"update public.box_teams set box = {t['box']}, seed = {t['seed']}, r1 = {t['r'][0]}, r2 = {t['r'][1]}, "
+                           f"name = '{q(t['label'])}', p1 = '{q(p1)}', p2 = '{q(p2)}', active = true where id = '{t['live']['id']}';")
+            else:
+                sql.append(f"insert into public.box_teams (box, seed, name, p1, p2, r1, r2) values "
+                           f"({t['box']}, {t['seed']}, '{q(t['label'])}', '{q(p1)}', '{q(p2)}', {t['r'][0]}, {t['r'][1]});")
+    sql += ["-- anything still parked was in the live table but not in this entrant list: deactivate it",
+            "update public.box_teams set active = false where box > 1000;",
+            "-- rebuild cycle-1 fixtures (only unplayed ones are removed)",
+            "delete from public.box_matches where cycle = 1 and box <> 99 and status = 'pending';",
+            "insert into public.box_matches (box, cycle, team1_id, team2_id)",
+            "select a.box, 1, a.id, b.id from public.box_teams a join public.box_teams b on b.box = a.box and b.active and a.seed < b.seed",
+            "where a.active and a.box <> 99 on conflict (cycle, team1_id, team2_id) do nothing;",
+            "commit;"]
     out_sql = os.path.join(os.path.dirname(src), f"box_cut_{stamp}.sql")
     open(out_sql, "w", encoding="utf-8").write("\n".join(sql) + "\n")
     print("\n".join(md[:12]))
