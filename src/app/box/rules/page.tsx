@@ -158,7 +158,7 @@ export default function BoxRulesPage() {
         ))}
 
         <div style={{ marginTop: 30, padding: "12px 14px", background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, color: C.mute }}>
-          Questions: welcome@w7padel.com · WhatsApp 085 135 4570
+          Step-by-step: <Link href="/box/how-to" style={{ color: C.info }}>how to enter scores</Link> · Questions: welcome@w7padel.com · WhatsApp 085 135 4570
         </div>
         <KeanoCredit />
       </div>

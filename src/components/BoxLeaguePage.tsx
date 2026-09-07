@@ -174,6 +174,7 @@ export function BoxLeaguePage() {
           ["#calendar", "Calendar"],
           ["#scores", "Scores & results"],
           ["#scores", "Find my box"],
+          ["/box/how-to", "How to enter scores"],
           ["/box/rules", "Rules"],
         ].map(([href, label]) => (
           <a

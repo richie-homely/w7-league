@@ -12,12 +12,12 @@ export const BOX_LEAGUE = {
   // Players, not teams — the cap is in teams and a bare player count beside it
   // reads as twice as full as it is. NB the PUBLIC event page shows spots
   // REMAINING, which looks like a registered count and is not.
-  registeredPlayers: 192, // 96 teams, Playtomic entrant list 6 Sep 2026 — boxes re-cut on latest ratings
+  registeredPlayers: 200, // 100 teams, Playtomic entrant list 7 Sep 2026 — final cut on latest ratings
   // Shown in place of the plain "registration open" strap while the released
   // places are the story. Selling out once is the best argument for the second
   // batch, so the page should say so rather than quietly reopening. Set to
   // undefined when it stops being news.
-  extraPlacesNote: "SOLD OUT IN 5 DAYS · 40 MORE RELEASED · LAST SLOTS REMAINING",
+  extraPlacesNote: "SOLD OUT · 100 TEAMS · 200 PLAYERS",
   entryPerPerson: 20, // EUR
   entryPerTeam: 40, // EUR
   durationMonths: 7,
