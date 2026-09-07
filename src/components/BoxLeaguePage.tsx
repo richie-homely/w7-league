@@ -218,7 +218,7 @@ export function BoxLeaguePage() {
           />
           <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
             {isFull
-              ? `FULL · ALL ${BOX_LEAGUE.maxTeams} TEAM PLACES TAKEN`
+              ? `BOX LEAGUE FULL · ALL ${BOX_LEAGUE.maxTeams} TEAM PLACES TAKEN`
               : regOpen
                 ? BOX_LEAGUE.extraPlacesNote
                   ? BOX_LEAGUE.extraPlacesNote
@@ -294,7 +294,7 @@ export function BoxLeaguePage() {
               letterSpacing: "0.02em", margin: "22px 0 4px",
             }}
           >
-            <span id="boxes" style={{ scrollMarginTop: 60 }}>Provisional</span> <span style={{ color: C.accent }}>boxes</span>
+            <span id="boxes" style={{ scrollMarginTop: 60 }}>Final</span> <span style={{ color: C.accent }}>boxes</span>
           </div>
           <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
           <div style={{ marginTop: 24 }}>

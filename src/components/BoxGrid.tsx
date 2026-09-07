@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { createClient } from "@/lib/supabase/client";
 
-/* Provisional boxes for the Autumn/Winter Padel Box League.
+/* Final boxes for the Autumn/Winter Padel Box League (marked final 7 Sep 2026, league full).
  *
  * Entry is still open, so every box here will move as teams join — the page
  * says so loudly rather than quietly, because players will screenshot this and
@@ -89,18 +89,16 @@ export function BoxGrid({
           borderRadius: 8, padding: "7px 12px",
         }}
       >
-        <span style={{ fontSize: 13 }}>⚠</span>
+        <span style={{ fontSize: 13 }}>✓</span>
         <span style={{ fontSize: 12.5, color: C.text, fontWeight: 600 }}>
-          PROVISIONAL — boxes will change as more teams enter
+          FINAL — boxes set on live Playtomic ratings, 7 September 2026 · league full
         </span>
       </div>
       <div style={{ fontSize: 13, color: C.mute, marginBottom: 14, maxWidth: 620, lineHeight: 1.6 }}>
-        {totalTeams} teams entered so far, sorted by combined Playtomic rating and cut into{" "}
+        {totalTeams} teams, sorted by combined Playtomic rating and cut into{" "}
         {boxes.length} boxes of five. You play the other four in your box over four weeks,
-        arranging each match directly with your opponents — then the top TWO teams move up a box
-        and the bottom TWO move down, so only the middle team holds its place. Where the entry count will not divide by five, a box of four
-        plays three games and takes a bye. Click a box to see who is in it. Nothing is final until
-        entry closes.
+        arranging each match with your opponents on Playtomic chat — then the top TWO teams move up a box
+        and the bottom TWO move down, so only the middle team holds its place. Click a box to see who is in it.
       </div>
 
       {focusBox !== null && (
