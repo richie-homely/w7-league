@@ -25,6 +25,9 @@ checks that both sides agree, and only disagreements come to welcome@w7padel.com
 - **Confirm.** The other team gets an email within 15 minutes with a button to that match:
   Confirm or Dispute. Entering the same score themselves also confirms. Both teams get a
   final email when it is confirmed; both teams and welcome@ get one if the scores differ.
+- **Fixtures are arranged in Playtomic chat.** Teams message each other from the league
+  event in the Playtomic app and book the court themselves; the site holds no contact details
+  beyond the registered email used to confirm scores.
 - **Rules and how-to pages** for everything else. Problems go to welcome@w7padel.com.
 
 ## What happens behind it
