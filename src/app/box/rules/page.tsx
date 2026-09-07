@@ -65,7 +65,7 @@ const SECTIONS: { h: string; body: (string | string[])[] }[] = [
   {
     h: "Cycle winner prize",
     body: [
-      "The team finishing top of its box at the end of a cycle receives €15 Playtomic credit per player — €30 per winning team. Seven cycles, seven chances to top the box, win credit and earn promotion.",
+      "The team finishing top of its box at the end of a cycle receives €20 Playtomic credit per player — €40 per winning team. Seven cycles, seven chances to top the box, win credit and earn promotion.",
     ],
   },
   {
@@ -133,7 +133,7 @@ export default function BoxRulesPage() {
           Rules &amp; <span style={{ color: C.accent }}>format</span>
         </h1>
         <p style={{ color: C.mute, fontSize: 13, marginTop: 6 }}>
-          Issued 5 September 2026. Where these rules and the Playtomic event listing differ, these rules apply.
+          Issued 5 September 2026; winner credit confirmed at €20 per player on 7 September 2026. Where these rules and the Playtomic event listing differ, these rules apply.
         </p>
 
         {SECTIONS.map((s) => (

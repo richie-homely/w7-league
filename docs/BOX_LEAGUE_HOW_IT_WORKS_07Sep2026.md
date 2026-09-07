@@ -1,6 +1,6 @@
 # W7 Autumn/Winter Padel Box League — how the system works
 
-Management summary, 7 September 2026 (v1.0). For David, Paul, Mick and the desk team.
+Management summary, 7 September 2026 (v1.1). For David, Paul, Mick and the desk team.
 Site: https://league.w7padel.com/box · Rules: /box/rules · Player instructions: /box/how-to
 
 ## In one paragraph
@@ -8,7 +8,7 @@ Site: https://league.w7padel.com/box · Rules: /box/rules · Player instructions
 100 teams (200 players) paid €20 a head on Playtomic. Their combined Playtomic ratings put
 them into 20 boxes of 5. Every four weeks each team plays the other four in its box, enters
 the score on the league site, and the opposing team confirms it by email link. At the end of
-the cycle the top two go up, the bottom two go down, box winners get €15 credit each, and the
+the cycle the top two go up, the bottom two go down, box winners get €20 credit each, and the
 next cycle starts. Seven cycles, 14 September 2026 to 11 April 2027, with a two-week
 Christmas pause. Nobody at the desk has to enter a score: the players do it, the system
 checks that both sides agree, and only disagreements come to welcome@w7padel.com.
@@ -51,7 +51,7 @@ checks that both sides agree, and only disagreements come to welcome@w7padel.com
   step does not yet. Before the cycle-1 deadline Richie will add the script that voids
   unplayed fixtures with −1 to both teams, applies promotion and relegation (top two up,
   bottom two down, third stays), generates the next cycle's fixtures and lists the box
-  winners for the desk to load the €15 credits in Playtomic.
+  winners for the desk to load the €20 credits in Playtomic.
 
 ## What the desk has to do
 
@@ -65,7 +65,7 @@ checks that both sides agree, and only disagreements come to welcome@w7padel.com
 3. **Substitutes.** Rule is within 0.75 rating of the player replaced. If a team asks, check
    the two ratings in Playtomic and reply yes or no; the site does not police it.
 4. **Cycle turnover.** Richie runs the cycle-end step the Monday after each deadline, then
-   the desk loads the winners' €15 credits.
+   the desk loads the winners' €20 credits.
 5. **Weather extensions.** Organisers' call; if a cycle is extended, the calendar on the site
    is updated and all teams are emailed.
 
@@ -79,7 +79,7 @@ checks that both sides agree, and only disagreements come to welcome@w7padel.com
 | Fixtures per cycle | 200 (10 per box) |
 | Cycle length | 4 weeks; cycle 1 = 14 Sep – 11 Oct 2026 |
 | Season | 7 cycles to 11 Apr 2027; Christmas pause 23 Dec – 5 Jan |
-| Winner credit | €15 per player, €30 per team, 20 teams a cycle = €600 credit a cycle |
+| Winner credit | €20 per player, €40 per team, 20 winning teams a cycle = €800 credit a cycle (≈€5,600 over the season; confirmed 7 Sep) |
 | Court demand | ~200 matches per 4 weeks ≈ 50 bookings a week, mostly evenings and weekends |
 
 ## Risks worth naming

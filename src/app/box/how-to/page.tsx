@@ -41,7 +41,7 @@ const STEPS: { h: string; body: (string | string[])[] }[] = [
   {
     h: "5. Watch the table",
     body: [
-      "Points are 4 for a win in straight sets, 3 for a win after splitting the first two sets, 1 to the loser who takes a set, 0 for a straight-sets loss. At the end of the cycle the top two go up a box, the bottom two go down, and the winners get €15 Playtomic credit each.",
+      "Points are 4 for a win in straight sets, 3 for a win after splitting the first two sets, 1 to the loser who takes a set, 0 for a straight-sets loss. At the end of the cycle the top two go up a box, the bottom two go down, and the winners get €20 Playtomic credit each (€40 per team).",
       "Unplayed matches are void at the cycle deadline and both teams get −1, so do not leave your fourth match to the last weekend.",
     ],
   },

@@ -321,7 +321,7 @@ export function BoxLeaguePage() {
           <Fact label="STARTS" value="MON 14 SEP" sub={`${BOX_LEAGUE.cycles} four-week cycles · to Sun 11 Apr 2027`} />
           <Fact label="FORMAT" value="5 PER BOX" sub="4 games in 4 weeks · top 2 up, bottom 2 down" />
           <Fact label="POINTS" value="4 · 3 · 1 · 0" sub="2–0 win 4 · tiebreak win 3 · losers who took a set 1" />
-          <Fact label="BOX WINNERS" value="€30 CREDIT" sub="€15 Playtomic credit per player, every cycle" />
+          <Fact label="BOX WINNERS" value="€40 CREDIT" sub="€20 Playtomic credit per player, every cycle" />
           <Fact
             label="SPACES"
             value={`${BOX_LEAGUE.maxTeams} TEAMS`}
@@ -336,7 +336,7 @@ export function BoxLeaguePage() {
             value={`€${BOX_LEAGUE.entryPerTeam} / TEAM`}
             sub={`€${BOX_LEAGUE.entryPerPerson} per person`}
           />
-          <Fact label="ENTRIES CLOSE" value="MON 7 SEP" sub="First come, first served" />
+          <Fact label="ENTRIES" value="FULL" sub="All 100 team places taken, 7 Sep" />
         </div>
 
         {/* The format in five steps. It lived in one hero sentence, which is
@@ -352,7 +352,7 @@ export function BoxLeaguePage() {
               ["Four games in four weeks", "You play each of the other four teams once per cycle. Unplayed at the deadline = void and −1 point to both teams, so arrange all four as soon as the cycle opens. A box of four plays three and takes a bye."],
               ["You pick the time", "There are no fixed fixture slots. Arrange each match directly with your opponents and book the court whenever suits you both. A sub is fine if their rating is within 0.75 of the player they replace."],
               ["Log the result", "Two sets, then a championship tiebreak if it's one apiece. Enter the score on this page with the email you registered with; it counts once your opponents confirm it."],
-              ["Points and prizes", "4 points for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if they took a set. Top of the box at the end of a cycle wins €15 Playtomic credit per player."],
+              ["Points and prizes", "4 points for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if they took a set. Top of the box at the end of a cycle wins €20 Playtomic credit per player."],
               ["Up or down", "Top two teams move up a box, bottom two move down, and the next cycle starts. Only the middle team holds its place, so the ladder moves quickly."],
             ].map(([h, t], i) => (
               <div key={h} style={{ display: "flex", gap: 12, background: C.card,
@@ -416,29 +416,12 @@ export function BoxLeaguePage() {
           </div>
         )}
 
-        {/* How to enter */}
-        <div style={{ marginTop: 30, maxWidth: 640 }}>
-          <div style={{ fontFamily: F.display, fontSize: 20, letterSpacing: "0.03em", textTransform: "uppercase" }}>
-            How to enter
-          </div>
-          <ol style={{ fontSize: 14, color: C.text, lineHeight: 1.8, paddingLeft: 20, marginTop: 10, opacity: 0.9 }}>
-            <li>Get your partner sorted — entries are per team of two.</li>
-            <li>
-              Tap{" "}
-              <a href={BOX_LEAGUE.registerUrl} style={{ color: C.info, fontWeight: 600 }}>
-                Enter on Playtomic
-              </a>{" "}
-              — it opens the Box League directly. If you&apos;re browsing the Playtomic app
-              instead, you&apos;ll find it under the <strong>Events</strong> section.
-            </li>
-            <li>Book your place — €{BOX_LEAGUE.entryPerPerson} per person.</li>
-          </ol>
-          <p style={{ fontSize: 12.5, color: C.mute, lineHeight: 1.6, marginTop: 8 }}>
-            The full <Link href="/box/rules" style={{ color: C.info, fontWeight: 600 }}>rules and format</Link> are on their own page; the
-            season calendar is below.{" "}
-            {teams.length === 0 && "Boxes, fixtures and standings will appear on this page once entries close."}
-          </p>
-        </div>
+        <p style={{ fontSize: 12.5, color: C.mute, lineHeight: 1.6, marginTop: 30, maxWidth: 640 }}>
+          Entries are closed — all 100 team places are taken. The full{" "}
+          <Link href="/box/rules" style={{ color: C.info, fontWeight: 600 }}>rules and format</Link> and{" "}
+          <Link href="/box/how-to" style={{ color: C.info, fontWeight: 600 }}>how to enter scores</Link> are on their own pages; the
+          season calendar is below.
+        </p>
 
         <div style={{ marginTop: 32 }}>
           <BoxCalendar />
