@@ -317,3 +317,12 @@ export function computeBoxStandings(
   rows.forEach((r, i) => (r.rank = i + 1));
   return rows;
 }
+
+/** Ids of active teams with no usable (non-relay) registered email — box_teams_needing_email().
+ *  Empty until the SQL is applied; the page simply shows no notes then. */
+export async function teamsNeedingEmail(): Promise<string[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("box_teams_needing_email");
+  if (error || !Array.isArray(data)) return [];
+  return data.filter((x): x is string => typeof x === "string");
+}

@@ -26,7 +26,7 @@ const STEPS: { h: string; body: (string | string[])[] }[] = [
   {
     h: "3. Enter the score (either team can do it)",
     body: [
-      "Straight after the match, open the site, go to Scores & results, and tap your fixture. Type the games for each set in the SETS boxes: enter your side's score and the cursor moves to the other side automatically. When a winner is clear it is highlighted so you can check it before you send.",
+      "Straight after the match, open the site, go to Scores & results, and tap Enter result on your fixture (the buttons only appear on your own matches once your email is in Find my box). Type the games for each set in the SETS boxes: enter your side's score and the cursor moves to the other side automatically. When a winner is clear it is highlighted so you can check it before you send.",
       "Enter your registered email and tap Submit result. The result shows as provisional in your box until the other team confirms it.",
       ["Two sets: enter 6-3, 6-4 as 6 and 3, then 6 and 4.", "One set each: enter both sets and the championship tie-break as the third set, e.g. 10-7.", "Agreed full third set: enter it as the third set instead."],
     ],

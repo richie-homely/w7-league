@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
-import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail } from "@/lib/box";
+import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail } from "@/lib/box";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -328,12 +328,15 @@ function MatchRow({
   teamsById,
   onMessage,
   autoOpen = false,
+  viewerTeamId = null,
 }: {
   match: BoxMatch;
   teamsById: Record<string, BoxTeam>;
   onMessage: (msg: { ok: boolean; text: string }) => void;
   /** deep-linked from an email: open the right form straight away */
   autoOpen?: boolean;
+  /** the team behind the email entered in Find my box; only its own fixtures get the buttons */
+  viewerTeamId?: string | null;
 }) {
   const [open, setOpen] = useState<false | "submit" | "confirm">(
     autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
@@ -342,6 +345,9 @@ function MatchRow({
   const t2 = teamsById[match.team2Id];
   if (!t1 || !t2) return null;
   const chip = STATUS_CHIP[match.status];
+  // Richie, 7 Sep 2026: enter your email once at the top and only your own matches show
+  // the score buttons. A deep link from a confirmation email is that team's own match.
+  const mine = autoOpen || (viewerTeamId !== null && (match.team1Id === viewerTeamId || match.team2Id === viewerTeamId));
   const done = (msg: { ok: boolean; text: string }) => {
     setOpen(false);
     onMessage(msg);
@@ -366,12 +372,12 @@ function MatchRow({
           {formatScore(match.sets)}
         </div>
         <Chip label={chip.label} color={chip.color} />
-        {(match.status === "pending" || match.status === "disputed") && (
+        {mine && (match.status === "pending" || match.status === "disputed") && (
           <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={actionBtn}>
             {open === "submit" ? "Close" : "Enter result"}
           </button>
         )}
-        {match.status === "submitted" && (
+        {mine && match.status === "submitted" && (
           <>
             <button onClick={() => setOpen(open === "confirm" ? false : "confirm")} style={actionBtn}>
               {open === "confirm" ? "Close" : "Confirm result"}
@@ -415,6 +421,8 @@ function BoxSection({
   onMessage,
   focusMatch,
   defaultOpen = false,
+  viewerTeamId = null,
+  needsEmail,
 }: {
   box: number;
   teams: BoxTeam[];
@@ -423,6 +431,9 @@ function BoxSection({
   focusMatch?: string | null;
   /** open on first render (the focused box, or when only one box is shown) */
   defaultOpen?: boolean;
+  viewerTeamId?: string | null;
+  /** teams with no usable registered email — flagged beside the name */
+  needsEmail: Set<string>;
 }) {
   // Each box collapses on its own (Richie, 5 Sep 2026) — 18 boxes of table + matches
   // is a long scroll, so a box shows its header line until asked for.
@@ -481,7 +492,14 @@ function BoxSection({
             {standings.map((r) => (
               <tr key={r.teamId} style={{ borderTop: `1px solid ${C.border}` }}>
                 <td style={{ padding: "7px 8px 7px 0", fontFamily: F.mono, color: C.mute }}>{r.rank}</td>
-                <td style={{ padding: "7px 8px 7px 0", fontWeight: 600 }}>{r.team.name}</td>
+                <td style={{ padding: "7px 8px 7px 0", fontWeight: 600 }}>
+                  {r.team.name}
+                  {needsEmail.has(r.teamId) && (
+                    <div style={{ fontSize: 11, fontWeight: 500, color: C.red, marginTop: 2 }}>
+                      No usable email registered &mdash; email welcome@w7padel.com with your name and email and we&apos;ll update it.
+                    </div>
+                  )}
+                </td>
                 <td style={{ padding: "7px 8px", textAlign: "center", fontFamily: F.mono }}>{r.P}</td>
                 <td style={{ padding: "7px 8px", textAlign: "center", fontFamily: F.mono, color: C.green }}>{r.W}</td>
                 <td style={{ padding: "7px 8px", textAlign: "center", fontFamily: F.mono, color: C.red }}>{r.L}</td>
@@ -502,8 +520,13 @@ function BoxSection({
         <div style={{ fontSize: 10.5, color: C.mute, fontWeight: 700, letterSpacing: "0.12em", marginBottom: 4 }}>
           MATCHES
         </div>
+        {viewerTeamId === null && (
+          <div style={{ fontSize: 12, color: C.mute, marginBottom: 6 }}>
+            Enter your registered email in <b>Find my box</b> above to enter or confirm results for your own matches.
+          </div>
+        )}
         {matches.map((m) => (
-          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} />
+          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} />
         ))}
       </div>
       </>)}
@@ -538,6 +561,22 @@ export function BoxLeagueLive({
   // Find my box: the registered email tells us the team, the team tells us the box.
   const [findEmail, setFindEmail] = useState(() => rememberedEmail());
   const [finding, setFinding] = useState(false);
+  // The team behind the entered email. Set by Find my box, and on return visits looked up
+  // silently from the remembered email so the buttons are already scoped.
+  const [myTeamId, setMyTeamId] = useState<string | null>(null);
+  // Teams with no usable registered email get a note beside their name (Richie, 7 Sep 2026).
+  const [needsEmail, setNeedsEmail] = useState<Set<string>>(() => new Set());
+  useEffect(() => {
+    let cancelled = false;
+    teamsNeedingEmail().then((ids) => { if (!cancelled) setNeedsEmail(new Set(ids)); });
+    const remembered = rememberedEmail();
+    if (remembered.includes("@")) {
+      findBoxForEmail(remembered).then((res) => {
+        if (!cancelled && res && res !== "unavailable") setMyTeamId(res.teamId);
+      });
+    }
+    return () => { cancelled = true; };
+  }, []);
   const [findMsg, setFindMsg] = useState<string | null>(null);
   // Add a teammate's email: the registered address proves the team, the new one joins it.
   // This is the route for Apple "Hide My Email" relay addresses, which players don't know.
@@ -576,9 +615,10 @@ export function BoxLeagueLive({
     if (res === "unavailable") {
       setFindMsg("Box lookup isn't switched on yet — scroll to your box below.");
     } else if (!res) {
-      setFindMsg("That email isn't registered to a team. Use the address you entered the league with, or contact the desk.");
+      setFindMsg("That email isn't registered to a team. Try the address you entered the league with — or email welcome@w7padel.com with your name and email and we'll update it.");
     } else {
       rememberEmail(findEmail);
+      setMyTeamId(res.teamId);
       onFocusBox?.(res.box);
       setTimeout(() => document.getElementById(`box-live-${res.box}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     }
@@ -609,7 +649,7 @@ export function BoxLeagueLive({
         }}
       >
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: C.mute, flex: "1 1 100%" }}>
-          FIND MY BOX
+          FIND MY BOX · UNLOCK SCORE ENTRY FOR YOUR MATCHES
         </div>
         <input
           style={{ ...inputStyle, flex: "1 1 220px" }}
@@ -688,6 +728,8 @@ export function BoxLeagueLive({
             onMessage={setBanner}
             focusMatch={focusMatch}
             defaultOpen={boxes.length === 1 || b === focusBox}
+            viewerTeamId={myTeamId}
+            needsEmail={needsEmail}
           />
         ))}
       </div>
