@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
 import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail } from "@/lib/box";
+import { track } from "@/lib/track";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -572,7 +573,10 @@ export function BoxLeagueLive({
     const remembered = rememberedEmail();
     if (remembered.includes("@")) {
       findBoxForEmail(remembered).then((res) => {
-        if (!cancelled && res && res !== "unavailable") setMyTeamId(res.teamId);
+        if (!cancelled && res && res !== "unavailable") {
+          setMyTeamId(res.teamId);
+          track("return", remembered);
+        }
       });
     }
     return () => { cancelled = true; };
@@ -600,6 +604,7 @@ export function BoxLeagueLive({
     setAddMsg(res);
     if (res.ok) {
       rememberEmail(findEmail);
+      track("add_contact", findEmail);
       setAddEmail("");
     }
   }
@@ -619,6 +624,7 @@ export function BoxLeagueLive({
     } else {
       rememberEmail(findEmail);
       setMyTeamId(res.teamId);
+      track("find_box", findEmail);
       onFocusBox?.(res.box);
       setTimeout(() => document.getElementById(`box-live-${res.box}`)?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     }

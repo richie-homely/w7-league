@@ -6,6 +6,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "./supabase/client";
+import { track } from "./track";
 import type { SetScore } from "./types";
 
 export type BoxMatchStatus = "pending" | "submitted" | "confirmed" | "disputed";
@@ -218,7 +219,9 @@ export async function submitBoxScore(
     p_email: email,
   });
   if (error) return { ok: false, text: error.message };
-  return rpcMessage(data as string);
+  const msg = rpcMessage(data as string);
+  if (msg.ok) track("submit", email);
+  return msg;
 }
 
 export async function confirmBoxScore(
@@ -233,7 +236,9 @@ export async function confirmBoxScore(
     p_agree: agree,
   });
   if (error) return { ok: false, text: error.message };
-  return rpcMessage(data as string);
+  const msg = rpcMessage(data as string);
+  if (msg.ok) track(agree ? "confirm" : "dispute", email);
+  return msg;
 }
 
 // Standings for one box, confirmed results only.
