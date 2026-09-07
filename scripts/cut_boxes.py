@@ -110,8 +110,11 @@ def main():
            "-- Existing teams are UPDATED in place (ids/contacts kept); new teams inserted; cycle-1 fixtures rebuilt.",
            "-- Safe while no real results exist. Box 99 (test) is untouched.",
            "begin;",
+           "-- clear inactive rows left parked by an earlier re-cut (never referenced by a fixture) so parking cannot collide",
+           "delete from public.box_teams where box > 1000 and active = false",
+           "  and id not in (select team1_id from public.box_matches union select team2_id from public.box_matches);",
            "-- park every live team on a temporary box so the (box, seed) unique key cannot collide mid-update",
-           "update public.box_teams set box = box + 1000 where box <> 99;"]
+           "update public.box_teams set box = box + 1000 where box <> 99 and box < 1000;"]
     for chunk in boxes:
         for t in chunk:
             p1, p2 = t["players"][0]["name"], t["players"][1]["name"]
