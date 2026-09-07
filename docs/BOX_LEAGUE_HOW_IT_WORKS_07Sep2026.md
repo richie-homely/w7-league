@@ -39,9 +39,10 @@ checks that both sides agree, and only disagreements come to welcome@w7padel.com
   every write goes through a stored procedure that checks the email belongs to one of the
   two teams in that match. No passwords: the registered email is the credential, which is
   why the Apple "hide my email" relay addresses need replacing with real ones.
-- **Ratings and boxes.** Cut by a script from the Playtomic Manager entrant list on the
-  latest ratings; unrated players count as 0.5 (Playtomic's floor). Re-cut is a one-line rerun
-  that keeps every team's identity and results; only the box number changes.
+- **Ratings and boxes.** The Manager entrant list gives the teams; the rating for each player
+  is read live from the venue's Playtomic player list (the entrant list shows the rating at
+  enrolment and never moves). Unrated players count as 0.5, Playtomic's floor. A re-cut is a
+  one-line rerun that keeps every team's identity and results; only the box number changes.
 - **Emails.** A watcher on Richie's laptop (moving to the always-on PC) checks the fixtures
   every 15 minutes and sends the confirm / confirmed / disputed emails from the W7 Gmail.
   It never sends the same email twice. The 100-team launch mail-out is a separate script and

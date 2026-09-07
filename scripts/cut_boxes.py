@@ -18,7 +18,8 @@ NAME_FIX = {"nathan condell": "Nathan Condell", "dave smyth": "Dave Smyth", "tho
             "ryan tolan": "Ryan Tolan", "ava williams": "Ava Williams", "LorraineGallagher": "Lorraine Gallagher",
             "conor dodd": "Conor Dodd", "dillon mordaunt": "Dillon Mordaunt", "Kyle dempsey": "Kyle Dempsey",
             "elaine kirwan": "Elaine Kirwan", "Patrick ffrench": "Patrick Ffrench", "Peter O' Gara": "Peter O'Gara",
-            "yashvardhan singh Rathore": "Yashvardhan Singh Rathore", "salvadorj77@gmail.com": "Salvador J"}
+            "yashvardhan singh Rathore": "Yashvardhan Singh Rathore", "salvadorj77@gmail.com": "Salvador J",
+            "christopher byrne": "Christopher Byrne", "herve hamard": "Herve Hamard"}
 
 def key(n):  # loose match: case/space/apostrophe-insensitive
     return re.sub(r"[^a-z]", "", n.lower())
