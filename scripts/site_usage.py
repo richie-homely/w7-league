@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Who is using league.w7padel.com — the sponsor numbers and the who-needs-help list.
 
-Reads site_usage_report() (aggregates + per-team activity, no emails) and prints:
+Reads site_usage_report(p_key, p_days) with SITE_ADMIN_KEY from .env.local (aggregates + per-team activity, no emails) and prints:
   * views / unique visitors by day and by page (for sponsors)
   * every box-league team with first/last seen and what they did
   * the teams that have NEVER identified themselves on the site — the ones to chase
@@ -29,9 +29,11 @@ def main():
     a = ap.parse_args()
     e = env()
     url, key = e["NEXT_PUBLIC_SUPABASE_URL"], e["NEXT_PUBLIC_SUPABASE_ANON_KEY"]
-    req = urllib.request.Request(f"{url}/rest/v1/rpc/site_usage_report", data=json.dumps({"p_days": a.days}).encode(),
+    req = urllib.request.Request(f"{url}/rest/v1/rpc/site_usage_report", data=json.dumps({"p_key": e.get("SITE_ADMIN_KEY", ""), "p_days": a.days}).encode(),
                                  headers={"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"}, method="POST")
     r = json.load(urllib.request.urlopen(req))
+    if isinstance(r, dict) and r.get("status") == "bad_key":
+        raise SystemExit("SITE_ADMIN_KEY in .env.local does not match the passcode in site_admin_keys")
     t = r["totals"]
     L = [f"# league.w7padel.com usage — last {a.days} days (read {datetime.now():%a %d %b %Y %H:%M})", "",
          f"**{t['views']} page views · {t['unique_visitors']} unique visitors · {t['teams_active']} of the box-league teams identified themselves · "

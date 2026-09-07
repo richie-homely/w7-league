@@ -9,7 +9,7 @@
 -- team-level activity only (team names are already public on the site).
 --
 --   site_track(p_visitor, p_path, p_event, p_email)   anon insert-only, via RPC
---   site_usage_report(p_days)                           anon, aggregates + per-team activity
+--   site_usage_report(p_key, p_days)                    admin passcode; aggregates + per-team activity
 
 create table if not exists public.site_events (
   id         bigint generated always as identity primary key,
@@ -47,12 +47,24 @@ end;
 $$;
 grant execute on function public.site_track(uuid, text, text, text) to anon, authenticated;
 
-create or replace function public.site_usage_report(p_days int default 60)
+-- Admin passcode for the usage report: only Richie sees it. Replace the placeholder
+-- before running; the same passcode goes in w7-league/.env.local as SITE_ADMIN_KEY for the
+-- report script. The table has no anon policies, so the passcode cannot be read from the site.
+create table if not exists public.site_admin_keys (key text primary key, label text, created_at timestamptz default now());
+alter table public.site_admin_keys enable row level security;
+insert into public.site_admin_keys (key, label) values ('<<CHOOSE-A-PASSCODE>>', 'Richie') on conflict do nothing;
+
+drop function if exists public.site_usage_report(int);
+create or replace function public.site_usage_report(p_key text, p_days int default 60)
 returns json
 language sql
 security definer
 set search_path = public
 as $$
+  select case when not exists (select 1 from public.site_admin_keys where key = p_key)
+    then json_build_object('status', 'bad_key')
+    else (
+
   with win as (select now() - make_interval(days => greatest(p_days, 1)) as since),
   ev as (select * from public.site_events, win where at >= win.since)
   select json_build_object(
@@ -83,7 +95,8 @@ as $$
                         count(*) filter (where event = 'confirm') c,
                         count(distinct visitor) vis
                  from public.site_events where team_id is not null group by team_id) a on a.team_id = t.id
-      where t.active and t.box <> 99), '[]'::json));
+      where t.active and t.box <> 99), '[]'::json))
+    ) end;
 $$;
-grant execute on function public.site_usage_report(int) to anon, authenticated;
+grant execute on function public.site_usage_report(text, int) to anon, authenticated;
 notify pgrst, 'reload schema';

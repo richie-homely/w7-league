@@ -43,3 +43,23 @@ export function track(event: SiteEvent, email?: string | null, path?: string): v
     /* tracking is best-effort */
   }
 }
+
+// ── admin report ────────────────────────────────────────────────────────────────
+export interface UsageReport {
+  since: string;
+  totals: { views: number; unique_visitors: number; teams_active: number; results_submitted: number; results_confirmed: number };
+  by_day: { day: string; views: number; uniques: number }[];
+  by_path: { path: string; views: number; uniques: number }[];
+  teams: { team_id: string; box: number; name: string; first_seen: string | null; last_seen: string | null; events: number; submits: number; confirms: number; visitors: number }[];
+}
+
+/** site_usage_report(p_key, p_days) — the passcode is checked in the database. */
+export async function siteUsageReport(key: string, days: number): Promise<UsageReport | "bad_key" | "unavailable"> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("site_usage_report", { p_key: key, p_days: days });
+  if (error) return "unavailable";
+  const d = data as (UsageReport & { status?: string }) | null;
+  if (!d) return "unavailable";
+  if (d.status === "bad_key") return "bad_key";
+  return d;
+}
