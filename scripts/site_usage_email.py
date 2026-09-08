@@ -22,6 +22,7 @@ from zoneinfo import ZoneInfo
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 W7 = os.path.join(os.path.dirname(ROOT), "w7-padel")
 sys.path.insert(0, os.path.join(W7, "scripts"))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 DUBLIN = ZoneInfo("Europe/Dublin")
 TO = ["richiecarroll65@gmail.com"]
 SITE = "https://league.w7padel.com"
@@ -94,6 +95,12 @@ def main():
         L += [f"  Box {t['box']:2}  {t['name']}" + ("  (first time)" if t in new_y else "") for t in sorted(active_y, key=lambda t: t["box"])]
     L += ["", f"NEVER IDENTIFIED THEMSELVES YET ({len(never)}) — chase with a link or check their email"]
     L += [f"  Box {t['box']:2}  {t['name']}" for t in sorted(never, key=lambda t: t["box"])] or ["  none — every team has been on"]
+    # league courts booked (from the Playtomic participant lists) — best effort
+    try:
+        import league_bookings as lb
+        L += [""] + lb.lines(lb.detect(14))
+    except Exception as exc:
+        L += ["", f"LEAGUE COURTS BOOKED: not available this run ({type(exc).__name__})"]
     L += ["", f"Portal: {SITE}/admin/usage", "— W7 league site"]
     text = "\n".join(L)
 
