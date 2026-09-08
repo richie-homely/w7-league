@@ -395,14 +395,14 @@ export const KNOCKOUT_RESULTS: {
     playedOn: "2026-09-05",
   },
   {
-    // Lower-tier QF: Loboschi & Kaistha (R1 winners) v G3 (McVicar & Fitzpatrick).
-    // 7 Sep 2026, from Sahil Kaistha's Playtomic result card — three sets, the
-    // championship tiebreak went 11-9 to Loboschi & Kaistha.
+    // Lower-tier R1 (tie G): G2 (Burihhin & Banim) v G3 (McVicar & Fitzpatrick).
+    // 7 Sep 2026, from Mark Banim's Playtomic result card — three sets, the
+    // championship tiebreak went 11-9 to Burihhin & Banim.
     teams: [
-      "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48", // Antonio Loboschi & Sahil Kaistha
+      "6f988ace-a507-4ecc-865e-6b2710c8aec9", // Anton Burihhin & Mark Banim
       "a93c2d87-3878-46fb-81c7-532e9e6c3e88", // Brian McVicar & Lee Fitzpatrick
     ],
-    winnerTeamId: "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48",
+    winnerTeamId: "6f988ace-a507-4ecc-865e-6b2710c8aec9",
     score: "7-5, 4-6, 11-9",
     playedOn: "2026-09-07",
   },
