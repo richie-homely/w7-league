@@ -49,3 +49,9 @@ next-env.d.ts
 
 # python cache
 scripts/__pycache__/
+
+# versioned Claude hooks (pull on session start); local settings and worktrees stay ignored
+!.claude/
+.claude/*
+!.claude/settings.json
+!.claude/launch.json

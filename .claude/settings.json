@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "git pull --ff-only -q origin main && echo \"w7-league: pulled latest from GitHub\" || echo \"w7-league: pull skipped (uncommitted changes or the branches have diverged) - run git status\""
+          }
+        ]
+      }
+    ]
+  }
+}
