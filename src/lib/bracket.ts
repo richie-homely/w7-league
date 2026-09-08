@@ -394,6 +394,18 @@ export const KNOCKOUT_RESULTS: {
     score: "5-7, 6-1, 10-6",
     playedOn: "2026-09-05",
   },
+  {
+    // Lower-tier QF: Loboschi & Kaistha (R1 winners) v G3 (McVicar & Fitzpatrick).
+    // 7 Sep 2026, from Sahil Kaistha's Playtomic result card — three sets, the
+    // championship tiebreak went 11-9 to Loboschi & Kaistha.
+    teams: [
+      "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48", // Antonio Loboschi & Sahil Kaistha
+      "a93c2d87-3878-46fb-81c7-532e9e6c3e88", // Brian McVicar & Lee Fitzpatrick
+    ],
+    winnerTeamId: "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48",
+    score: "7-5, 4-6, 11-9",
+    playedOn: "2026-09-07",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
