@@ -126,11 +126,19 @@ def push(res):
     for h in res["summer"]:
         rows.append({"match_key": "summer:" + ":".join(h["team_ids"]), "kind": "summer", "starts_at": h["starts_at"],
                      "court": h["court"], "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
+    # one row per fixture: if the same pair has two bookings, keep the earliest
+    uniq = {}
+    for r in sorted(rows, key=lambda r: r["starts_at"]):
+        uniq.setdefault(r["match_key"], r)
+    rows = list(uniq.values())
     H = {"apikey": env["NEXT_PUBLIC_SUPABASE_ANON_KEY"], "Authorization": f"Bearer {env['NEXT_PUBLIC_SUPABASE_ANON_KEY']}",
          "Content-Type": "application/json"}
     req = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/league_bookings_set",
                                  data=json.dumps({"p_key": key, "p_rows": rows}).encode(), headers=H, method="POST")
-    out = json.load(urllib.request.urlopen(req, timeout=60))
+    try:
+        out = json.load(urllib.request.urlopen(req, timeout=60))
+    except urllib.error.HTTPError as e:
+        raise SystemExit(f"league_bookings_set failed: HTTP {e.code} {e.read().decode(errors='replace')[:400]}")
     print("pushed:", out)
     return out
 

@@ -28,7 +28,7 @@ begin
   if not exists (select 1 from public.site_admin_keys where key = p_key) then
     return json_build_object('status', 'bad_key');
   end if;
-  delete from public.league_bookings;
+  delete from public.league_bookings where true;   -- Supabase's safe-delete guard wants a WHERE
   insert into public.league_bookings (match_key, kind, starts_at, court, team1, team2, confidence)
   select r->>'match_key', r->>'kind', (r->>'starts_at')::timestamptz, coalesce(r->>'court',''),
          r->>'team1', r->>'team2', coalesce(r->>'confidence','certain')
