@@ -46,3 +46,6 @@ next-env.d.ts
 
 # box league local data: rendered emails, contact extras, notifier state (personal emails)
 /data/
+
+# python cache
+scripts/__pycache__/
