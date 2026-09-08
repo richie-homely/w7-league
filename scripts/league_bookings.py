@@ -118,13 +118,18 @@ def push(res):
     key = env.get("SITE_ADMIN_KEY", "")
     if not key:
         raise SystemExit("SITE_ADMIN_KEY missing from .env.local")
+    # Playtomic gives naive Dublin wall-clock times; stamp the Dublin offset so the timestamptz
+    # column stores the right instant and browsers show 16:30 as 16:30 (was showing +1h).
+    from zoneinfo import ZoneInfo
+    def aware(ts):
+        return datetime.fromisoformat(ts).replace(tzinfo=ZoneInfo("Europe/Dublin")).isoformat()
     rows = []
     for h in res["box"]:
         if h["match_id"]:
-            rows.append({"match_key": h["match_id"], "kind": "box", "starts_at": h["starts_at"], "court": h["court"],
+            rows.append({"match_key": h["match_id"], "kind": "box", "starts_at": aware(h["starts_at"]), "court": h["court"],
                          "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     for h in res["summer"]:
-        rows.append({"match_key": "summer:" + ":".join(h["team_ids"]), "kind": "summer", "starts_at": h["starts_at"],
+        rows.append({"match_key": "summer:" + ":".join(h["team_ids"]), "kind": "summer", "starts_at": aware(h["starts_at"]),
                      "court": h["court"], "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     # one row per fixture: if the same pair has two bookings, keep the earliest
     uniq = {}
