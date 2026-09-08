@@ -9,6 +9,7 @@ import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
 import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail } from "@/lib/box";
 import { track } from "@/lib/track";
+import { fmtBooking, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -330,6 +331,7 @@ function MatchRow({
   onMessage,
   autoOpen = false,
   viewerTeamId = null,
+  booking,
 }: {
   match: BoxMatch;
   teamsById: Record<string, BoxTeam>;
@@ -338,6 +340,8 @@ function MatchRow({
   autoOpen?: boolean;
   /** the team behind the email entered in Find my box; only its own fixtures get the buttons */
   viewerTeamId?: string | null;
+  /** the court booking Playtomic shows for this fixture, if the detector found one */
+  booking?: LeagueBooking;
 }) {
   const [open, setOpen] = useState<false | "submit" | "confirm">(
     autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
@@ -372,6 +376,14 @@ function MatchRow({
         <div style={{ fontFamily: F.mono, fontSize: 13, color: match.status === "confirmed" ? C.text : C.mute }}>
           {formatScore(match.sets)}
         </div>
+        {booking && match.status === "pending" && (
+          <span
+            title={booking.confidence === "probable" ? "Not all four players are named on the booking" : "All four players are on the Playtomic booking"}
+            style={{ fontSize: 11, fontWeight: 700, color: C.accent, border: `1px solid ${C.accent}`, borderRadius: 999, padding: "2px 9px", letterSpacing: "0.03em" }}
+          >
+            {booking.confidence === "probable" ? "Probably booked" : "Booked"} · {fmtBooking(booking.startsAt)} · {booking.court}
+          </span>
+        )}
         <Chip label={chip.label} color={chip.color} />
         {mine && (match.status === "pending" || match.status === "disputed") && (
           <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={actionBtn}>
@@ -424,6 +436,7 @@ function BoxSection({
   defaultOpen = false,
   viewerTeamId = null,
   needsEmail,
+  bookings,
 }: {
   box: number;
   teams: BoxTeam[];
@@ -435,6 +448,7 @@ function BoxSection({
   viewerTeamId?: string | null;
   /** teams with no usable registered email — flagged beside the name */
   needsEmail: Set<string>;
+  bookings: Map<string, LeagueBooking>;
 }) {
   // Each box collapses on its own (Richie, 5 Sep 2026) — 18 boxes of table + matches
   // is a long scroll, so a box shows its header line until asked for.
@@ -527,7 +541,7 @@ function BoxSection({
           </div>
         )}
         {matches.map((m) => (
-          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} />
+          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} booking={bookings.get(m.id)} />
         ))}
       </div>
       </>)}
@@ -567,6 +581,7 @@ export function BoxLeagueLive({
   const [myTeamId, setMyTeamId] = useState<string | null>(null);
   // Teams with no usable registered email get a note beside their name (Richie, 7 Sep 2026).
   const [needsEmail, setNeedsEmail] = useState<Set<string>>(() => new Set());
+  const { byKey: bookings } = useLeagueBookings();
   useEffect(() => {
     let cancelled = false;
     teamsNeedingEmail().then((ids) => { if (!cancelled) setNeedsEmail(new Set(ids)); });
@@ -736,6 +751,7 @@ export function BoxLeagueLive({
             defaultOpen={boxes.length === 1 || b === focusBox}
             viewerTeamId={myTeamId}
             needsEmail={needsEmail}
+            bookings={bookings}
           />
         ))}
       </div>

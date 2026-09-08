@@ -10,6 +10,7 @@ import { ConfirmationBanner } from "./Countdown";
 import { SponsorInline } from "./Sponsor";
 import { FINALS, FINALS_COURT_SPONSOR } from "@/lib/sponsors";
 import { TeamH2H } from "./TeamH2H";
+import { fmtBooking, summerKey, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 
 function TeamSlot({
   slot,
@@ -128,11 +129,17 @@ function BracketMatch({
   match,
   tierColor,
   onTeam,
+  bookings,
 }: {
   match: BracketMatchType;
   tierColor: string;
   onTeam?: (team: Team) => void;
+  bookings?: Map<string, LeagueBooking>;
 }) {
+  // A court booked for this tie (from Playtomic participants) — shown until a result is in.
+  const idA = match.a && !isPlaceholderSlot(match.a) ? match.a.teamId : null;
+  const idB = match.b && !isPlaceholderSlot(match.b) ? match.b.teamId : null;
+  const booking = !match.result && idA && idB && bookings ? bookings.get(summerKey(idA, idB)) : undefined;
   return (
     <div
       style={{
@@ -160,6 +167,11 @@ function BracketMatch({
             {match.result.score}
           </span>
         )}
+        {booking && (
+          <span style={{ float: "right", color: tierColor, letterSpacing: "0.04em" }} title={booking.confidence === "probable" ? "not all four players named on the booking" : "all four players on the booking"}>
+            {booking.confidence === "probable" ? "PROBABLY " : ""}BOOKED · {fmtBooking(booking.startsAt).toUpperCase()} · {booking.court.toUpperCase()}
+          </span>
+        )}
       </div>
       <TeamSlot
         slot={match.a}
@@ -183,11 +195,13 @@ function TierBracket({
   teams,
   fixtures,
   onTeam,
+  bookings,
 }: {
   tier: Tier;
   teams: Record<string, Team[]>;
   fixtures: Fixture[];
   onTeam?: (team: Team) => void;
+  bookings?: Map<string, LeagueBooking>;
 }) {
   const tierLabel = tier === "lower" ? "LOWER TIER" : "UPPER TIER";
   const tierRange = tier === "lower" ? "0.5 – 2.4" : "2.5 – 5.5";
@@ -309,7 +323,7 @@ function TierBracket({
               {s.label}
             </div>
             {s.matches.map((m) => (
-              <BracketMatch key={m.id} match={m} tierColor={tierColor} onTeam={onTeam} />
+              <BracketMatch key={m.id} match={m} tierColor={tierColor} onTeam={onTeam} bookings={bookings} />
             ))}
           </div>
         ))}
@@ -381,6 +395,7 @@ export function KnockoutView({
   fixtures: Fixture[];
 }) {
   const [h2hTeam, setH2hTeam] = useState<Team | null>(null);
+  const { byKey: bookings } = useLeagueBookings();
   return (
     <div style={{ padding: "20px", maxWidth: 1400, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
@@ -393,8 +408,8 @@ export function KnockoutView({
           </div>
         </div>
       </div>
-      <TierBracket tier="upper" teams={teams} fixtures={fixtures} onTeam={setH2hTeam} />
-      <TierBracket tier="lower" teams={teams} fixtures={fixtures} onTeam={setH2hTeam} />
+      <TierBracket tier="upper" teams={teams} fixtures={fixtures} onTeam={setH2hTeam} bookings={bookings} />
+      <TierBracket tier="lower" teams={teams} fixtures={fixtures} onTeam={setH2hTeam} bookings={bookings} />
       <ConfirmationBanner upperSlotsRemaining={upperTierSlotsRemaining(teams)} />
       <div style={{ fontSize: 11, color: C.mute, lineHeight: 1.6, padding: "8px 4px" }}>
         <strong style={{ color: C.text }}>Seeding:</strong> Qualifiers ranked by points across the tier, tiebreak: set difference → game difference.&nbsp;&nbsp;

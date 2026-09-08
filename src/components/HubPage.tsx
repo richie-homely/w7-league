@@ -12,6 +12,7 @@ import {
 } from "@/lib/competitions";
 import { InterestForm } from "./InterestForm";
 import { KnockoutSpotlight } from "./KnockoutSpotlight";
+import { UpcomingFixtures } from "./UpcomingFixtures";
 import { SponsorCta } from "./Sponsor";
 import { SiteNav } from "./SiteNav";
 import { SocialsSection } from "./SocialsSection";
@@ -250,6 +251,10 @@ export function HubPage() {
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 20px" }}>
         {/* The knockouts lead the page — they are what the season is for. */}
         <KnockoutSpotlight />
+
+        {/* Who's playing, when and on which court — from the Playtomic bookings (Richie, 8 Sep 2026) */}
+        <UpcomingFixtures />
+
 
         {/* Featured: live + open */}
         <div

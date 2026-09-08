@@ -10,6 +10,7 @@ import { BOX_LEAGUE } from "@/lib/competitions";
 import { useBoxData } from "@/lib/box";
 import { BoxLeagueLive } from "./BoxLeagueLive";
 import { BoxCalendar } from "./BoxCalendar";
+import { UpcomingFixtures } from "./UpcomingFixtures";
 import Link from "next/link";
 import { SiteNav } from "./SiteNav";
 import { KeanoCredit } from "./KeanoCredit";
@@ -171,6 +172,7 @@ export function BoxLeaguePage() {
       >
         {[
           ["#boxes", "Boxes"],
+          ["#fixtures", "Fixtures"],
           ["#calendar", "Calendar"],
           ["#scores", "Scores & results"],
           ["#scores", "Find my box"],
@@ -297,6 +299,7 @@ export function BoxLeaguePage() {
             <span id="boxes" style={{ scrollMarginTop: 60 }}>Final</span> <span style={{ color: C.accent }}>boxes</span>
           </div>
           <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
+          <UpcomingFixtures compact boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
           <div style={{ marginTop: 24 }}>
             <SponsorCta
               headline="Sponsor a box"

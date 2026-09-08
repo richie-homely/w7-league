@@ -9,7 +9,7 @@ teams in the same summer-league tier is a knockout tie. Only-the-booker bookings
 141 last week) cannot be attributed and are left alone — no guessing.
 
     python scripts/league_bookings.py            # print + write data/league_bookings.json
-    python scripts/league_bookings.py --days 14
+    python scripts/league_bookings.py --days 14 --push   # also write league_bookings in Supabase for the site
 """
 import io, json, os, re, sys, urllib.request
 from datetime import date, datetime, timedelta
@@ -63,7 +63,7 @@ def detect(days=14):
     box_hits, summer_hits = [], []
     for b in fetch_bookings(days):
         names = [p.get("name") for p in ((b.get("participant_info") or {}).get("participants") or [])]
-        if len(names) != 4:
+        if not (2 <= len(names) <= 4):
             continue
         when = b["booking_start_date"][:16].replace("T", " ")
         court = b.get("resource_name") or ""
@@ -72,11 +72,14 @@ def detect(days=14):
         for n in names:
             t = by_player_box.get(norm(n))
             if t: cnt.setdefault(t["id"], [t, 0]); cnt[t["id"]][1] += 1
-        full = [v[0] for v in cnt.values() if v[1] == 2]
-        if len(full) == 2 and full[0]["box"] == full[1]["box"]:
-            m = fixture_by_pair.get(tuple(sorted((full[0]["id"], full[1]["id"]))))
-            box_hits.append({"when": when, "court": court, "box": full[0]["box"], "team1": full[0]["name"], "team2": full[1]["name"],
-                             "match_id": m["id"] if m else None, "status": m["status"] if m else "no fixture"})
+        two = [v[0] for v in cnt.values()]
+        if len(two) == 2 and two[0]["box"] == two[1]["box"] and max(v[1] for v in cnt.values()) == 2:
+            certain = all(v[1] == 2 for v in cnt.values())
+            m = fixture_by_pair.get(tuple(sorted((two[0]["id"], two[1]["id"]))))
+            box_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "box": two[0]["box"],
+                             "team1": two[0]["name"], "team2": two[1]["name"], "team_ids": sorted((two[0]["id"], two[1]["id"])),
+                             "match_id": m["id"] if m else None, "status": m["status"] if m else "no fixture",
+                             "confidence": "certain" if certain else "probable"})
             continue
         # summer-league tie: four players spanning exactly two teams in the same tier
         st = {}
@@ -85,8 +88,10 @@ def detect(days=14):
             if t: st.setdefault(t["id"], [t, 0]); st[t["id"]][1] += 1
         two = [v[0] for v in st.values()]
         if len(two) == 2 and sum(v[1] for v in st.values()) >= 3 and len({t["division_id"].split("-")[-1] for t in two}) == 1:
-            summer_hits.append({"when": when, "court": court, "tier": two[0]["division_id"].split("-")[-1],
-                                "team1": f"{two[0]['p1']} & {two[0]['p2']}", "team2": f"{two[1]['p1']} & {two[1]['p2']}"})
+            summer_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "tier": two[0]["division_id"].split("-")[-1],
+                                "team_ids": sorted((two[0]["id"], two[1]["id"])),
+                                "team1": f"{two[0]['p1']} & {two[0]['p2']}", "team2": f"{two[1]['p1']} & {two[1]['p2']}",
+                                "confidence": "certain" if sum(v[1] for v in st.values()) == 4 else "probable"})
     box_hits.sort(key=lambda x: x["when"]); summer_hits.sort(key=lambda x: x["when"])
     pending = sum(1 for m in matches if m["status"] == "pending")
     booked_pending = sum(1 for h in box_hits if h["status"] == "pending")
@@ -100,13 +105,39 @@ def lines(res):
     L = [f"LEAGUE COURTS BOOKED — next {res['days']} days (from Playtomic participant lists; only bookings where all four players are known)"]
     L.append(f"  Box league: {len(res['box'])} fixtures booked · {res['box_pending_booked']} of {res['box_pending']} unplayed fixtures have a court")
     for h in res["box"]:
-        L.append(f"    {h['when']}  {h['court']:8} box {h['box']:2}  {h['team1']}  v  {h['team2']}" + ("" if h["status"] == "pending" else f"  [{h['status']}]"))
+        L.append(f"    {h['when']}  {h['court']:8} box {h['box']:2}  {h['team1']}  v  {h['team2']}"
+                 + ("" if h["status"] == "pending" else f"  [{h['status']}]") + ("" if h["confidence"] == "certain" else "  (probable: not all four named)"))
     L.append(f"  Summer league knockouts: {len(res['summer'])} ties booked")
     for h in res["summer"]:
         L.append(f"    {h['when']}  {h['court']:8} {h['tier']:5}  {h['team1']}  v  {h['team2']}")
     return L
 
+def push(res):
+    """Replace league_bookings in Supabase with the current picture (admin passcode from .env.local)."""
+    env = load_env(os.path.join(ROOT, ".env.local"))
+    key = env.get("SITE_ADMIN_KEY", "")
+    if not key:
+        raise SystemExit("SITE_ADMIN_KEY missing from .env.local")
+    rows = []
+    for h in res["box"]:
+        if h["match_id"]:
+            rows.append({"match_key": h["match_id"], "kind": "box", "starts_at": h["starts_at"], "court": h["court"],
+                         "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
+    for h in res["summer"]:
+        rows.append({"match_key": "summer:" + ":".join(h["team_ids"]), "kind": "summer", "starts_at": h["starts_at"],
+                     "court": h["court"], "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
+    H = {"apikey": env["NEXT_PUBLIC_SUPABASE_ANON_KEY"], "Authorization": f"Bearer {env['NEXT_PUBLIC_SUPABASE_ANON_KEY']}",
+         "Content-Type": "application/json"}
+    req = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/league_bookings_set",
+                                 data=json.dumps({"p_key": key, "p_rows": rows}).encode(), headers=H, method="POST")
+    out = json.load(urllib.request.urlopen(req, timeout=60))
+    print("pushed:", out)
+    return out
+
 if __name__ == "__main__":
     days = int(sys.argv[sys.argv.index("--days") + 1]) if "--days" in sys.argv else 14
-    print("\n".join(lines(detect(days))))
+    res = detect(days)
+    print("\n".join(lines(res)))
     print("->", OUT)
+    if "--push" in sys.argv:
+        push(res)
