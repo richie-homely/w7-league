@@ -35,7 +35,9 @@ export function useLeagueData() {
     refresh();
 
     const channel = supabase
-      .channel("league-changes")
+      // one channel per hook instance: two components on the same page (spotlight + fixtures)
+      // each need their own, or Supabase throws "cannot add callbacks after subscribe()"
+      .channel(`league-changes-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "teams" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "fixtures" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "settings" }, refresh)
