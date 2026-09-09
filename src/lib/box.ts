@@ -33,6 +33,8 @@ export interface BoxMatch {
   status: BoxMatchStatus;
   submittedTeam: string | null;
   notes: string;
+  /** when the row last changed — for a confirmed match, the confirmation time */
+  updatedAt: string | null;
 }
 
 export interface BoxStandingRow {
@@ -161,6 +163,7 @@ function mapMatch(r: any): BoxMatch {
     status: r.status,
     submittedTeam: r.submitted_team ?? null,
     notes: r.notes ?? "",
+    updatedAt: r.updated_at ?? null,
   };
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
@@ -195,7 +198,8 @@ export function useBoxData() {
     const supabase = supabaseRef.current;
     refresh();
     const channel = supabase
-      .channel("box-changes")
+      // unique per subscriber: the hub now has a box-data subscriber alongside the box page
+      .channel(`box-changes-${Math.random().toString(36).slice(2, 8)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "box_teams" }, refresh)
       .on("postgres_changes", { event: "*", schema: "public", table: "box_matches" }, refresh)
       .subscribe();
