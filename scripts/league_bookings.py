@@ -38,7 +38,8 @@ def playtomic_env():
     envf = os.path.join(W7, ".env")
     if os.path.exists(envf):
         for k, v in load_env(envf).items():
-            os.environ.setdefault(k, v)
+            if k.startswith("PLAYTOMIC_"):          # only the Playtomic creds — never the site key
+                os.environ.setdefault(k, v)
     cid, sec, ven = (os.environ.get(k, "") for k in ("PLAYTOMIC_CLIENT_ID", "PLAYTOMIC_SECRET", "PLAYTOMIC_VENUE_ID"))
     if not (cid and sec and ven):
         raise SystemExit("PLAYTOMIC_CLIENT_ID / PLAYTOMIC_SECRET / PLAYTOMIC_VENUE_ID not set")
