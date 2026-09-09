@@ -1,0 +1,34 @@
+name: League bookings (hourly)
+
+# Which league fixtures are booked on the courts -> league_bookings table for the site.
+# Runs in the cloud so the fixtures panel and the Booked chips keep updating when the
+# laptop and the NUC are off (Richie, 9 Sep 2026). The same script also runs locally as
+# Task "W7 League Bookings"; both replace the whole table, so overlap is harmless.
+on:
+  schedule:
+    - cron: "12 * * * *"    # every hour at :12 (UTC); the site shows whatever is newest
+  workflow_dispatch:
+
+concurrency:
+  group: league-bookings
+  cancel-in-progress: false
+
+jobs:
+  bookings:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONIOENCODING: utf-8
+      PLAYTOMIC_CLIENT_ID: ${{ secrets.PLAYTOMIC_CLIENT_ID }}
+      PLAYTOMIC_SECRET: ${{ secrets.PLAYTOMIC_SECRET }}
+      PLAYTOMIC_VENUE_ID: ${{ secrets.PLAYTOMIC_VENUE_ID }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SITE_ADMIN_KEY: ${{ secrets.SITE_ADMIN_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
+      - name: Detect and push league bookings
+        run: python scripts/league_bookings.py --days 21 --push

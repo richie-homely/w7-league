@@ -21,6 +21,8 @@ OUT = os.path.join(ROOT, "data", "league_bookings.json")
 
 def load_env(path):
     e = {}
+    if not os.path.exists(path):
+        return e
     for ln in io.open(path, encoding="utf-8-sig"):
         ln = ln.strip()
         if ln and "=" in ln and not ln.startswith("#"):
@@ -29,16 +31,31 @@ def load_env(path):
 
 norm = lambda n: re.sub(r"[^a-z]", "", (n or "").lower())
 
+API_BASE = "https://thirdparty.playtomic.io"
+
+def playtomic_env():
+    """Playtomic creds from the environment (GitHub Actions secrets) or, on a W7 machine, ../w7-padel/.env."""
+    envf = os.path.join(W7, ".env")
+    if os.path.exists(envf):
+        for k, v in load_env(envf).items():
+            os.environ.setdefault(k, v)
+    cid, sec, ven = (os.environ.get(k, "") for k in ("PLAYTOMIC_CLIENT_ID", "PLAYTOMIC_SECRET", "PLAYTOMIC_VENUE_ID"))
+    if not (cid and sec and ven):
+        raise SystemExit("PLAYTOMIC_CLIENT_ID / PLAYTOMIC_SECRET / PLAYTOMIC_VENUE_ID not set")
+    return cid, sec, ven
+
 def fetch_bookings(days):
-    for k, v in load_env(os.path.join(W7, ".env")).items():
-        os.environ.setdefault(k, v)
-    import requests, PythonW7Script as ex
-    token = ex.authenticate()
+    import requests
+    cid, sec, ven = playtomic_env()
+    r = requests.post(f"{API_BASE}/api/v1/oauth/token", json={"client_id": cid, "secret": sec},
+                      headers={"content-type": "application/json"}, timeout=30)
+    r.raise_for_status()
+    hdr = {"content-type": "application/json", "Authorization": f"Bearer {r.json()['token']}"}
     d0, d1 = date.today(), date.today() + timedelta(days=days)
     out, page = [], 0
     while True:
-        r = requests.get(f"{ex.API_BASE}/api/v1/bookings", headers=ex.get_headers(token), timeout=60,
-                         params={"tenant_id": ex.VENUE_ID, "start_booking_date": d0.strftime("%Y-%m-%dT00:00:00"),
+        r = requests.get(f"{API_BASE}/api/v1/bookings", headers=hdr, timeout=60,
+                         params={"tenant_id": ven, "start_booking_date": d0.strftime("%Y-%m-%dT00:00:00"),
                                  "end_booking_date": d1.strftime("%Y-%m-%dT23:59:59"), "page": page, "size": 200})
         r.raise_for_status()
         batch = r.json(); out += batch
@@ -46,8 +63,14 @@ def fetch_bookings(days):
         page += 1
     return [b for b in out if b.get("status") != "CANCELED" and not b.get("is_canceled")]
 
+def site_env():
+    e = load_env(os.path.join(ROOT, ".env.local")) if os.path.exists(os.path.join(ROOT, ".env.local")) else {}
+    for k in ("NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY", "SITE_ADMIN_KEY"):
+        if os.environ.get(k): e[k] = os.environ[k]
+    return e
+
 def detect(days=14):
-    env = load_env(os.path.join(ROOT, ".env.local"))
+    env = site_env()
     H = {"apikey": env["NEXT_PUBLIC_SUPABASE_ANON_KEY"], "Authorization": f"Bearer {env['NEXT_PUBLIC_SUPABASE_ANON_KEY']}"}
     get = lambda q: json.load(urllib.request.urlopen(urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/{q}", headers=H), timeout=60))
     box_teams = [t for t in get("box_teams?select=id,box,name,p1,p2,active&box=lt.90&limit=500") if t["active"]]
@@ -114,7 +137,7 @@ def lines(res):
 
 def push(res):
     """Replace league_bookings in Supabase with the current picture (admin passcode from .env.local)."""
-    env = load_env(os.path.join(ROOT, ".env.local"))
+    env = site_env()
     key = env.get("SITE_ADMIN_KEY", "")
     if not key:
         raise SystemExit("SITE_ADMIN_KEY missing from .env.local")
