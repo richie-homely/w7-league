@@ -12,7 +12,7 @@ import {
 } from "@/lib/competitions";
 import { InterestForm } from "./InterestForm";
 import { KnockoutSpotlight } from "./KnockoutSpotlight";
-import { UpcomingFixtures } from "./UpcomingFixtures";
+import { UpcomingLeagueFixtures } from "./UpcomingFixtures";
 import { SponsorCta } from "./Sponsor";
 import { SiteNav } from "./SiteNav";
 import { SocialsSection } from "./SocialsSection";
@@ -253,7 +253,7 @@ export function HubPage() {
         <KnockoutSpotlight />
 
         {/* Who's playing, when and on which court — from the Playtomic bookings (Richie, 8 Sep 2026) */}
-        <UpcomingFixtures />
+        <UpcomingLeagueFixtures />
 
 
         {/* Featured: live + open */}

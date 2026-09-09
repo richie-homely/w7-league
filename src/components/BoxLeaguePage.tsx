@@ -299,7 +299,7 @@ export function BoxLeaguePage() {
             <span id="boxes" style={{ scrollMarginTop: 60 }}>Final</span> <span style={{ color: C.accent }}>boxes</span>
           </div>
           <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
-          <UpcomingFixtures compact boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
+          <UpcomingFixtures compact showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
           <div style={{ marginTop: 24 }}>
             <SponsorCta
               headline="Sponsor a box"
