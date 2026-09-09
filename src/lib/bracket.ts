@@ -406,6 +406,18 @@ export const KNOCKOUT_RESULTS: {
     score: "7-5, 4-6, 11-9",
     playedOn: "2026-09-07",
   },
+  {
+    // Upper-tier QF2: G5 3rd seed (Lucy & Biddulph) v G4 (Donohoe & Orr). 9 Sep 2026,
+    // from the Playtomic result card — Donohoe & Orr lost the first set, then took the
+    // second and the championship tiebreak 11-9.
+    teams: [
+      "24ad96a9-7f6d-4f1e-83c7-bdc1103c3aef", // Rob Lucy & Lee Biddulph
+      "45e90a98-907a-49de-b971-ed4fef5025dc", // Shane Donohoe & Dylan Orr
+    ],
+    winnerTeamId: "45e90a98-907a-49de-b971-ed4fef5025dc",
+    score: "2-6, 6-3, 11-9",
+    playedOn: "2026-09-09",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
