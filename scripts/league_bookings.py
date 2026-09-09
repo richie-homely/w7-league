@@ -88,7 +88,9 @@ def detect(days=14):
         names = [p.get("name") for p in ((b.get("participant_info") or {}).get("participants") or [])]
         if not (2 <= len(names) <= 4):
             continue
-        when = b["booking_start_date"][:16].replace("T", " ")
+        from datetime import timezone
+        from zoneinfo import ZoneInfo
+        when = datetime.fromisoformat(b["booking_start_date"]).replace(tzinfo=timezone.utc).astimezone(ZoneInfo("Europe/Dublin")).strftime("%Y-%m-%d %H:%M")
         court = b.get("resource_name") or ""
         # box fixture: two full teams, same box
         cnt = {}
@@ -110,6 +112,13 @@ def detect(days=14):
             t = by_player_summer.get(norm(n))
             if t: st.setdefault(t["id"], [t, 0]); st[t["id"]][1] += 1
         two = [v[0] for v in st.values()]
+        if len(two) == 1 and next(iter(st.values()))[1] == 2:
+            # one full summer team on the booking, opponents not named: the site matches it to
+            # that team's unplayed bracket tie, if it has exactly one
+            t = two[0]
+            summer_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "tier": t["division_id"].split("-")[-1],
+                                "team_ids": [t["id"]], "team1": f"{t['p1']} & {t['p2']}", "team2": "", "confidence": "probable"})
+            continue
         if len(two) == 2 and sum(v[1] for v in st.values()) >= 3 and len({t["division_id"].split("-")[-1] for t in two}) == 1:
             summer_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "tier": two[0]["division_id"].split("-")[-1],
                                 "team_ids": sorted((two[0]["id"], two[1]["id"])),
@@ -132,7 +141,7 @@ def lines(res):
                  + ("" if h["status"] == "pending" else f"  [{h['status']}]") + ("" if h["confidence"] == "certain" else "  (probable: not all four named)"))
     L.append(f"  Summer league knockouts: {len(res['summer'])} ties booked")
     for h in res["summer"]:
-        L.append(f"    {h['when']}  {h['court']:8} {h['tier']:5}  {h['team1']}  v  {h['team2']}")
+        L.append(f"    {h['when']}  {h['court']:8} {h['tier']:5}  {h['team1']}  v  {h['team2'] or '(opponents not named)'}")
     return L
 
 def push(res):
@@ -141,18 +150,19 @@ def push(res):
     key = env.get("SITE_ADMIN_KEY", "")
     if not key:
         raise SystemExit("SITE_ADMIN_KEY missing from .env.local")
-    # Playtomic gives naive Dublin wall-clock times; stamp the Dublin offset so the timestamptz
-    # column stores the right instant and browsers show 16:30 as 16:30 (was showing +1h).
-    from zoneinfo import ZoneInfo
+    # Playtomic's third-party API gives naive UTC times (a booking the Manager shows as
+    # 19:00 Irish time arrives as 18:00) — stamp UTC so the stored instant is right.
+    from datetime import timezone
     def aware(ts):
-        return datetime.fromisoformat(ts).replace(tzinfo=ZoneInfo("Europe/Dublin")).isoformat()
+        return datetime.fromisoformat(ts).replace(tzinfo=timezone.utc).isoformat()
     rows = []
     for h in res["box"]:
         if h["match_id"]:
             rows.append({"match_key": h["match_id"], "kind": "box", "starts_at": aware(h["starts_at"]), "court": h["court"],
                          "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     for h in res["summer"]:
-        rows.append({"match_key": "summer:" + ":".join(h["team_ids"]), "kind": "summer", "starts_at": aware(h["starts_at"]),
+        key = ("summer:" + ":".join(h["team_ids"])) if len(h["team_ids"]) == 2 else f"summer1:{h['team_ids'][0]}:{h['starts_at']}"
+        rows.append({"match_key": key, "kind": "summer", "starts_at": aware(h["starts_at"]),
                      "court": h["court"], "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     # one row per fixture: if the same pair has two bookings, keep the earliest
     uniq = {}

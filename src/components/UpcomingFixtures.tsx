@@ -7,6 +7,7 @@ import { fmtBooking, summerKey, useLeagueBookings, type LeagueBooking } from "@/
 import { useLeagueData } from "@/lib/useLeagueData";
 import { buildBracket, isPlaceholderSlot, tierQualifiers } from "@/lib/bracket";
 import type { BracketMatch } from "@/lib/types";
+import { useBoxData } from "@/lib/box";
 
 // "Who's playing, what the fixture is, time and court" (Richie, 8 Sep 2026) — a summary of
 // the league matches the Playtomic bookings show as booked over the next two weeks.
@@ -20,12 +21,20 @@ function label(b: LeagueBooking, boxByKey?: Map<string, number>, tieLabel?: Map<
   return tieLabel?.get(b.matchKey) ?? "Summer knockouts";
 }
 
+function tieLabelFor(b: LeagueBooking, tieLabel?: Map<string, string>, tieByTeam?: Map<string, { label: string; opponent: string; count: number }>): string | undefined {
+  if (b.matchKey.startsWith("tie:summer1:")) return tieByTeam?.get(b.matchKey.split(":")[2])?.label;
+  return tieLabel?.get(b.matchKey);
+}
+
 /** Hub version: only summer bookings that are a real, unplayed bracket tie are shown —
  *  two qualifiers booking a friendly is not a fixture (Richie, 9 Sep 2026: Carthy & Dunne
  *  did not qualify, yet a booking with them appeared in the list). */
 export function UpcomingLeagueFixtures() {
   const { teamsByDiv, fixtures, loading } = useLeagueData();
+  const { matches: boxMatches } = useBoxData();
   const tieLabel = new Map<string, string>();
+  // team id -> its one unplayed tie (label + opponent), for bookings that name only that team
+  const tieByTeam = new Map<string, { label: string; opponent: string; count: number }>();
   if (!loading) {
     for (const tier of ["upper", "lower"] as const) {
       const b = buildBracket(tierQualifiers(tier, teamsByDiv, fixtures));
@@ -33,12 +42,25 @@ export function UpcomingLeagueFixtures() {
       for (const round of rounds) {
         for (const m of round) {
           if (m.result || !m.a || !m.b || isPlaceholderSlot(m.a) || isPlaceholderSlot(m.b)) continue;
-          tieLabel.set(summerKey(m.a.teamId, m.b.teamId), `${tier === "upper" ? "Upper" : "Lower"} ${m.id}`);
+          const label = `${tier === "upper" ? "Upper" : "Lower"} ${m.id}`;
+          tieLabel.set(summerKey(m.a.teamId, m.b.teamId), label);
+          const nameOf = (s: typeof m.a) => (s && !isPlaceholderSlot(s) ? `${s.team.p1} & ${s.team.p2}` : "");
+          for (const [id, opp] of [[m.a.teamId, nameOf(m.b)], [m.b.teamId, nameOf(m.a)]] as const) {
+            const prev = tieByTeam.get(id);
+            tieByTeam.set(id, { label, opponent: opp, count: (prev?.count ?? 0) + 1 });
+          }
         }
       }
     }
   }
-  return <UpcomingFixtures tieLabel={tieLabel} summerReady={!loading} />;
+  return (
+    <UpcomingFixtures
+      tieLabel={tieLabel}
+      tieByTeam={tieByTeam}
+      summerReady={!loading}
+      boxByKey={new Map(boxMatches.map((m) => [m.id, m.box]))}
+    />
+  );
 }
 
 export function UpcomingFixtures({
@@ -46,6 +68,7 @@ export function UpcomingFixtures({
   boxByKey,
   limit,
   tieLabel,
+  tieByTeam,
   summerReady,
   showSummer = true,
 }: {
@@ -56,6 +79,8 @@ export function UpcomingFixtures({
   limit?: number;
   /** summer bookings are shown only if their key is a current bracket tie (hub) */
   tieLabel?: Map<string, string>;
+  /** for bookings naming one bracket team only: that team's single unplayed tie */
+  tieByTeam?: Map<string, { label: string; opponent: string; count: number }>;
   /** false while the bracket is still loading, so summer rows do not flash in and out */
   summerReady?: boolean;
   /** box league page: box fixtures only */
@@ -64,9 +89,19 @@ export function UpcomingFixtures({
   const { bookings, loaded } = useLeagueBookings();
   // snapshot of "now" at mount (a render must be pure); a match stays visible for two hours after it starts
   const [now] = useState(() => Date.now() - 2 * 3600 * 1000);
-  const upcoming = bookings
+  // a summer booking that names only one bracket team ("summer1:<teamId>:<time>") becomes
+  // that team's unplayed tie, if it has exactly one; otherwise it is dropped
+  const resolved: LeagueBooking[] = bookings.flatMap((b) => {
+    if (!b.matchKey.startsWith("summer1:")) return [b];
+    if (!tieByTeam) return [];
+    const tie = tieByTeam.get(b.matchKey.split(":")[1]);
+    if (!tie || tie.count !== 1) return [];
+    return [{ ...b, matchKey: "tie:" + b.matchKey, team2: tie.opponent, confidence: "probable" as const }];
+  });
+  const isTie = (b: LeagueBooking) => b.matchKey.startsWith("tie:") || (tieLabel?.has(b.matchKey) ?? false);
+  const upcoming = resolved
     .filter((b) => new Date(b.startsAt.length === 16 ? b.startsAt + ":00" : b.startsAt).getTime() >= now)
-    .filter((b) => b.kind === "box" || (showSummer && (tieLabel ? summerReady !== false && tieLabel.has(b.matchKey) : true)))
+    .filter((b) => b.kind === "box" || (showSummer && (tieLabel ? summerReady !== false && isTie(b) : true)))
     .slice(0, limit ?? 40);
 
   // group by day
@@ -104,7 +139,7 @@ export function UpcomingFixtures({
                   <div style={{ fontFamily: F.mono, fontSize: 13, minWidth: 48 }}>{fmtBooking(b.startsAt).split(" · ")[1]}</div>
                   <div style={{ fontSize: 11.5, color: C.mute, minWidth: 60 }}>{b.court}</div>
                   <div style={{ fontSize: 11, fontWeight: 700, color: b.kind === "box" ? C.accent : C.info, minWidth: 110, letterSpacing: "0.04em" }}>
-                    {label(b, boxByKey, tieLabel).toUpperCase()}
+                    {(b.kind === "box" ? label(b, boxByKey) : tieLabelFor(b, tieLabel, tieByTeam) ?? "Summer knockouts").toUpperCase()}
                   </div>
                   <div style={{ fontSize: 13.5, flex: "1 1 260px" }}>
                     <b>{b.team1}</b> <span style={{ color: C.mute }}>v</span> <b>{b.team2}</b>
