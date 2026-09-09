@@ -162,8 +162,8 @@ def push(res):
             rows.append({"match_key": h["match_id"], "kind": "box", "starts_at": aware(h["starts_at"]), "court": h["court"],
                          "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     for h in res["summer"]:
-        key = ("summer:" + ":".join(h["team_ids"])) if len(h["team_ids"]) == 2 else f"summer1:{h['team_ids'][0]}:{h['starts_at']}"
-        rows.append({"match_key": key, "kind": "summer", "starts_at": aware(h["starts_at"]),
+        mk = ("summer:" + ":".join(h["team_ids"])) if len(h["team_ids"]) == 2 else f"summer1:{h['team_ids'][0]}:{h['starts_at']}"
+        rows.append({"match_key": mk, "kind": "summer", "starts_at": aware(h["starts_at"]),
                      "court": h["court"], "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     # one row per fixture: if the same pair has two bookings, keep the earliest
     uniq = {}
