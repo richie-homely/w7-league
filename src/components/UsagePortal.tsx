@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { siteUsageReport, type UsageReport } from "@/lib/track";
+import { useBoxData } from "@/lib/box";
+import { BoxProgress } from "./BoxProgress";
 
 // Admin-only usage portal (Richie, 7 Sep 2026). The passcode is checked by the database
 // function, not here — this page only remembers it on Richie's own device so he is not
@@ -24,6 +26,7 @@ export function UsagePortal() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [teamFilter, setTeamFilter] = useState<"all" | "seen" | "never">("all");
+  const { teams: boxTeams, matches: boxMatches } = useBoxData();
 
   useEffect(() => {
     // Read the remembered passcode after mount: reading localStorage during render would
@@ -107,6 +110,7 @@ export function UsagePortal() {
                 </div>
               ))}
             </div>
+            <BoxProgress matches={boxMatches} teams={boxTeams} detailed />
             <p style={{ fontSize: 12, color: C.mute, marginTop: 8 }}>
               Since {fmt(report.since)} · a visitor is one browser (random id, no personal data) · a team counts as “on the site” once a registered email has been used on it.
             </p>
