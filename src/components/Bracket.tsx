@@ -356,7 +356,7 @@ function TierBracket({
           </div>
           {FINALS.event && (
             <div style={{ marginTop: 8, fontSize: 12.5, color: C.accent, fontWeight: 700 }}>
-              🎂 {FINALS.event} <span style={{ color: C.mute, fontWeight: 400 }}>· same weekend · {FINALS.eventNote}</span>
+              🎂 {FINALS.event} <span style={{ color: C.mute, fontWeight: 400 }}>· {FINALS.eventDate} · {FINALS.eventNote}</span>
             </div>
           )}
         </div>

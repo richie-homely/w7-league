@@ -190,7 +190,7 @@ export function KnockoutSpotlight() {
           </div>
           {FINALS.event && (
             <div style={{ fontSize: 13, color: C.accent, marginTop: 6, fontWeight: 700 }}>
-              🎂 {FINALS.event} — same weekend <span style={{ color: C.mute, fontWeight: 400 }}>· {FINALS.eventNote}</span>
+              🎂 {FINALS.event} — {FINALS.eventDate}, finals day <span style={{ color: C.mute, fontWeight: 400 }}>· {FINALS.eventNote}</span>
             </div>
           )}
         </div>

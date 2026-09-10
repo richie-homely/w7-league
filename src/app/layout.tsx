@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { PageTracker } from "@/components/PageTracker";
+import { PartyBanner } from "@/components/PartyBanner";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,6 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <PartyBanner />
         {children}
         <PageTracker />
         <Analytics />
