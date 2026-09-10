@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
-import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail } from "@/lib/box";
+import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail, logBoxSub, useBoxSubs, type BoxSub } from "@/lib/box";
 import { track } from "@/lib/track";
 import { fmtBooking, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 import {
@@ -325,6 +325,54 @@ function ConfirmForm({
 
 // ── Match row ────────────────────────────────────────────────────────────────
 
+// Log a substitute for a fixture (Richie, 10 Sep 2026): who sat out, who stood in, and the
+// sub's Playtomic rating. The rules allow a sub within 0.75 of the player replaced; the
+// gap is shown, and anything outside it is flagged for W7 rather than blocked.
+function SubForm({ match, team, onDone }: { match: BoxMatch; team: BoxTeam; onDone: (msg: { ok: boolean; text: string }) => void }) {
+  const [replaced, setReplaced] = useState(team.p1);
+  const [name, setName] = useState("");
+  const [rating, setRating] = useState("");
+  const [email, setEmail] = useState(() => rememberedEmail());
+  const [busy, setBusy] = useState(false);
+  const replacedRating: number | null = replaced === team.p1 ? team.r1 : team.r2;
+  const r = rating.trim() === "" ? null : Number(rating.replace(",", "."));
+  const gap = r !== null && !Number.isNaN(r) && replacedRating !== null ? Math.abs(r - replacedRating) : null;
+  async function submit() {
+    if (!email.includes("@")) { onDone({ ok: false, text: "Enter your registered email." }); return; }
+    if (name.trim().length < 2) { onDone({ ok: false, text: "Enter the sub's name." }); return; }
+    if (r !== null && Number.isNaN(r)) { onDone({ ok: false, text: "The rating should be a number like 2.4." }); return; }
+    setBusy(true);
+    const res = await logBoxSub(match.id, email, replaced, name.trim(), r);
+    setBusy(false);
+    if (res.ok) rememberEmail(email);
+    onDone(res);
+  }
+  return (
+    <div style={{ marginTop: 10, padding: 12, background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: C.mute, marginBottom: 8 }}>LOG A SUB · {team.name}</div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <label style={{ fontSize: 12, color: C.mute }}>Sitting out{" "}
+          <select value={replaced} onChange={(e) => setReplaced(e.target.value)} style={{ ...inputStyle, width: "auto" }}>
+            <option value={team.p1}>{team.p1} ({team.r1?.toFixed(2) ?? "n/a"})</option>
+            <option value={team.p2}>{team.p2} ({team.r2?.toFixed(2) ?? "n/a"})</option>
+          </select>
+        </label>
+        <input style={{ ...inputStyle, flex: "1 1 160px" }} value={name} onChange={(e) => setName(e.target.value)} placeholder="Sub's name" aria-label="Sub's name" />
+        <input style={{ ...inputStyle, width: 110 }} value={rating} onChange={(e) => setRating(e.target.value)} placeholder="Playtomic rating" inputMode="decimal" aria-label="Sub's Playtomic rating" />
+      </div>
+      <div style={{ fontSize: 12, marginTop: 6, color: gap === null ? C.mute : gap <= 0.75 ? C.green : C.amber }}>
+        {gap === null ? "Rule: the sub's Playtomic rating must be within 0.75 of the player they replace. Enter it as shown in the Playtomic app."
+          : gap <= 0.75 ? `Gap ${gap.toFixed(2)} — within the 0.75 rule.`
+          : `Gap ${gap.toFixed(2)} — outside the 0.75 rule; it will be logged and flagged for W7 to review.`}
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 8 }}>
+        <input style={{ ...inputStyle, flex: "1 1 200px" }} type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Your registered email" autoComplete="email" aria-label="Your registered email" />
+        <button onClick={submit} disabled={busy} style={actionBtn}>{busy ? "Logging…" : "Log sub"}</button>
+      </div>
+    </div>
+  );
+}
+
 function MatchRow({
   match,
   teamsById,
@@ -332,6 +380,8 @@ function MatchRow({
   autoOpen = false,
   viewerTeamId = null,
   booking,
+  subs,
+  onSubLogged,
 }: {
   match: BoxMatch;
   teamsById: Record<string, BoxTeam>;
@@ -342,7 +392,11 @@ function MatchRow({
   viewerTeamId?: string | null;
   /** the court booking Playtomic shows for this fixture, if the detector found one */
   booking?: LeagueBooking;
+  /** subs already logged for this fixture */
+  subs?: BoxSub[];
+  onSubLogged?: () => void;
 }) {
+  const [subOpen, setSubOpen] = useState(false);
   const [open, setOpen] = useState<false | "submit" | "confirm">(
     autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
   );
@@ -384,7 +438,22 @@ function MatchRow({
             {booking.confidence === "probable" ? "Probably booked" : "Booked"} · {fmtBooking(booking.startsAt)} · {booking.court}
           </span>
         )}
+        {(subs ?? []).map((s) => {
+          const team = teamsById[s.teamId];
+          const base = team ? (s.replaced === team.p1 ? team.r1 : team.r2) : null;
+          const gap = base !== null && s.subRating !== null ? Math.abs(s.subRating - base) : null;
+          const outside = gap !== null && gap > 0.75;
+          return (
+            <span key={s.id} title={gap !== null ? `Rating gap ${gap.toFixed(2)}${outside ? " — outside the 0.75 rule, for W7 to review" : " — within the 0.75 rule"}` : "Rating not given"}
+                  style={{ fontSize: 11, fontWeight: 700, color: outside ? C.amber : C.mute, border: `1px solid ${outside ? C.amber : C.border}`, borderRadius: 999, padding: "2px 9px" }}>
+              Sub: {s.subName}{s.subRating !== null ? ` (${s.subRating.toFixed(2)})` : ""} for {s.replaced}{outside ? " · review" : ""}
+            </span>
+          );
+        })}
         <Chip label={chip.label} color={chip.color} />
+        {mine && match.status !== "confirmed" && (
+          <button onClick={() => setSubOpen(!subOpen)} style={ghostBtn}>{subOpen ? "Close" : "Log a sub"}</button>
+        )}
         {mine && (match.status === "pending" || match.status === "disputed") && (
           <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={actionBtn}>
             {open === "submit" ? "Close" : "Enter result"}
@@ -401,6 +470,9 @@ function MatchRow({
           </>
         )}
       </div>
+      {subOpen && viewerTeamId && teamsById[viewerTeamId] && (
+        <SubForm match={match} team={teamsById[viewerTeamId]} onDone={(msg) => { setSubOpen(false); onMessage(msg); if (msg.ok) onSubLogged?.(); }} />
+      )}
       {open === "submit" && <SubmitForm match={match} team1={t1} team2={t2} onDone={done} />}
       {open === "confirm" && <ConfirmForm match={match} onDone={done} />}
     </div>
@@ -437,6 +509,8 @@ function BoxSection({
   viewerTeamId = null,
   needsEmail,
   bookings,
+  subs,
+  onSubLogged,
 }: {
   box: number;
   teams: BoxTeam[];
@@ -449,6 +523,8 @@ function BoxSection({
   /** teams with no usable registered email — flagged beside the name */
   needsEmail: Set<string>;
   bookings: Map<string, LeagueBooking>;
+  subs: Map<string, BoxSub[]>;
+  onSubLogged: () => void;
 }) {
   // Each box collapses on its own (Richie, 5 Sep 2026) — 18 boxes of table + matches
   // is a long scroll, so a box shows its header line until asked for.
@@ -541,7 +617,7 @@ function BoxSection({
           </div>
         )}
         {matches.map((m) => (
-          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} booking={bookings.get(m.id)} />
+          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} booking={bookings.get(m.id)} subs={subs.get(m.id)} onSubLogged={onSubLogged} />
         ))}
       </div>
       </>)}
@@ -583,6 +659,7 @@ export function BoxLeagueLive({
   // Teams with no usable registered email get a note beside their name (Richie, 7 Sep 2026).
   const [needsEmail, setNeedsEmail] = useState<Set<string>>(() => new Set());
   const { byKey: bookings } = useLeagueBookings();
+  const { byMatch: subs, refresh: refreshSubs } = useBoxSubs();
   useEffect(() => {
     let cancelled = false;
     teamsNeedingEmail().then((ids) => { if (!cancelled) setNeedsEmail(new Set(ids)); });
@@ -753,6 +830,8 @@ export function BoxLeagueLive({
             viewerTeamId={myTeamId}
             needsEmail={needsEmail}
             bookings={bookings}
+            subs={subs}
+            onSubLogged={refreshSubs}
           />
         ))}
       </div>

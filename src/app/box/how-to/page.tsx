@@ -20,7 +20,7 @@ const STEPS: { h: string; body: (string | string[])[] }[] = [
     h: "2. Arrange your four matches",
     body: [
       `Each cycle is four weeks and you play the other four teams in your box once each. The current cycle runs ${fmtRange(BOX_CYCLES[0].start, BOX_CYCLES[0].end)}. Arrange every fixture through Playtomic chat: message the other team from the league event in the Playtomic app, agree a time, and book a court in the usual way. Do it as soon as the cycle opens; the league does not book courts for you.`,
-      "Play 2 full sets, then a championship tie-break if it is one set each. Substitutes are allowed if their Playtomic rating is within 0.75 of the player they replace.",
+      "Play 2 full sets, then a championship tie-break if it is one set each. Substitutes are allowed if their Playtomic rating is within 0.75 of the player they replace — tap Log a sub on the fixture and enter who sat out, the sub's name and their Playtomic rating; it shows beside the fixture and W7 reviews anything outside the 0.75.",
     ],
   },
   {

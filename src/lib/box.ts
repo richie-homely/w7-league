@@ -335,3 +335,49 @@ export async function teamsNeedingEmail(): Promise<string[]> {
   if (error || !Array.isArray(data)) return [];
   return data.filter((x): x is string => typeof x === "string");
 }
+
+// ── substitutes (Richie, 10 Sep 2026) ────────────────────────────────────────────
+export interface BoxSub {
+  id: string;
+  matchId: string;
+  teamId: string;
+  replaced: string;
+  subName: string;
+  subRating: number | null;
+  createdAt: string;
+}
+
+/** Log a sub for a fixture (box_log_sub). The registered email is the credential. */
+export async function logBoxSub(
+  matchId: string, email: string, replaced: string, subName: string, subRating: number | null
+): Promise<{ ok: boolean; text: string }> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("box_log_sub", {
+    p_match: matchId, p_email: email, p_replaced: replaced, p_sub_name: subName, p_sub_rating: subRating,
+  });
+  if (error) return { ok: false, text: error.message.includes("box_log_sub") ? "Sub logging isn't switched on yet — run box_subs_10Sep2026.sql." : error.message };
+  const code = data as string;
+  if (code === "ok") return { ok: true, text: "Sub logged — it shows beside the fixture." };
+  if (code === "not_registered") return { ok: false, text: "That email isn't registered to either team in this match." };
+  if (code === "no_match") return { ok: false, text: "That fixture no longer exists." };
+  return { ok: false, text: "Check the names and the rating (0–7) and try again." };
+}
+
+/** All logged subs, keyed by match id (a fixture can have more than one). */
+export function useBoxSubs(): { byMatch: Map<string, BoxSub[]>; refresh: () => void } {
+  const [subs, setSubs] = useState<BoxSub[]>([]);
+  const load = useCallback(async () => {
+    const supabase = createClient();
+    const { data, error } = await supabase.from("box_subs").select("id,match_id,team_id,replaced,sub_name,sub_rating,created_at").order("created_at");
+    if (!error && data) {
+      setSubs(data.map((r) => ({ id: r.id, matchId: r.match_id, teamId: r.team_id, replaced: r.replaced, subName: r.sub_name,
+                                 subRating: r.sub_rating === null ? null : Number(r.sub_rating), createdAt: r.created_at })));
+    }
+  }, []);
+  // load() sets state after an await; the effect itself is the fetch trigger, same as useBoxData
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { load(); }, [load]);
+  const byMatch = new Map<string, BoxSub[]>();
+  for (const x of subs) byMatch.set(x.matchId, [...(byMatch.get(x.matchId) ?? []), x]);
+  return { byMatch, refresh: load };
+}
