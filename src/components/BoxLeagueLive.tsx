@@ -568,7 +568,8 @@ export function BoxLeagueLive({
 }) {
   const [banner, setBanner] = useState<{ ok: boolean; text: string } | null>(null);
   const allBoxes = useMemo(
-    () => [...new Set(teams.filter((t) => t.active).map((t) => t.box))].sort((a, b) => a - b),
+    // real boxes only — 99 is the test box used while building (Richie, 10 Sep 2026: hide it)
+    () => [...new Set(teams.filter((t) => t.active && t.box < 90).map((t) => t.box))].sort((a, b) => a - b),
     [teams]
   );
   const boxes = focusBox !== null && allBoxes.includes(focusBox) ? [focusBox] : allBoxes;
