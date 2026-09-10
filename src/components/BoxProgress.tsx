@@ -135,7 +135,7 @@ export function BoxProgress({
         </div>
         <div style={{ fontSize: 12, color: C.mute }}>
           {fmtRange(cycle.start, cycle.end)}
-          {state === "upcoming" ? " · not started" : state === "live" ? ` · day ${elapsed} of 28 · ${left} days to the deadline` : " · cycle over"}
+          {state === "upcoming" ? " · not started" : state === "live" ? ` · day ${elapsed} of ${Math.round((cEnd - cStart) / DAY)} · ${left} days to the deadline` : " · cycle over"}
         </div>
       </div>
 

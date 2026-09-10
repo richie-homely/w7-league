@@ -78,7 +78,7 @@ export function RecentBoxResults({ matches, teams, limit = 10 }: { matches: BoxM
       <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
         Recent <span style={{ color: C.accent }}>results</span>
       </div>
-      <ResultsList rows={rows} empty="No confirmed results yet — the first cycle starts Monday 14 September." />
+      <ResultsList rows={rows} empty="No confirmed results yet — games are on; a result appears here once both teams confirm it." />
     </section>
   );
 }

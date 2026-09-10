@@ -11,7 +11,8 @@ export interface Cycle {
 }
 
 export const BOX_CYCLES: Cycle[] = [
-  { n: 1, start: "2026-09-14", end: "2026-10-11" },
+  // opened early (Richie, 10 Sep 2026): games from Thu 10 Sep count for cycle 1; the deadline is unchanged
+  { n: 1, start: "2026-09-10", end: "2026-10-11", note: "opened early — games from Thu 10 Sep count" },
   { n: 2, start: "2026-10-12", end: "2026-11-08" },
   { n: 3, start: "2026-11-09", end: "2026-12-06" },
   { n: 4, start: "2026-12-07", end: "2027-01-17", note: "six calendar weeks — the Christmas break does not count" },

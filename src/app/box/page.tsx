@@ -6,7 +6,7 @@ const description =
   "Sold out in five days — 40 more teams released. Boxes of five by combined Playtomic " +
   "rating: four games over four weeks, then the top two go up a box and the bottom two go " +
   `down. €${BOX_LEAGUE.entryPerTeam} per team, ${BOX_LEAGUE.durationMonths} months. ` +
-  "Starts Mon 14 Sep, Wicklow Town.";
+  "Games on now — cycle 1 runs to Sun 11 Oct. Wicklow Town.";
 
 /* This page needs its OWN openGraph block. Without one it inherits the sitewide
  * card, so a link pasted into a WhatsApp group showed the generic "Leagues &

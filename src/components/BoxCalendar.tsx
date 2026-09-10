@@ -154,7 +154,7 @@ export function BoxCalendar() {
           )}
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: C.mute, marginTop: 8 }}>
-          <span>Mon 14 Sep 2026</span>
+          <span>Thu 10 Sep 2026 · opened early</span>
           <span style={{ color: C.amber }}>▨ Christmas break 23 Dec – 5 Jan (clock paused)</span>
           <span>Sun 11 Apr 2027</span>
         </div>

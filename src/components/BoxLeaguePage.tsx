@@ -224,7 +224,7 @@ export function BoxLeaguePage() {
           />
           <div style={{ fontSize: 11.5, color: C.accent, fontWeight: 700, letterSpacing: "0.18em" }}>
             {isFull
-              ? `BOX LEAGUE FULL · ALL ${BOX_LEAGUE.maxTeams} TEAM PLACES TAKEN`
+              ? `BOX LEAGUE LIVE · GAMES ON NOW · ALL ${BOX_LEAGUE.maxTeams} PLACES TAKEN`
               : regOpen
                 ? BOX_LEAGUE.extraPlacesNote
                   ? BOX_LEAGUE.extraPlacesNote
@@ -279,7 +279,7 @@ export function BoxLeaguePage() {
               textShadow: "0 1px 10px rgba(0,0,0,0.9)",
             }}
           >
-            Our Autumn/Winter Padel Box League starts <strong>Monday 14 September</strong> 🎾 Teams
+            Our Autumn/Winter Padel Box League is <strong>open for games now</strong> — cycle 1 runs to Sunday 11 October 🎾 Teams
             are placed into boxes of <strong>five</strong> by their{" "}
             <strong>combined Playtomic ratings</strong>, so every match is against a similar
             standard. You play the other four teams in your box —{" "}
