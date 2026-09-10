@@ -48,4 +48,6 @@ export const FINALS = {
   event: "W7's first birthday party",
   eventDate: "Sunday 27 September",
   eventNote: "details to follow",
+  /** the banner and notes hide themselves after this date */
+  eventUntil: "2026-09-27",
 };

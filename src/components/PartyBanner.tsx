@@ -1,12 +1,18 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { FINALS } from "@/lib/sponsors";
 
 // Site-wide banner (Richie, 10 Sep 2026): W7's first birthday party, Sunday 27 September,
 // the same day as the summer league finals. Mounted in the root layout so every page
-// carries it; retire it by removing the mount after the day.
+// carries it. It takes itself down once the day has passed (FINALS.eventUntil) —
+// "remember to remove it when it's passed" — so nothing needs doing on the day.
 export function PartyBanner() {
+  const [now] = useState(() => Date.now());
   if (!FINALS.event) return null;
+  if (FINALS.eventUntil && now > new Date(FINALS.eventUntil + "T23:59:59").getTime()) return null;
   return (
     <Link
       href="/summer-2026/knockouts"
