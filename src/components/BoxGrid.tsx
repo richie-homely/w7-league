@@ -85,16 +85,18 @@ export function BoxGrid({
       <div
         style={{
           display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12,
-          background: "rgba(255,184,77,0.12)", border: `1px solid ${C.amber}66`,
+          background: "rgba(10,10,10,0.88)", border: `1px solid ${C.green}`,
           borderRadius: 8, padding: "7px 12px",
         }}
       >
-        <span style={{ fontSize: 13 }}>✓</span>
-        <span style={{ fontSize: 12.5, color: C.text, fontWeight: 600 }}>
+        <span style={{ fontSize: 13, color: C.green }}>✓</span>
+        <span style={{ fontSize: 13, color: C.text, fontWeight: 700 }}>
           FINAL — boxes set on live Playtomic ratings, 7 September 2026 · league full
         </span>
       </div>
-      <div style={{ fontSize: 13, color: C.mute, marginBottom: 14, maxWidth: 620, lineHeight: 1.6 }}>
+      {/* the intro sits over the hero photo: solid card behind it so it reads (Richie, 10 Sep 2026) */}
+      <div style={{ fontSize: 14, color: C.text, marginBottom: 14, maxWidth: 640, lineHeight: 1.65,
+                    background: "rgba(10,10,10,0.88)", border: `1px solid ${C.border}`, borderRadius: 10, padding: "12px 16px" }}>
         {totalTeams} teams, sorted by combined Playtomic rating and cut into{" "}
         {boxes.length} boxes of five. You play the other four in your box over four weeks,
         arranging each match with your opponents on Playtomic chat — then the top TWO teams move up a box
