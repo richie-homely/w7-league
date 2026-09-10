@@ -418,6 +418,17 @@ export const KNOCKOUT_RESULTS: {
     score: "2-6, 6-3, 11-9",
     playedOn: "2026-09-09",
   },
+  {
+    // Lower-tier R1 (tie B): G3 (Smale & Tolan) v G2 (Gethin Taggart & Austen). 10 Sep 2026,
+    // from Ryan Tolan's Playtomic result card — three sets, championship tiebreak 10-8.
+    teams: [
+      "8b0ad15f-c884-4554-8ec5-3354db001967", // Callum Smale & Ryan Tolan
+      "ae8547b3-d868-4292-845d-aa3c0f466f91", // Nicky Gethin Taggart & Claire Austen
+    ],
+    winnerTeamId: "8b0ad15f-c884-4554-8ec5-3354db001967",
+    score: "7-6, 2-6, 10-8",
+    playedOn: "2026-09-10",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
