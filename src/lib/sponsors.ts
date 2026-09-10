@@ -44,4 +44,7 @@ export const FINALS = {
   dates: "26 / 27 September 2026",
   court: "Court 1",
   provisional: true,
+  /** Finals weekend doubles as W7's first birthday (Richie, 10 Sep 2026) — details to follow */
+  event: "W7's first birthday party",
+  eventNote: "details to be confirmed",
 };

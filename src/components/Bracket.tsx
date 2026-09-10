@@ -354,6 +354,11 @@ function TierBracket({
           <div style={{ marginTop: 4 }}>
             <SponsorInline slot={FINALS_COURT_SPONSOR} prefix={FINALS.court} />
           </div>
+          {FINALS.event && (
+            <div style={{ marginTop: 8, fontSize: 12.5, color: C.accent, fontWeight: 700 }}>
+              🎂 {FINALS.event} <span style={{ color: C.mute, fontWeight: 400 }}>· same weekend · {FINALS.eventNote}</span>
+            </div>
+          )}
         </div>
         <a
           href={`mailto:welcome@w7padel.com?subject=${encodeURIComponent(

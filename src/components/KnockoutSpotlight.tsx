@@ -4,6 +4,7 @@ import Link from "next/link";
 import { C, F, divColor } from "@/theme/tokens";
 import { buildBracket, tierQualifiers, TIER_PRIZES } from "@/lib/bracket";
 import { useLeagueData } from "@/lib/useLeagueData";
+import { FINALS } from "@/lib/sponsors";
 import type { BracketMatch, BracketSlot, Qualifier } from "@/lib/types";
 
 /* The knockouts are the point of the whole season, so they lead the page rather
@@ -183,10 +184,15 @@ export function KnockoutSpotlight() {
             The <span style={{ color: C.accent }}>knockouts</span>
           </div>
           <div style={{ fontSize: 13.5, color: C.mute, marginTop: 6, maxWidth: 560 }}>
-            {upper.length + lower.length} teams through across both tiers, playing for
-            €{(pot * 2).toLocaleString()} in prizes. First round is drawn cross-division,
-            so nobody meets a division rival before the semi-finals.
+            Into the final stages: {upper.length + lower.length} teams started across both tiers, playing for
+            €{(pot * 2).toLocaleString()} in prizes. Semi-finals and finals are played on finals weekend,{" "}
+            <span style={{ color: C.text }}>{FINALS.dates}</span>{FINALS.provisional ? " (provisional)" : ""}.
           </div>
+          {FINALS.event && (
+            <div style={{ fontSize: 13, color: C.accent, marginTop: 6, fontWeight: 700 }}>
+              🎂 {FINALS.event} — same weekend <span style={{ color: C.mute, fontWeight: 400 }}>· {FINALS.eventNote}</span>
+            </div>
+          )}
         </div>
         <Link
           href="/summer-2026"
