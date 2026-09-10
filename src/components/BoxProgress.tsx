@@ -19,10 +19,14 @@ type Kind = "played" | "awaiting" | "booked" | "unbooked";
 
 const DAY = 86400000;
 
-function kindOf(m: BoxMatch, bookings: Map<string, LeagueBooking>): Kind {
+// a booking only counts as "booked" while it is still ahead (3h grace): the table also
+// holds past bookings for the admin heatmap, and a past booking against a pending
+// fixture is not a plan
+function kindOf(m: BoxMatch, bookings: Map<string, LeagueBooking>, nowMs = Date.now()): Kind {
   if (m.status === "confirmed") return "played";
   if (m.status === "submitted" || m.status === "disputed") return "awaiting";
-  if (bookings.has(m.id)) return "booked";
+  const b = bookings.get(m.id);
+  if (b && new Date(b.startsAt).getTime() >= nowMs - 3 * 3600000) return "booked";
   return "unbooked";
 }
 
@@ -33,9 +37,9 @@ function whenOf(m: BoxMatch, bookings: Map<string, LeagueBooking>): number | nul
   return b ? new Date(b.startsAt).getTime() : null;
 }
 
-function tally(ms: BoxMatch[], bookings: Map<string, LeagueBooking>): Seg {
+function tally(ms: BoxMatch[], bookings: Map<string, LeagueBooking>, nowMs = Date.now()): Seg {
   const s: Seg = { played: 0, awaiting: 0, booked: 0, unbooked: 0, total: ms.length };
-  for (const m of ms) s[kindOf(m, bookings)]++;
+  for (const m of ms) s[kindOf(m, bookings, nowMs)]++;
   return s;
 }
 
@@ -87,7 +91,7 @@ export function BoxProgress({
   const inView = week
     ? inCycle.filter((m) => { const t = whenOf(m, bookings); return t !== null && t >= wkStart && t < wkEnd; })
     : inCycle;
-  const all = tally(inView, bookings);
+  const all = tally(inView, bookings, now.getTime());
   const boxes = [...new Set(inCycle.map((m) => m.box))].sort((a, b) => a - b);
   const byId = Object.fromEntries(teams.map((t) => [t.id, t]));
 
@@ -103,7 +107,7 @@ export function BoxProgress({
   const fmtDay = (t: number) => new Date(t).toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short" });
   const ORDER: Record<Kind, number> = { played: 0, awaiting: 1, booked: 2, unbooked: 3 };
   const describe = (m: BoxMatch): { kind: Kind; text: string; color: string } => {
-    const k = kindOf(m, bookings);
+    const k = kindOf(m, bookings, now.getTime());
     const b = bookings.get(m.id);
     if (k === "played") return { kind: k, text: `Played · ${formatScore(m.sets)}${m.updatedAt ? " · " + fmtDay(new Date(m.updatedAt).getTime()) : ""}`, color: C.green };
     if (k === "awaiting") return { kind: k, text: `${m.status === "disputed" ? "Scores differ" : "Awaiting confirmation"} · ${formatScore(m.sets)}`, color: C.info };
@@ -114,7 +118,7 @@ export function BoxProgress({
   const teamRows = detailed
     ? teams.filter((t) => t.active && t.box < 90).map((t) => {
         const mine = inView.filter((m) => m.team1Id === t.id || m.team2Id === t.id);
-        return { team: t, s: tally(mine, bookings) };
+        return { team: t, s: tally(mine, bookings, now.getTime()) };
       }).sort((a, b) => a.team.box - b.team.box || b.s.unbooked - a.s.unbooked)
     : [];
 
@@ -165,11 +169,11 @@ export function BoxProgress({
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "8px 14px" }}>
         {boxes.map((b) => {
           const ms = inView.filter((m) => m.box === b);
-          const s = tally(ms, bookings);
+          const s = tally(ms, bookings, now.getTime());
           const f = flag(s);
           const open = openBox === b;
           const list = [...ms].sort((x, y) => {
-            const kx = ORDER[kindOf(x, bookings)], ky = ORDER[kindOf(y, bookings)];
+            const kx = ORDER[kindOf(x, bookings, now.getTime())], ky = ORDER[kindOf(y, bookings, now.getTime())];
             if (kx !== ky) return kx - ky;
             return (whenOf(x, bookings) ?? Infinity) - (whenOf(y, bookings) ?? Infinity);
           });

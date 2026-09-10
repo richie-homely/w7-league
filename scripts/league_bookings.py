@@ -45,14 +45,16 @@ def playtomic_env():
         raise SystemExit("PLAYTOMIC_CLIENT_ID / PLAYTOMIC_SECRET / PLAYTOMIC_VENUE_ID not set")
     return cid, sec, ven
 
-def fetch_bookings(days):
+def fetch_bookings(days, back=60):
+    """Bookings from `back` days ago to `days` ahead. The past window is what lets the admin
+    page show WHEN league games actually get played (Richie, 10 Sep 2026)."""
     import requests
     cid, sec, ven = playtomic_env()
     r = requests.post(f"{API_BASE}/api/v1/oauth/token", json={"client_id": cid, "secret": sec},
                       headers={"content-type": "application/json"}, timeout=30)
     r.raise_for_status()
     hdr = {"content-type": "application/json", "Authorization": f"Bearer {r.json()['token']}"}
-    d0, d1 = date.today(), date.today() + timedelta(days=days)
+    d0, d1 = date.today() - timedelta(days=back), date.today() + timedelta(days=days)
     out, page = [], 0
     while True:
         r = requests.get(f"{API_BASE}/api/v1/bookings", headers=hdr, timeout=60,
@@ -127,7 +129,10 @@ def detect(days=14):
                                 "confidence": "certain" if sum(v[1] for v in st.values()) == 4 else "probable"})
     box_hits.sort(key=lambda x: x["when"]); summer_hits.sort(key=lambda x: x["when"])
     pending = sum(1 for m in matches if m["status"] == "pending")
-    booked_pending = sum(1 for h in box_hits if h["status"] == "pending")
+    today_iso = datetime.now().strftime("%Y-%m-%d %H:%M")
+    # only a FUTURE booking counts as "has a court"; a past booking against a still-pending
+    # fixture is a game played before the league (or one never entered), not a plan
+    booked_pending = sum(1 for h in box_hits if h["status"] == "pending" and h["when"] >= today_iso)
     res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits,
            "box_pending": pending, "box_pending_booked": booked_pending}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
@@ -136,8 +141,10 @@ def detect(days=14):
 
 def lines(res):
     L = [f"LEAGUE COURTS BOOKED — next {res['days']} days (from Playtomic participant lists; only bookings where all four players are known)"]
-    L.append(f"  Box league: {len(res['box'])} fixtures booked · {res['box_pending_booked']} of {res['box_pending']} unplayed fixtures have a court")
+    L.append(f"  Box league: {res['box_pending_booked']} of {res['box_pending']} unplayed fixtures have a court booked ahead")
     for h in res["box"]:
+        if h["when"] < datetime.now().strftime("%Y-%m-%d %H:%M"):
+            continue                       # history feeds the admin heatmap, not this list
         L.append(f"    {h['when']}  {h['court']:8} box {h['box']:2}  {h['team1']}  v  {h['team2']}"
                  + ("" if h["status"] == "pending" else f"  [{h['status']}]") + ("" if h["confidence"] == "certain" else "  (probable: not all four named)"))
     L.append(f"  Summer league knockouts: {len(res['summer'])} ties booked")
