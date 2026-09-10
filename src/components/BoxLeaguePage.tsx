@@ -275,8 +275,11 @@ export function BoxLeaguePage() {
               lineHeight: 1.65,
               maxWidth: 640,
               marginTop: 16,
-              opacity: 0.95,
-              textShadow: "0 1px 10px rgba(0,0,0,0.9)",
+              // over the hero photo: a dark card reads better than a text shadow (Richie, 10 Sep 2026)
+              background: "rgba(10,10,10,0.78)",
+              border: `1px solid ${C.border}`,
+              borderRadius: 10,
+              padding: "12px 16px",
             }}
           >
             Our Autumn/Winter Padel Box League is <strong>open for games now</strong> — cycle 1 runs to Sunday 11 October 🎾 Teams
