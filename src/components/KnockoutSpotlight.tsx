@@ -41,16 +41,19 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
         {q.seed}
       </span>
     );
+    // Richie, 11 Sep 2026 (phone screenshot): names were truncated on the left and pushed
+    // off the card on the right. Names now WRAP and the type scales with the viewport
+    // (clamp), so every iPhone width shows both full names.
     const names = (
-      <span style={{ minWidth: 0, textAlign: right ? "right" : "left" }}>
+      <span style={{ minWidth: 0, flex: "1 1 auto", textAlign: right ? "right" : "left" }}>
         {[q.team.p1, q.team.p2].filter(Boolean).map((n, i) => (
           <span
             key={i}
             style={{
-              display: "block", fontSize: 12.5, lineHeight: 1.35,
+              display: "block", fontSize: "clamp(11px, 3.4vw, 12.5px)", lineHeight: 1.3,
               color: i === 0 ? C.text : C.mute,
               fontWeight: won ? 800 : i === 0 ? 600 : 500,
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              overflowWrap: "anywhere", whiteSpace: "normal",
             }}
           >
             {n}
@@ -61,7 +64,7 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
     return (
       <span
         style={{
-          display: "inline-flex", alignItems: "flex-start", gap: 6, minWidth: 0,
+          display: "flex", alignItems: "flex-start", gap: 6, minWidth: 0, width: "100%",
           flexDirection: right ? "row-reverse" : "row",
           opacity: won === false ? 0.5 : 1,
         }}
@@ -75,10 +78,10 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr auto 1fr",
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
         alignItems: "center",
-        gap: 8,
-        padding: "7px 10px",
+        gap: "clamp(4px, 1.6vw, 8px)",
+        padding: "7px clamp(6px, 2vw, 10px)",
         background: C.card2,
         border: `1px solid ${C.border}`,
         borderRadius: 8,
@@ -90,8 +93,8 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
       {match.result ? (
         <span
           style={{
-            fontFamily: F.mono, fontSize: 10.5, fontWeight: 700, color: C.accent,
-            whiteSpace: "nowrap", textAlign: "center", lineHeight: 1.25,
+            fontFamily: F.mono, fontSize: "clamp(9.5px, 2.8vw, 10.5px)", fontWeight: 700, color: C.accent,
+            textAlign: "center", lineHeight: 1.3, maxWidth: "min(110px, 26vw)", whiteSpace: "normal",
           }}
         >
           {match.result.score}
@@ -99,7 +102,7 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
       ) : (
         <span style={{ fontFamily: F.mono, fontSize: 9.5, color: C.mute }}>v</span>
       )}
-      <span style={{ textAlign: "right", minWidth: 0 }}>
+      <span style={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
         {side(b, true, match.result ? match.result.winner === "b" : undefined)}
       </span>
     </div>

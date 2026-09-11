@@ -182,12 +182,14 @@ export function BoxProgress({
               <button
                 onClick={() => setOpenBox(open ? null : b)}
                 aria-expanded={open}
-                style={{ display: "grid", gridTemplateColumns: "72px 1fr 170px", alignItems: "center", gap: 10, padding: "6px 0", width: "100%",
+                // flex + wrap (Richie, 11 Sep 2026): the fixed 72px/170px grid ran 120px past a
+                // phone screen; now the bar shrinks and the status text drops under it when needed
+                style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 10px", padding: "6px 0", width: "100%", minWidth: 0,
                          background: "transparent", border: 0, color: C.text, cursor: "pointer", textAlign: "left", fontFamily: F.body }}
               >
-                <div style={{ fontFamily: F.mono, fontSize: 12.5 }}>{open ? "▾" : "▸"} Box {b}</div>
-                <Bar s={s} />
-                <div style={{ fontSize: 11.5, color: f ? f.color : C.mute, fontWeight: f ? 700 : 400 }}>
+                <div style={{ fontFamily: F.mono, fontSize: 12.5, flex: "0 0 68px" }}>{open ? "▾" : "▸"} Box {b}</div>
+                <div style={{ flex: "1 1 120px", minWidth: 0 }}><Bar s={s} /></div>
+                <div style={{ fontSize: 11.5, color: f ? f.color : C.mute, fontWeight: f ? 700 : 400, flex: "1 1 150px", minWidth: 0 }}>
                   {f ? f.text : week ? `${s.played + s.awaiting} done · ${s.booked} booked` : `${s.played + s.awaiting} done · ${s.booked} booked · ${s.unbooked} to arrange`}
                 </div>
               </button>
