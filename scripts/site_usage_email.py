@@ -101,6 +101,28 @@ def main():
         L += [""] + lb.lines(lb.detect(14))
     except Exception as exc:
         L += ["", f"LEAGUE COURTS BOOKED: not available this run ({type(exc).__name__})"]
+    # played, no result (Richie, 11 Sep 2026: "we'll have to make sure there are results"):
+    # a pending fixture whose W7 booking is 3h+ in the past. The notifier reminds the teams.
+    try:
+        from datetime import timezone as _tz
+        now = datetime.now(_tz.utc)
+        pend = {m["id"]: m for m in get("box_matches?select=id,box,team1_id,team2_id&status=eq.pending&box=lt.90&limit=2000")}
+        tn2 = {t["id"]: t["name"] for t in get("box_teams?select=id,name&limit=500")}
+        late = []
+        for b in get("league_bookings?select=match_key,starts_at,court&kind=eq.box&starts_at=gte.2026-09-10T00:00:00Z&limit=5000"):
+            m = pend.get(b["match_key"])   # from the league opening (10 Sep) — earlier games were friendlies
+            if not m:
+                continue
+            hrs = (now - datetime.fromisoformat(b["starts_at"])).total_seconds() / 3600
+            if hrs >= 3:
+                late.append((b["starts_at"], hrs, m, b))
+        late.sort()
+        L += ["", f"PLAYED, NO RESULT YET: {len(late)} fixture(s) with a W7 booking 3h+ ago and no score entered"
+              + (" — the notifier reminds both teams" if late else " — every played fixture has a score in")]
+        for st, hrs, m, b in late:
+            L.append(f"  Box {m['box']:2}  {tn2.get(m['team1_id'], '?')}  v  {tn2.get(m['team2_id'], '?')}  played {datetime.fromisoformat(st).astimezone(DUBLIN):%a %d %b %H:%M} {b['court']}  ({hrs:.0f}h ago)")
+    except Exception as exc:
+        L += ["", f"PLAYED, NO RESULT YET: not available this run ({type(exc).__name__})"]
     # results vs W7 bookings (Richie, 11 Sep 2026): every entered result should sit on a W7
     # court booking with the players named on it — anything else may have been played elsewhere.
     try:
