@@ -9,7 +9,7 @@ import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
 import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail, logBoxSub, useBoxSubs, type BoxSub } from "@/lib/box";
 import { track } from "@/lib/track";
-import { fmtBooking, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
+import { fmtBooking, resultBooking, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -430,6 +430,17 @@ function MatchRow({
         <div style={{ fontFamily: F.mono, fontSize: 13, color: match.status === "confirmed" ? C.text : C.mute }}>
           {formatScore(match.sets)}
         </div>
+        {booking && match.status !== "pending" && match.sets && (() => {
+          const rb = resultBooking(match, new Map([[match.id, booking]]));
+          return (
+            <span
+              title={rb.state === "future" ? "The booking starts after this result was entered" : "This result sits on a W7 court booking with the players named on it"}
+              style={{ fontSize: 11, fontWeight: 700, color: C.mute, border: `1px solid ${C.border}`, borderRadius: 999, padding: "2px 9px", letterSpacing: "0.03em" }}
+            >
+              Played at W7 · {fmtBooking(booking.startsAt)} · {booking.court}
+            </span>
+          );
+        })()}
         {booking && match.status === "pending" && (
           <span
             title={booking.confidence === "probable" ? "Not all four players are named on the booking" : "All four players are on the Playtomic booking"}

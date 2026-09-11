@@ -49,6 +49,21 @@ export function useLeagueBookings(): { bookings: LeagueBooking[]; byKey: Map<str
   return { bookings, byKey, loaded };
 }
 
+/** A submitted/confirmed result against the W7 booking found for the same fixture
+ *  (Richie, 11 Sep 2026: "make sure when people submit scores we can see the corresponding
+ *  booking, to avoid people playing at other clubs"). "none" = no W7 booking with the
+ *  players' names on it; "future" = a booking exists but starts after the result was entered. */
+export function resultBooking(
+  m: { id: string; status: string; updatedAt: string | null },
+  byKey: Map<string, LeagueBooking>,
+): { booking: LeagueBooking | null; state: "w7" | "none" | "future" } {
+  const b = byKey.get(m.id);
+  if (!b) return { booking: null, state: "none" };
+  const start = new Date(b.startsAt.length === 16 ? b.startsAt + ":00" : b.startsAt).getTime();
+  const entered = m.updatedAt ? new Date(m.updatedAt).getTime() : Date.now();
+  return { booking: b, state: start <= entered ? "w7" : "future" };
+}
+
 export function summerKey(teamIdA: string, teamIdB: string): string {
   return "summer:" + [teamIdA, teamIdB].sort().join(":");
 }

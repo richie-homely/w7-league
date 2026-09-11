@@ -101,6 +101,21 @@ def main():
         L += [""] + lb.lines(lb.detect(14))
     except Exception as exc:
         L += ["", f"LEAGUE COURTS BOOKED: not available this run ({type(exc).__name__})"]
+    # results vs W7 bookings (Richie, 11 Sep 2026): every entered result should sit on a W7
+    # court booking with the players named on it — anything else may have been played elsewhere.
+    try:
+        lbk = {r["match_key"]: r for r in get("league_bookings?select=match_key,starts_at,court,confidence&kind=eq.box&limit=5000")}
+        played = get("box_matches?select=id,box,team1_id,team2_id,status,updated_at&box=lt.90&status=neq.pending&limit=2000")
+        tn = {t["id"]: t["name"] for t in get("box_teams?select=id,name&limit=500")}
+        missing = [m for m in played if m["id"] not in lbk]
+        L += ["", f"RESULTS vs W7 BOOKINGS: {len(played) - len(missing)} of {len(played)} results entered sit on a W7 court booking"
+              + (f" · {len(missing)} with NO booking found:" if missing else " · none unaccounted for")]
+        for m in sorted(missing, key=lambda m: m.get("updated_at") or ""):
+            L.append(f"  Box {m['box']:2}  {tn.get(m['team1_id'], '?')}  v  {tn.get(m['team2_id'], '?')}  [{m['status']}]  entered {(m.get('updated_at') or '')[:16].replace('T', ' ')}")
+        if missing:
+            L.append("  (no booking = played elsewhere, or the W7 booking did not carry the players' names — ask the teams)")
+    except Exception as exc:
+        L += ["", f"RESULTS vs W7 BOOKINGS: not available this run ({type(exc).__name__})"]
     # league fixtures by week (Richie, 11 Sep 2026): the weekly booked/played view from the admin
     # page, in the email. Same Mon–Sun buckets. booked = league bookings by the week the court is
     # booked; played = box results confirmed that week + summer knockout results by date played.
