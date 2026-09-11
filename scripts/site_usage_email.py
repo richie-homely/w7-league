@@ -101,6 +101,40 @@ def main():
         L += [""] + lb.lines(lb.detect(14))
     except Exception as exc:
         L += ["", f"LEAGUE COURTS BOOKED: not available this run ({type(exc).__name__})"]
+    # league fixtures by week (Richie, 11 Sep 2026): the weekly booked/played view from the admin
+    # page, in the email. Same Mon–Sun buckets. booked = league bookings by the week the court is
+    # booked; played = box results confirmed that week + summer knockout results by date played.
+    try:
+        import re as _re
+        lbs = get("league_bookings?select=kind,starts_at&limit=5000")
+        bm = get("box_matches?select=status,updated_at,box&box=lt.90&limit=2000")
+        src = open(os.path.join(ROOT, "src", "lib", "bracket.ts"), encoding="utf-8").read()
+        ko = _re.findall(r'playedOn:\s*"(\d{4}-\d{2}-\d{2})"', src)
+        def monday(d):
+            return d - timedelta(days=d.weekday())
+        wk = {}
+        def at(d):
+            k = monday(d); return wk.setdefault(k, {"bb": 0, "bp": 0, "sb": 0, "sp": 0})
+        for r in lbs:
+            d = datetime.fromisoformat(r["starts_at"]).astimezone(DUBLIN).date()
+            at(d)["bb" if r["kind"] == "box" else "sb"] += 1
+        for m in bm:
+            if m["status"] == "confirmed" and m.get("updated_at"):
+                at(datetime.fromisoformat(m["updated_at"].replace("Z", "+00:00")).astimezone(DUBLIN).date())["bp"] += 1
+        for d in ko:
+            at(date.fromisoformat(d))["sp"] += 1
+        this_mon = monday(today)
+        L += ["", "LEAGUE FIXTURES BY WEEK — booked (box · summer) / played (box · summer) · league games · court-hours",
+              "  week            box bkd  box pld  sum bkd  sum pld   games  court-h"]
+        for k in sorted(wk):
+            w = wk[k]; games = w["bb"] + w["sb"]
+            tag = "  <- this week" if k == this_mon else ("  (ahead)" if k > this_mon else "")
+            L.append(f"  {k:%d %b}–{k + timedelta(days=6):%d %b}   {w['bb']:6}   {w['bp']:6}   {w['sb']:6}   {w['sp']:6}   {games:5}   {games * 1.5:5.0f}h{tag}")
+        T = {k2: sum(w[k2] for w in wk.values()) for k2 in ("bb", "bp", "sb", "sp")}
+        L.append(f"  {'all weeks':15} {T['bb']:6}   {T['bp']:6}   {T['sb']:6}   {T['sp']:6}   {T['bb'] + T['sb']:5}   {(T['bb'] + T['sb']) * 1.5:5.0f}h")
+        L.append("  (summer group games appear as booked only — their results are in the league tables; 'ahead' weeks are bookings already made)")
+    except Exception as exc:
+        L += ["", f"LEAGUE FIXTURES BY WEEK: not available this run ({type(exc).__name__})"]
     L += ["", f"Portal: {SITE}/admin/usage", "— W7 league site"]
     text = "\n".join(L)
 
