@@ -113,7 +113,7 @@ export function UsagePortal() {
               ))}
             </div>
             <BoxProgress matches={boxMatches} teams={boxTeams} detailed />
-            <LeagueHeatmap />
+            <LeagueHeatmap matches={boxMatches} />
             <SubsTable teams={boxTeams} matches={boxMatches} />
             <p style={{ fontSize: 12, color: C.mute, marginTop: 8 }}>
               Since {fmt(report.since)} · a visitor is one browser (random id, no personal data) · a team counts as “on the site” once a registered email has been used on it.

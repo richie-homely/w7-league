@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
+import type { BoxMatch } from "@/lib/box";
+import { KNOCKOUT_RESULTS } from "@/lib/bracket";
 
 // When league games get played (Richie, 10 Sep 2026, admin usage page): a weekday × hour
 // grid of every league booking the detector has seen — box fixtures and summer-league
@@ -25,7 +27,7 @@ const pill = (on: boolean): React.CSSProperties => ({
   border: `1px solid ${on ? C.accent : C.border}`, background: on ? C.accent : C.card, color: on ? C.bg : C.text,
 });
 
-export function LeagueHeatmap() {
+export function LeagueHeatmap({ matches = [] }: { matches?: BoxMatch[] }) {
   const { bookings, loaded } = useLeagueBookings();
   const [nowMs] = useState(() => Date.now());   // snapshot at mount: a render must be pure
   const [mode, setMode] = useState<"all" | "week">("all");
@@ -65,12 +67,71 @@ export function LeagueHeatmap() {
   const weekLabel = `${fmt(weekStart)} – ${fmt(weekStart + 6 * DAY)}`;
   const thisWeek = mondayOf(nowMs);
 
+  // ── league fixtures by week (Richie, 11 Sep 2026): the same Mon–Sun buckets as the grid.
+  // booked = league bookings starting that week (played or still ahead); played = box results
+  // confirmed that week + summer knockout results by date played. Click a row to open that week.
+  type Wk = { start: number; boxBooked: number; boxPlayed: number; sumBooked: number; sumPlayed: number };
+  const wk = new Map<number, Wk>();
+  const at = (t: number) => { const k = mondayOf(t); if (!wk.has(k)) wk.set(k, { start: k, boxBooked: 0, boxPlayed: 0, sumBooked: 0, sumPlayed: 0 }); return wk.get(k)!; };
+  for (const b of bookings) { const w = at(new Date(b.startsAt).getTime()); if (b.kind === "box") w.boxBooked++; else w.sumBooked++; }
+  for (const m of matches) if (m.status === "confirmed" && m.updatedAt && m.box < 90) at(new Date(m.updatedAt).getTime()).boxPlayed++;
+  for (const r of KNOCKOUT_RESULTS) at(new Date(r.playedOn + "T12:00:00").getTime()).sumPlayed++;
+  const weeks = [...wk.values()].sort((a, b) => a.start - b.start);
+  const tot = weeks.reduce((a, w) => ({ boxBooked: a.boxBooked + w.boxBooked, boxPlayed: a.boxPlayed + w.boxPlayed, sumBooked: a.sumBooked + w.sumBooked, sumPlayed: a.sumPlayed + w.sumPlayed }),
+                           { boxBooked: 0, boxPlayed: 0, sumBooked: 0, sumPlayed: 0 });
+
   return (
     <section style={{ marginTop: 28 }}>
       <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>WHEN LEAGUE GAMES GET PLAYED</h2>
       <p style={{ fontSize: 12, color: C.mute, margin: "4px 0 10px" }}>
         Every league booking the detector has matched: box fixtures and summer-league games, last 60 days plus the next three weeks. Times are court start times.
       </p>
+
+      {weeks.length > 0 && (
+        <div style={{ overflowX: "auto", marginBottom: 14 }}>
+          <table style={{ borderCollapse: "collapse", fontSize: 12.5, minWidth: 620 }}>
+            <thead>
+              <tr style={{ color: C.mute, fontSize: 10.5, letterSpacing: "0.08em", textAlign: "left" }}>
+                <th style={{ padding: "4px 8px" }}>WEEK</th>
+                <th style={{ padding: "4px 8px", textAlign: "right" }}>BOX BOOKED</th><th style={{ padding: "4px 8px", textAlign: "right" }}>BOX PLAYED</th>
+                <th style={{ padding: "4px 8px", textAlign: "right" }}>SUMMER BOOKED</th><th style={{ padding: "4px 8px", textAlign: "right" }}>SUMMER PLAYED</th>
+                <th style={{ padding: "4px 8px", textAlign: "right" }}>LEAGUE GAMES</th><th style={{ padding: "4px 8px", textAlign: "right" }}>COURT-HRS</th>
+              </tr>
+            </thead>
+            <tbody>
+              {weeks.map((w) => {
+                const on = mode === "week" && w.start === weekStart;
+                const games = w.boxBooked + w.sumBooked;
+                return (
+                  <tr key={w.start} onClick={() => { setMode("week"); setWeekStart(w.start); }}
+                      style={{ borderTop: `1px solid ${C.border}`, cursor: "pointer", background: on ? "rgba(195,216,46,0.12)" : "transparent",
+                               color: w.start > thisWeek ? C.mute : C.text }}>
+                    <td style={{ padding: "5px 8px", fontFamily: F.mono }}>{fmt(w.start)} – {fmt(w.start + 6 * DAY)}{w.start === thisWeek ? " · this week" : w.start > thisWeek ? " · ahead" : ""}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.accent }}>{w.boxBooked || ""}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{w.boxPlayed || ""}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.info }}>{w.sumBooked || ""}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{w.sumPlayed || ""}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, fontWeight: 700 }}>{games}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono }}>{(games * 1.5).toFixed(0)}h</td>
+                  </tr>
+                );
+              })}
+              <tr style={{ borderTop: `2px solid ${C.border}`, fontWeight: 700 }}>
+                <td style={{ padding: "5px 8px" }}>All weeks</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.accent }}>{tot.boxBooked}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{tot.boxPlayed}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.info }}>{tot.sumBooked}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{tot.sumPlayed}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono }}>{tot.boxBooked + tot.sumBooked}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono }}>{((tot.boxBooked + tot.sumBooked) * 1.5).toFixed(0)}h</td>
+              </tr>
+            </tbody>
+          </table>
+          <div style={{ fontSize: 11, color: C.mute, marginTop: 4 }}>
+            Booked = league bookings the detector matched, by the week the court is booked (games already played included). Played = box results confirmed that week and summer knockout results by date played. Summer group games show as booked only, their results live in the league tables. Click a week to open it in the grid below.
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", marginBottom: 10 }}>
         <button onClick={() => setMode("all")} style={pill(mode === "all")}>All ({bookings.length})</button>
