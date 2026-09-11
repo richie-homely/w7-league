@@ -64,6 +64,15 @@ export function resultBooking(
   return { booking: b, state: start <= entered ? "w7" : "future" };
 }
 
+/** True when a pending fixture's W7 booking started 3h+ ago (from the league opening on),
+ *  i.e. the game has been played and nobody has entered the score (Richie, 11 Sep 2026:
+ *  "where we have recent fixtures and a result missing we can flag it"). */
+export function resultMissing(b: LeagueBooking | undefined, nowMs: number, seasonStart = "2026-09-10"): boolean {
+  if (!b || b.startsAt < seasonStart) return false;
+  const start = new Date(b.startsAt.length === 16 ? b.startsAt + ":00" : b.startsAt).getTime();
+  return nowMs - start >= 3 * 3600e3;
+}
+
 export function summerKey(teamIdA: string, teamIdB: string): string {
   return "summer:" + [teamIdA, teamIdB].sort().join(":");
 }

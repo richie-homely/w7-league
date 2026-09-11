@@ -6,6 +6,8 @@ import { formatScore } from "@/lib/scoring";
 import { KNOCKOUT_RESULTS } from "@/lib/bracket";
 import { useLeagueData } from "@/lib/useLeagueData";
 import { useBoxData, type BoxMatch, type BoxTeam } from "@/lib/box";
+import { useState } from "react";
+import { fmtBooking, resultMissing, useLeagueBookings } from "@/lib/bookings";
 
 // Recent results (Richie, 9 Sep 2026): the latest confirmed box-league results and the
 // latest summer knockout results, newest first. On the hub both lists are merged; on the
@@ -66,6 +68,48 @@ function ResultsList({ rows, empty }: { rows: Row[]; empty: string }) {
         </div>
       ))}
     </div>
+  );
+}
+
+/** Box league page (Richie, 11 Sep 2026): fixtures Playtomic shows as played, with no score
+ *  entered yet — flagged so the teams (and everyone else) can see the gap. */
+export function AwaitingScores({ matches, teams }: { matches: BoxMatch[]; teams: BoxTeam[] }) {
+  const { byKey, loaded } = useLeagueBookings();
+  const [nowMs] = useState(() => Date.now());
+  const teamsById = Object.fromEntries(teams.map((t) => [t.id, t]));
+  const late = matches
+    .filter((m) => m.status === "pending" && m.box < 90 && resultMissing(byKey.get(m.id), nowMs))
+    .map((m) => ({ m, b: byKey.get(m.id)! }))
+    .sort((a, b) => (a.b.startsAt < b.b.startsAt ? -1 : 1));
+  if (!loaded || late.length === 0) return null;
+  return (
+    <section id="awaiting" style={{ marginTop: 22, scrollMarginTop: 60 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+          Awaiting a <span style={{ color: C.amber }}>score</span>
+        </div>
+        <div style={{ fontSize: 12, color: C.mute }}>played on a W7 court, no result entered yet — either team can enter it</div>
+      </div>
+      <div style={{ background: C.card, border: `1px solid ${C.amber}55`, borderRadius: 10, padding: "6px 14px", marginTop: 10 }}>
+        {late.map(({ m, b }) => {
+          const t1 = teamsById[m.team1Id], t2 = teamsById[m.team2Id];
+          return (
+            <div key={m.id} style={{ display: "flex", gap: 12, alignItems: "baseline", flexWrap: "wrap", padding: "7px 0", borderTop: `1px solid ${C.border}` }}>
+              <div style={{ fontFamily: F.mono, fontSize: 12, color: C.amber, minWidth: 150 }}>{fmtBooking(b.startsAt)} · {b.court}</div>
+              <Link href={`/box?box=${m.box}`} style={{ fontSize: 11, fontWeight: 700, color: C.accent, minWidth: 60, letterSpacing: "0.04em", textDecoration: "none" }}>
+                BOX {m.box}
+              </Link>
+              <div style={{ fontSize: 13.5, flex: "1 1 240px" }}>
+                <b>{t1?.name ?? "?"}</b> <span style={{ color: C.mute }}>v</span> <b>{t2?.name ?? "?"}</b>
+              </div>
+              <Link href={`/box?match=${m.id}`} style={{ fontSize: 12, fontWeight: 700, color: C.amber, textDecoration: "none" }}>
+                Enter the result →
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 

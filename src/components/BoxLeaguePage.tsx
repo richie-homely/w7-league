@@ -11,7 +11,7 @@ import { useBoxData } from "@/lib/box";
 import { BoxLeagueLive } from "./BoxLeagueLive";
 import { BoxCalendar } from "./BoxCalendar";
 import { UpcomingFixtures } from "./UpcomingFixtures";
-import { RecentBoxResults } from "./RecentResults";
+import { AwaitingScores, RecentBoxResults } from "./RecentResults";
 import { BoxProgress } from "./BoxProgress";
 import Link from "next/link";
 import { SiteNav } from "./SiteNav";
@@ -307,6 +307,7 @@ export function BoxLeaguePage() {
           </div>
           <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
           <UpcomingFixtures compact showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
+          <AwaitingScores matches={matches} teams={teams} />
           <RecentBoxResults matches={matches} teams={teams} />
           <BoxProgress matches={matches} teams={teams} />
           <div style={{ marginTop: 24 }}>

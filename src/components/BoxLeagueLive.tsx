@@ -9,7 +9,7 @@ import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
 import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail, logBoxSub, useBoxSubs, type BoxSub } from "@/lib/box";
 import { track } from "@/lib/track";
-import { fmtBooking, resultBooking, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
+import { fmtBooking, resultBooking, resultMissing, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -397,6 +397,7 @@ function MatchRow({
   onSubLogged?: () => void;
 }) {
   const [subOpen, setSubOpen] = useState(false);
+  const [nowMs] = useState(() => Date.now());   // snapshot for the result-missing test (render stays pure)
   const [open, setOpen] = useState<false | "submit" | "confirm">(
     autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
   );
@@ -441,7 +442,15 @@ function MatchRow({
             </span>
           );
         })()}
-        {booking && match.status === "pending" && (
+        {booking && match.status === "pending" && resultMissing(booking, nowMs) && (
+          <span
+            title="Playtomic shows this match was played, but no score has been entered yet — either team can enter it"
+            style={{ fontSize: 11, fontWeight: 700, color: C.amber, border: `1px solid ${C.amber}`, borderRadius: 999, padding: "2px 9px", letterSpacing: "0.03em" }}
+          >
+            Played {fmtBooking(booking.startsAt)} · {booking.court} · RESULT MISSING
+          </span>
+        )}
+        {booking && match.status === "pending" && !resultMissing(booking, nowMs) && (
           <span
             title={booking.confidence === "probable" ? "Not all four players are named on the booking" : "All four players are on the Playtomic booking"}
             style={{ fontSize: 11, fontWeight: 700, color: C.accent, border: `1px solid ${C.accent}`, borderRadius: 999, padding: "2px 9px", letterSpacing: "0.03em" }}
