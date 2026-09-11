@@ -43,8 +43,9 @@ function tally(ms: BoxMatch[], bookings: Map<string, LeagueBooking>, nowMs = Dat
   return s;
 }
 
-function Bar({ s, width = 220 }: { s: Seg; width?: number }) {
-  const w = (n: number) => (s.total ? (width * n) / s.total : 0);
+function Bar({ s, width = "100%" }: { s: Seg; width?: number | string }) {
+  // segments are percentages so the bar is fluid — it fills whatever the row gives it on a phone
+  const w = (n: number) => `${s.total ? (100 * n) / s.total : 0}%`;
   return (
     <div style={{ display: "flex", width, height: 12, borderRadius: 3, overflow: "hidden", background: C.border }} title={`${s.played} played · ${s.awaiting} awaiting confirmation · ${s.booked} booked · ${s.unbooked} not arranged`}>
       <div style={{ width: w(s.played), background: C.green }} />
