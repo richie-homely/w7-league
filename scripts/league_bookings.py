@@ -31,6 +31,11 @@ def load_env(path):
 
 norm = lambda n: re.sub(r"[^a-z]", "", (n or "").lower())
 
+# Cycle 1 of the box league opened Thu 10 Sep 2026 (BOX_CYCLES in src/lib/boxCalendar.ts).
+# A booking before that cannot be a box fixture however well the four names line up -
+# the league did not exist yet, so those are socials by people who later entered.
+BOX_OPEN = "2026-09-10"
+
 
 def outsiders(names, teams, by_player_box, by_player_summer):
     """Named players who play in a W7 league but belong to neither of the two teams
@@ -134,6 +139,7 @@ def detect(days=14):
             if t: cnt.setdefault(t["id"], [t, 0]); cnt[t["id"]][1] += 1
         two = [v[0] for v in cnt.values()]
         if (len(two) == 2 and two[0]["box"] == two[1]["box"] and max(v[1] for v in cnt.values()) == 2
+                and when >= BOX_OPEN
                 and not outsiders(names, two, by_player_box, by_player_summer)):
             certain = all(v[1] == 2 for v in cnt.values())
             m = fixture_by_pair.get(tuple(sorted((two[0]["id"], two[1]["id"]))))
