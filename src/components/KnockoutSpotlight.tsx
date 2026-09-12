@@ -20,15 +20,28 @@ function named(slot: BracketSlot): Qualifier | null {
 function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
   const a = named(match.a);
   const b = named(match.b);
-  if (!a && !b) return null;
+  if (!match.a && !match.b) return null;
+  // Later rounds hold placeholders ("Winner QF4") until the feeder tie is played —
+  // show that label so a reader can see the path, not just TBC.
+  const labelOf = (s: BracketSlot) => (s && "placeholder" in s ? s.label : "TBC");
   // Both players, on their own lines. A padel team is two people and the fixture
   // list is the thing players scan for their own name, so showing only the first
   // hides half the field.
   // undefined until the tie is played; then true for the winner, false for the
   // loser. The loser is dimmed rather than removed — this panel is the first
   // thing on the page and a half-empty tie reads as a data bug.
-  const side = (q: Qualifier | null, right: boolean, won?: boolean) => {
-    if (!q) return <span style={{ color: C.mute, fontStyle: "italic" }}>TBC</span>;
+  const side = (q: Qualifier | null, right: boolean, won?: boolean, slot?: BracketSlot) => {
+    if (!q)
+      return (
+        <span
+          style={{
+            display: "block", width: "100%", textAlign: right ? "right" : "left",
+            color: C.mute, fontStyle: "italic", fontSize: "clamp(11px, 3.4vw, 12.5px)", lineHeight: 1.3,
+          }}
+        >
+          {labelOf(slot ?? null)}
+        </span>
+      );
     const dc = divColor(q.divName);
     const badge = (
       <span
@@ -89,7 +102,7 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
         minWidth: 0,
       }}
     >
-      {side(a, false, match.result ? match.result.winner === "a" : undefined)}
+      {side(a, false, match.result ? match.result.winner === "a" : undefined, match.a)}
       {match.result ? (
         <span
           style={{
@@ -103,19 +116,22 @@ function Tie({ match, dim }: { match: BracketMatch; dim: boolean }) {
         <span style={{ fontFamily: F.mono, fontSize: 9.5, color: C.mute }}>v</span>
       )}
       <span style={{ display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
-        {side(b, true, match.result ? match.result.winner === "b" : undefined)}
+        {side(b, true, match.result ? match.result.winner === "b" : undefined, match.b)}
       </span>
     </div>
   );
 }
 
+type Round = { name: string; ties: BracketMatch[] };
+
 function TierBlock({
-  label, range, color, ties, roundName, teams,
+  label, range, color, rounds, teams,
 }: {
   label: string; range: string; color: string;
-  ties: BracketMatch[]; roundName: string; teams: number;
+  rounds: Round[]; teams: number;
 }) {
-  const shown = ties.slice(0, 8);
+  // Richie, 12 Sep 2026: show the next stage too, not just the first round — the
+  // upper tier is into its semis, so the QF card alone looked finished.
   return (
     <div
       style={{
@@ -131,14 +147,26 @@ function TierBlock({
           {label}
         </div>
         <div style={{ fontSize: 11.5, color: C.mute }}>
-          {range} · {teams} teams · {roundName}
+          {range} · {teams} teams · {rounds.map((r) => r.name).join(" → ")}
         </div>
       </div>
-      <div style={{ display: "grid", gap: 6, marginTop: 12 }}>
-        {shown.map((m) => (
-          <Tie key={m.id} match={m} dim={false} />
-        ))}
-      </div>
+      {rounds.map((r, i) => (
+        <div key={r.name} style={{ marginTop: i === 0 ? 12 : 16 }}>
+          <div
+            style={{
+              fontSize: 10.5, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
+              color: i === 0 ? C.mute : color, marginBottom: 6,
+            }}
+          >
+            {r.name}
+          </div>
+          <div style={{ display: "grid", gap: 6 }}>
+            {r.ties.slice(0, 8).map((m) => (
+              <Tie key={m.id} match={m} dim={false} />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -153,8 +181,23 @@ export function KnockoutSpotlight() {
 
   const ub = buildBracket(upper);
   const lb = buildBracket(lower);
-  const upperTies = ub.r1.length ? ub.r1 : ub.qf;
-  const lowerTies = lb.r1.length ? lb.r1 : lb.qf;
+  // First round plus the stage after it. Upper tier (8 teams) runs QF → SF → Final;
+  // lower tier (16) shows Round 1 and the quarter-finals, so every team can see who
+  // they get next as the results land.
+  const upperRounds: Round[] = ub.r1.length
+    ? [{ name: "Round 1", ties: ub.r1 }, { name: "Quarter-finals", ties: ub.qf }]
+    : [
+        { name: "Quarter-finals", ties: ub.qf },
+        { name: "Semi-finals", ties: ub.sf },
+        { name: "Final", ties: ub.f },
+      ];
+  const lowerRounds: Round[] = lb.r1.length
+    ? [{ name: "Round 1", ties: lb.r1 }, { name: "Quarter-finals", ties: lb.qf }]
+    : [
+        { name: "Quarter-finals", ties: lb.qf },
+        { name: "Semi-finals", ties: lb.sf },
+        { name: "Final", ties: lb.f },
+      ];
   const pot = TIER_PRIZES.reduce(
     (n, p) => n + Number(p.amount.replace(/[^0-9]/g, "")), 0);
 
@@ -219,15 +262,13 @@ export function KnockoutSpotlight() {
         {upper.length >= 2 && (
           <TierBlock
             label="UPPER TIER" range="Rating 2.5 – 5.5" color={C.info}
-            ties={upperTies} teams={upper.length}
-            roundName={ub.r1.length ? "Round 1" : "Quarter-finals"}
+            rounds={upperRounds} teams={upper.length}
           />
         )}
         {lower.length >= 2 && (
           <TierBlock
             label="LOWER TIER" range="Rating 0.5 – 2.4" color={C.accent}
-            ties={lowerTies} teams={lower.length}
-            roundName={lb.r1.length ? "Round 1" : "Quarter-finals"}
+            rounds={lowerRounds} teams={lower.length}
           />
         )}
       </div>
