@@ -181,23 +181,16 @@ export function KnockoutSpotlight() {
 
   const ub = buildBracket(upper);
   const lb = buildBracket(lower);
-  // First round plus the stage after it. Upper tier (8 teams) runs QF → SF → Final;
-  // lower tier (16) shows Round 1 and the quarter-finals, so every team can see who
-  // they get next as the results land.
-  const upperRounds: Round[] = ub.r1.length
-    ? [{ name: "Round 1", ties: ub.r1 }, { name: "Quarter-finals", ties: ub.qf }]
-    : [
-        { name: "Quarter-finals", ties: ub.qf },
-        { name: "Semi-finals", ties: ub.sf },
-        { name: "Final", ties: ub.f },
-      ];
-  const lowerRounds: Round[] = lb.r1.length
-    ? [{ name: "Round 1", ties: lb.r1 }, { name: "Quarter-finals", ties: lb.qf }]
-    : [
-        { name: "Quarter-finals", ties: lb.qf },
-        { name: "Semi-finals", ties: lb.sf },
-        { name: "Final", ties: lb.f },
-      ];
+  // Every round through to the final for both tiers (Richie, 12 Sep 2026), so a team
+  // can trace its whole path from the home page as the results land.
+  const roundsOf = (b: typeof ub): Round[] => [
+    ...(b.r1.length ? [{ name: "Round 1", ties: b.r1 }] : []),
+    { name: "Quarter-finals", ties: b.qf },
+    { name: "Semi-finals", ties: b.sf },
+    { name: "Final", ties: b.f },
+  ];
+  const upperRounds = roundsOf(ub);
+  const lowerRounds = roundsOf(lb);
   const pot = TIER_PRIZES.reduce(
     (n, p) => n + Number(p.amount.replace(/[^0-9]/g, "")), 0);
 
