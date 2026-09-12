@@ -31,6 +31,38 @@ def load_env(path):
 
 norm = lambda n: re.sub(r"[^a-z]", "", (n or "").lower())
 
+
+def outsiders(names, teams, by_player_box, by_player_summer):
+    """Named players who play in a W7 league but belong to neither of the two teams
+    this booking was matched to. Any of them means the booking is not that fixture.
+
+    Richie, 12 Sep 2026: Monday 17:30 showed on the site as a BOX 1 fixture
+    (O'Sullivan & Hennebry v Donohoe & Orr) but the booking was Ashley Wynne, David
+    Hennebry, Shane Donohoe and Davy O'Sullivan - Dylan Orr was not on it. Three of a
+    box's players plus somebody else's team-mate is a social four, not that fixture.
+
+    Two kinds of name are deliberately NOT outsiders:
+      - one unknown to both leagues - a guest or a sub from outside the league, so the
+        booking stays "probable" rather than disappearing;
+      - a player whose own box or summer team-mate is in this fixture. That covers the
+        same person spelled two ways (the summer table has "Anton Burlihin"; Playtomic
+        and the box table have "Anton Burihhin") and a regular partner standing in.
+    """
+    roster = {norm(p) for t in teams for p in (t["p1"], t["p2"])}
+    out = []
+    for n in names:
+        k = norm(n)
+        if k in roster:
+            continue
+        mates = set()
+        for idx in (by_player_box, by_player_summer):
+            t = idx.get(k)
+            if t:
+                mates |= {norm(t["p1"]), norm(t["p2"])}
+        if mates and not (mates & roster):
+            out.append(n)
+    return out
+
 API_BASE = "https://thirdparty.playtomic.io"
 
 def playtomic_env():
@@ -101,7 +133,8 @@ def detect(days=14):
             t = by_player_box.get(norm(n))
             if t: cnt.setdefault(t["id"], [t, 0]); cnt[t["id"]][1] += 1
         two = [v[0] for v in cnt.values()]
-        if len(two) == 2 and two[0]["box"] == two[1]["box"] and max(v[1] for v in cnt.values()) == 2:
+        if (len(two) == 2 and two[0]["box"] == two[1]["box"] and max(v[1] for v in cnt.values()) == 2
+                and not outsiders(names, two, by_player_box, by_player_summer)):
             certain = all(v[1] == 2 for v in cnt.values())
             m = fixture_by_pair.get(tuple(sorted((two[0]["id"], two[1]["id"]))))
             box_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "box": two[0]["box"],
@@ -115,14 +148,17 @@ def detect(days=14):
             t = by_player_summer.get(norm(n))
             if t: st.setdefault(t["id"], [t, 0]); st[t["id"]][1] += 1
         two = [v[0] for v in st.values()]
-        if len(two) == 1 and next(iter(st.values()))[1] == 2:
+        if (len(two) == 1 and next(iter(st.values()))[1] == 2
+                and not outsiders(names, two, by_player_box, by_player_summer)):
             # one full summer team on the booking, opponents not named: the site matches it to
             # that team's unplayed bracket tie, if it has exactly one
             t = two[0]
             summer_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "tier": t["division_id"].split("-")[-1],
                                 "team_ids": [t["id"]], "team1": f"{t['p1']} & {t['p2']}", "team2": "", "confidence": "probable"})
             continue
-        if len(two) == 2 and sum(v[1] for v in st.values()) >= 3 and len({t["division_id"].split("-")[-1] for t in two}) == 1:
+        if (len(two) == 2 and sum(v[1] for v in st.values()) >= 3
+                and len({t["division_id"].split("-")[-1] for t in two}) == 1
+                and not outsiders(names, two, by_player_box, by_player_summer)):
             summer_hits.append({"when": when, "starts_at": b["booking_start_date"], "court": court, "tier": two[0]["division_id"].split("-")[-1],
                                 "team_ids": sorted((two[0]["id"], two[1]["id"])),
                                 "team1": f"{two[0]['p1']} & {two[0]['p2']}", "team2": f"{two[1]['p1']} & {two[1]['p2']}",
