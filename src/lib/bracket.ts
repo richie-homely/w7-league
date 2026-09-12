@@ -429,6 +429,18 @@ export const KNOCKOUT_RESULTS: {
     score: "7-6, 2-6, 10-8",
     playedOn: "2026-09-10",
   },
+  {
+    // Lower-tier QF3: G1 3rd seed (Humby & McKeon) v G1 11th seed (Wojnar & Maguire).
+    // 12 Sep 2026, from Shaun Humby's Playtomic result card — Wojnar & Maguire won in
+    // two. Alfie Doyle subbed for Thomas McKeon again.
+    teams: [
+      "3f2812d0-ca30-4f49-ad0c-c5c63489cfe7", // Shaun Humby & Thomas McKeon
+      "62da68dd-80f6-4d26-ae14-a449466bf150", // Wesley Wojnar & Tom Maguire
+    ],
+    winnerTeamId: "62da68dd-80f6-4d26-ae14-a449466bf150",
+    score: "6-3, 6-0",
+    playedOn: "2026-09-12",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
