@@ -178,9 +178,12 @@ def main():
     # court capacity (Richie, 13 Sep 2026): "make sure we're not overcapacity on the courts, and
     # there is actually time for all these league games to be booked". Reads every Playtomic
     # booking, not just the ones matched to a fixture, so it can show what is actually free.
+    cap_chart = ""
     try:
         import court_capacity
-        L += [""] + court_capacity.report()
+        cap_data = court_capacity.gather()          # one Playtomic call for report and chart
+        L += [""] + court_capacity.report(data=cap_data)
+        cap_chart = court_capacity.chart_html(data=cap_data) + '<div style="height:16px"></div>'
     except Exception as exc:
         L += ["", f"COURT CAPACITY: not available this run ({type(exc).__name__})"]
     L += ["", f"Portal: {SITE}/admin/usage", "— W7 league site"]
@@ -194,7 +197,8 @@ def main():
         {"v": f"{st.get('confirmed', 0)}/{len(matches)}", "label": "fixtures confirmed", "sub": "cycle 1"},
         {"v": f"{len(seen)}/{len(teams)}", "label": "teams ever on", "sub": f"{len(never)} never"},
     ])
-    html = wh.shell("League site usage", f"{yday:%A %d %B %Y} · league.w7padel.com", tiles + wh.auto_body(text, first=False))
+    html = wh.shell("League site usage", f"{yday:%A %d %B %Y} · league.w7padel.com",
+                    tiles + cap_chart + wh.auto_body(text, first=False))
     subject = f"League site — {y['views']} views, {y['uniques']} visitors, {len(active_y)} teams on ({yday:%a %d %b})"
     if dry:
         print(text); print("\n[dry-run] would send:", subject, "->", to)
