@@ -163,8 +163,8 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
         {open && (
           <div style={{ marginTop: 12 }}>
             {/* Richie, 13 Sep 2026: "distinguish between peak and off peak availability by
-                colour code and maybe add a filter". Peak is weekday evenings and weekend
-                daytime — the hours members compete for. */}
+                colour code and maybe add a filter", then "call all of weekend peak
+                availability — people aren't in work". Off-peak is weekday daytime only. */}
             <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
               {([["all", `All · ${freeHours}h`], ["peak", `Peak · ${peakHours}h`], ["off", `Off-peak · ${offHours}h`]] as const).map(([k, label]) => (
                 <button
@@ -181,7 +181,7 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
                 </button>
               ))}
               <span style={{ fontSize: 11, color: C.mute, marginLeft: 2 }}>
-                peak = weekday 17:00–22:00 and weekends 08:00–18:00
+                peak = weekday evenings from 17:00, and all weekend
               </span>
             </div>
             {shownDays.length === 0 && (

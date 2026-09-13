@@ -45,14 +45,18 @@ export function useCourtSlots(): { slots: CourtSlot[]; loaded: boolean; ready: b
   return { slots, loaded, ready };
 }
 
-/** Peak is the time members actually compete for: weekday evenings, and weekend daytime.
- *  Everything else is off-peak — where there is room, and where the league has to overflow
- *  to. Matches the windows the capacity report measures (scripts/court_capacity.py):
- *  weekday peak ran 94% used against weekday midday at 49%. */
+/** Peak is the time members can actually play: weekday evenings, and the whole weekend.
+ *
+ *  Richie, 13 Sep 2026: "for the purposes of the free hours let's call all of weekend peak
+ *  availability — people aren't in work." So a Saturday 10:00 slot counts as peak even
+ *  though it is quiet by weekday-evening standards: what matters here is whether a working
+ *  member could take it, not what the club would charge for it.
+ *
+ *  Off-peak is therefore weekday 07:00-17:00 only — the block that is plentiful and that
+ *  most members cannot use. */
 export function isPeak(d: Date): boolean {
   const day = d.getDay();                      // 0 Sun … 6 Sat
-  const h = d.getHours();
-  return day === 0 || day === 6 ? h >= 8 && h < 18 : h >= 17 && h < 22;
+  return day === 0 || day === 6 ? true : d.getHours() >= 17;
 }
 
 export interface FreeRun {

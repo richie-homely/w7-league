@@ -17,6 +17,8 @@ export function Collapsible({
   note,
   storageKey,
   defaultOpen = false,
+  open: controlledOpen,
+  onToggle,
   children,
 }: {
   title: string;
@@ -25,19 +27,25 @@ export function Collapsible({
   /** remembers this section's state; omit to always start at defaultOpen */
   storageKey?: string;
   defaultOpen?: boolean;
+  /** controlled mode: the parent owns open/closed (and its own persistence) */
+  open?: boolean;
+  onToggle?: () => void;
   children: React.ReactNode;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [selfOpen, setOpen] = useState(defaultOpen);
+  const controlled = controlledOpen !== undefined;
+  const open = controlled ? controlledOpen : selfOpen;
   useEffect(() => {
-    if (!storageKey) return;
+    if (!storageKey || controlled) return;
     try {
       const v = window.localStorage.getItem(`w7-usage-${storageKey}`);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (v === "1" || v === "0") setOpen(v === "1");
     } catch { /* no storage */ }
-  }, [storageKey]);
+  }, [storageKey, controlled]);
 
   const toggle = () => {
+    if (controlled) { onToggle?.(); return; }
     setOpen((o) => {
       if (storageKey) {
         try { window.localStorage.setItem(`w7-usage-${storageKey}`, o ? "0" : "1"); } catch { /* ignore */ }

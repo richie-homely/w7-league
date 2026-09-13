@@ -61,9 +61,118 @@ export function UsagePortal() {
   const shown = teamFilter === "seen" ? seen : teamFilter === "never" ? never : teams;
   const maxViews = Math.max(1, ...(report?.by_day.map((d) => d.views) ?? [1]));
 
+  // Which sections are shown, and which are open. Both remembered: this page is opened
+  // daily by the same two people, so rebuilding the same view every morning would be worse
+  // than the scroll it replaced.
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
+  const [openMap, setOpenMap] = useState<Record<string, boolean>>({});
+  useEffect(() => {
+    try {
+      const p = window.localStorage.getItem("w7-usage-picked");
+      const o = window.localStorage.getItem("w7-usage-open");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (p) setPicked(JSON.parse(p));
+       
+      if (o) setOpenMap(JSON.parse(o));
+    } catch { /* no storage, or something unparseable — defaults are fine */ }
+  }, []);
+  const persist = (k: string, v: Record<string, boolean>) => {
+    try { window.localStorage.setItem(k, JSON.stringify(v)); } catch { /* ignore */ }
+  };
+  /** Picking a section also opens it — picking it is the whole point. */
+  const pick = (key: string, on: boolean) => {
+    setPicked((cur) => { const next = { ...cur, [key]: on }; persist("w7-usage-picked", next); return next; });
+    if (on) setOpenMap((cur) => { const next = { ...cur, [key]: true }; persist("w7-usage-open", next); return next; });
+  };
+  const toggleOpen = (key: string, isOpen: boolean) =>
+    setOpenMap((cur) => { const next = { ...cur, [key]: !isOpen }; persist("w7-usage-open", next); return next; });
+
   const th: React.CSSProperties = { textAlign: "left", padding: "6px 8px", fontSize: 10.5, letterSpacing: "0.08em", color: C.mute };
   const td: React.CSSProperties = { padding: "7px 8px", fontSize: 13, borderTop: `1px solid ${C.border}` };
   const num: React.CSSProperties = { ...td, fontFamily: F.mono, textAlign: "right" };
+
+  // One list drives both the chips and the sections, so the two can never drift apart.
+  const SECTIONS = [
+    { key: "courts", chip: "Courts free", title: "COURTS FREE TO BOOK", openByDefault: true,
+      note: "games needed vs booked vs the hours actually free",
+      node: <CourtAvailability matches={boxMatches} bare /> },
+    { key: "audit", chip: "No result yet", title: "PLAYED, NO RESULT YET", openByDefault: true,
+      note: "fixtures booked 3h+ ago with no score entered",
+      node: <ResultsAudit teams={boxTeams} matches={boxMatches} bare /> },
+    { key: "progress", chip: "Cycle progress", title: "CYCLE PROGRESS", openByDefault: false,
+      note: "played, booked and still to arrange, box by box",
+      node: <BoxProgress matches={boxMatches} teams={boxTeams} detailed bare /> },
+    { key: "heatmap", chip: "When played", title: "WHEN LEAGUE GAMES GET PLAYED", openByDefault: false,
+      note: "every matched booking, last 60 days and the next three weeks",
+      node: <LeagueHeatmap matches={boxMatches} bare /> },
+    { key: "subs", chip: "Subs", title: "SUBSTITUTES", openByDefault: false,
+      note: "logged subs and the 0.75 rule",
+      node: <SubsTable teams={boxTeams} matches={boxMatches} bare /> },
+    { key: "byday", chip: "By day", title: "BY DAY", openByDefault: false,
+      note: "page views and people, day by day",
+      node: (
+        <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 12 }}>
+          {(report?.by_day ?? []).map((d) => (
+            <div key={d.day} style={{ display: "grid", gridTemplateColumns: "92px 1fr 120px", alignItems: "center", gap: 10, padding: "3px 0" }}>
+              <div style={{ fontFamily: F.mono, fontSize: 12, color: C.mute }}>{d.day.slice(5)}</div>
+              <div style={{ height: 12, background: C.border, borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ width: `${(100 * d.views) / maxViews}%`, height: "100%", background: C.accent }} />
+              </div>
+              <div style={{ fontFamily: F.mono, fontSize: 12, textAlign: "right" }}>{d.views} views · {d.uniques} people</div>
+            </div>
+          ))}
+          {(report?.by_day.length ?? 0) === 0 && <div style={{ fontSize: 13, color: C.mute }}>No page views yet in this window.</div>}
+        </div>
+      ) },
+    { key: "bypage", chip: "By page", title: "BY PAGE", openByDefault: false,
+      note: "which pages people open",
+      node: (
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><th style={th}>PAGE</th><th style={{ ...th, textAlign: "right" }}>VIEWS</th><th style={{ ...th, textAlign: "right" }}>UNIQUE VISITORS</th></tr></thead>
+            <tbody>
+              {(report?.by_path ?? []).map((pg) => (
+                <tr key={pg.path}><td style={{ ...td, fontFamily: F.mono }}>{pg.path}</td><td style={num}>{pg.views}</td><td style={num}>{pg.uniques}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) },
+    { key: "teams", chip: "Teams", title: "BOX-LEAGUE TEAMS", openByDefault: false,
+      note: `${seen.length} on the site · ${never.length} never`,
+      node: (
+        <>
+      <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+        {(["all", "seen", "never"] as const).map((f) => (
+          <button key={f} onClick={() => setTeamFilter(f)} style={{ padding: "5px 12px", borderRadius: 999, border: `1px solid ${teamFilter === f ? C.accent : C.border}`, background: teamFilter === f ? C.accent : C.card, color: teamFilter === f ? C.bg : C.text, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+            {f === "all" ? "All" : f === "seen" ? "On the site" : "Never seen — needs a link"}
+          </button>
+        ))}
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th style={th}>BOX</th><th style={th}>TEAM</th><th style={th}>FIRST SEEN</th><th style={th}>LAST SEEN</th>
+              <th style={{ ...th, textAlign: "right" }}>VISITS</th><th style={{ ...th, textAlign: "right" }}>SUBMITS</th><th style={{ ...th, textAlign: "right" }}>CONFIRMS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((t) => (
+              <tr key={t.team_id} style={{ opacity: t.first_seen ? 1 : 0.75 }}>
+                <td style={{ ...td, fontFamily: F.mono }}>{t.box}</td>
+                <td style={{ ...td, fontWeight: 600 }}>{t.name}{!t.first_seen && <span style={{ color: C.red, fontWeight: 500, fontSize: 11.5 }}> · never on the site</span>}</td>
+                <td style={{ ...td, fontFamily: F.mono, fontSize: 12 }}>{fmt(t.first_seen)}</td>
+                <td style={{ ...td, fontFamily: F.mono, fontSize: 12 }}>{fmt(t.last_seen)}</td>
+                <td style={num}>{t.events}</td><td style={num}>{t.submits}</td><td style={num}>{t.confirms}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+        </>
+      ) },
+  ];
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
@@ -120,90 +229,53 @@ export function UsagePortal() {
             </p>
 
             {/* Richie, 13 Sep 2026: "can those sections be collapsable, as it's long to
-                navigate that page". Each block remembers whether you left it open. */}
-            <Collapsible title="COURTS FREE TO BOOK" storageKey="courts" defaultOpen
-                         note="games needed vs booked vs the hours actually free">
-              <CourtAvailability matches={boxMatches} bare />
-            </Collapsible>
-
-            <Collapsible title="PLAYED, NO RESULT YET" storageKey="audit" defaultOpen
-                         note="fixtures booked 3h+ ago with no score entered">
-              <ResultsAudit teams={boxTeams} matches={boxMatches} bare />
-            </Collapsible>
-
-            <Collapsible title="CYCLE PROGRESS" storageKey="progress"
-                         note="played, booked and still to arrange, box by box">
-              <BoxProgress matches={boxMatches} teams={boxTeams} detailed bare />
-            </Collapsible>
-
-            <Collapsible title="WHEN LEAGUE GAMES GET PLAYED" storageKey="heatmap"
-                         note="every matched booking, last 60 days and the next three weeks">
-              <LeagueHeatmap matches={boxMatches} bare />
-            </Collapsible>
-
-            <Collapsible title="SUBSTITUTES" storageKey="subs" note="logged subs and the 0.75 rule">
-              <SubsTable teams={boxTeams} matches={boxMatches} bare />
-            </Collapsible>
-
-            <Collapsible title="BY DAY" storageKey="byday" note="page views and people, day by day">
-            <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 12 }}>
-              {report.by_day.map((d) => (
-                <div key={d.day} style={{ display: "grid", gridTemplateColumns: "92px 1fr 120px", alignItems: "center", gap: 10, padding: "3px 0" }}>
-                  <div style={{ fontFamily: F.mono, fontSize: 12, color: C.mute }}>{d.day.slice(5)}</div>
-                  <div style={{ height: 12, background: C.border, borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ width: `${(100 * d.views) / maxViews}%`, height: "100%", background: C.accent }} />
-                  </div>
-                  <div style={{ fontFamily: F.mono, fontSize: 12, textAlign: "right" }}>{d.views} views · {d.uniques} people</div>
-                </div>
-              ))}
-              {report.by_day.length === 0 && <div style={{ fontSize: 13, color: C.mute }}>No page views yet in this window.</div>}
+                navigate that page", then "make these sections selectable ... one doesn't
+                need to scroll down all the boxes, they can just pick their own or collapse
+                the section". So: chips choose which sections exist at all, and each one
+                still folds. Picking a section also opens it, since picking it is the whole
+                point. Both choices are remembered. */}
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 20, alignItems: "center" }}>
+              <span style={{ fontSize: 11, letterSpacing: "0.1em", color: C.mute, fontWeight: 700, marginRight: 2 }}>SHOW</span>
+              {SECTIONS.map((sec) => {
+                const on = picked[sec.key] !== false;
+                return (
+                  <button
+                    key={sec.key}
+                    onClick={() => pick(sec.key, !on)}
+                    style={{
+                      padding: "4px 11px", borderRadius: 999, cursor: "pointer", fontSize: 11.5, fontWeight: 700,
+                      border: `1px solid ${on ? C.accent : C.border}`,
+                      background: on ? C.accent : "transparent",
+                      color: on ? C.bg : C.mute,
+                    }}
+                  >
+                    {sec.chip}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => setPicked(Object.fromEntries(SECTIONS.map((x) => [x.key, false])))}
+                style={{ padding: "4px 10px", borderRadius: 999, cursor: "pointer", fontSize: 11.5,
+                         border: `1px solid ${C.border}`, background: "transparent", color: C.mute }}
+              >
+                None
+              </button>
             </div>
-            </Collapsible>
 
-            <Collapsible title="BY PAGE" storageKey="bypage" note="which pages people open">
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead><tr><th style={th}>PAGE</th><th style={{ ...th, textAlign: "right" }}>VIEWS</th><th style={{ ...th, textAlign: "right" }}>UNIQUE VISITORS</th></tr></thead>
-                <tbody>
-                  {report.by_path.map((p) => (
-                    <tr key={p.path}><td style={{ ...td, fontFamily: F.mono }}>{p.path}</td><td style={num}>{p.views}</td><td style={num}>{p.uniques}</td></tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            </Collapsible>
-
-            <Collapsible title="BOX-LEAGUE TEAMS" storageKey="teams"
-                         note={`${seen.length} on the site · ${never.length} never`}>
-            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
-              {(["all", "seen", "never"] as const).map((f) => (
-                <button key={f} onClick={() => setTeamFilter(f)} style={{ padding: "5px 12px", borderRadius: 999, border: `1px solid ${teamFilter === f ? C.accent : C.border}`, background: teamFilter === f ? C.accent : C.card, color: teamFilter === f ? C.bg : C.text, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                  {f === "all" ? "All" : f === "seen" ? "On the site" : "Never seen — needs a link"}
-                </button>
-              ))}
-            </div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
-                <thead>
-                  <tr>
-                    <th style={th}>BOX</th><th style={th}>TEAM</th><th style={th}>FIRST SEEN</th><th style={th}>LAST SEEN</th>
-                    <th style={{ ...th, textAlign: "right" }}>VISITS</th><th style={{ ...th, textAlign: "right" }}>SUBMITS</th><th style={{ ...th, textAlign: "right" }}>CONFIRMS</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shown.map((t) => (
-                    <tr key={t.team_id} style={{ opacity: t.first_seen ? 1 : 0.75 }}>
-                      <td style={{ ...td, fontFamily: F.mono }}>{t.box}</td>
-                      <td style={{ ...td, fontWeight: 600 }}>{t.name}{!t.first_seen && <span style={{ color: C.red, fontWeight: 500, fontSize: 11.5 }}> · never on the site</span>}</td>
-                      <td style={{ ...td, fontFamily: F.mono, fontSize: 12 }}>{fmt(t.first_seen)}</td>
-                      <td style={{ ...td, fontFamily: F.mono, fontSize: 12 }}>{fmt(t.last_seen)}</td>
-                      <td style={num}>{t.events}</td><td style={num}>{t.submits}</td><td style={num}>{t.confirms}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            </Collapsible>
+            {SECTIONS.filter((sec) => picked[sec.key] !== false).map((sec) => {
+              const isOpen = openMap[sec.key] ?? sec.openByDefault;
+              return (
+                <Collapsible
+                  key={sec.key}
+                  title={sec.title}
+                  note={sec.note}
+                  open={isOpen}
+                  onToggle={() => toggleOpen(sec.key, isOpen)}
+                >
+                  {sec.node}
+                </Collapsible>
+              );
+            })}
           </>
         )}
       </div>
