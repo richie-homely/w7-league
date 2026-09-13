@@ -27,7 +27,9 @@ const pill = (on: boolean): React.CSSProperties => ({
   border: `1px solid ${on ? C.accent : C.border}`, background: on ? C.accent : C.card, color: on ? C.bg : C.text,
 });
 
-export function LeagueHeatmap({ matches = [] }: { matches?: BoxMatch[] }) {
+export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMatch[];
+  /** hide the internal heading: the collapsible wrapper on the usage page supplies it */
+  bare?: boolean }) {
   const { bookings, loaded } = useLeagueBookings();
   const [nowMs] = useState(() => Date.now());   // snapshot at mount: a render must be pure
   const [mode, setMode] = useState<"all" | "week">("all");
@@ -82,7 +84,7 @@ export function LeagueHeatmap({ matches = [] }: { matches?: BoxMatch[] }) {
 
   return (
     <section style={{ marginTop: 28 }}>
-      <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>WHEN LEAGUE GAMES GET PLAYED</h2>
+      {!bare && <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>WHEN LEAGUE GAMES GET PLAYED</h2>}
       <p style={{ fontSize: 12, color: C.mute, margin: "4px 0 10px" }}>
         Every league booking the detector has matched: box fixtures and summer-league games, last 60 days plus the next three weeks. Times are court start times.
       </p>

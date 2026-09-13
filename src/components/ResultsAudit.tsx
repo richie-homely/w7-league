@@ -11,7 +11,9 @@ import { SEASON } from "@/lib/boxCalendar";
 // the Playtomic participant lists tie to that fixture — so a game played somewhere else
 // (or on a booking without the players' names) stands out. Detector limits: it needs at
 // least one full team named on the booking, and looks back 60 days.
-export function ResultsAudit({ teams, matches }: { teams: BoxTeam[]; matches: BoxMatch[] }) {
+export function ResultsAudit({ teams, matches, bare = false }: { teams: BoxTeam[]; matches: BoxMatch[];
+  /** hide the internal heading: the collapsible wrapper on the usage page supplies it */
+  bare?: boolean }) {
   const { byKey, loaded } = useLeagueBookings();
   const teamById = Object.fromEntries(teams.map((t) => [t.id, t]));
   const rows = matches
@@ -30,10 +32,12 @@ export function ResultsAudit({ teams, matches }: { teams: BoxTeam[]; matches: Bo
   const th: React.CSSProperties = { padding: "4px 8px", textAlign: "left" };
   return (
     <section style={{ marginTop: 28 }}>
-      <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>
-        PLAYED, NO RESULT YET{" "}
-        <span style={{ color: late.length ? C.amber : C.mute, fontSize: 14 }}>· {late.length} fixture{late.length === 1 ? "" : "s"} booked 3h+ ago with no score entered</span>
-      </h2>
+      {!bare && (
+        <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>
+          PLAYED, NO RESULT YET{" "}
+          <span style={{ color: late.length ? C.amber : C.mute, fontSize: 14 }}>· {late.length} fixture{late.length === 1 ? "" : "s"} booked 3h+ ago with no score entered</span>
+        </h2>
+      )}
       {loaded && late.length > 0 && (
         <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: "6px 14px", margin: "8px 0 4px" }}>
           {late.map(({ m, b }) => {

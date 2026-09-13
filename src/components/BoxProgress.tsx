@@ -64,11 +64,14 @@ export function BoxProgress({
   matches,
   teams,
   detailed = false,
+  bare = false,
 }: {
   matches: BoxMatch[];
   teams: BoxTeam[];
   /** admin: add the per-team table */
   detailed?: boolean;
+  /** hide the internal heading: the collapsible wrapper on the usage page supplies it */
+  bare?: boolean;
 }) {
   const { byKey: bookings } = useLeagueBookings();
   const [now] = useState(() => new Date());   // snapshot at mount: a render must be pure
@@ -130,7 +133,7 @@ export function BoxProgress({
 
   return (
     <section id="progress" style={{ marginTop: 22, scrollMarginTop: 60 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+      <div style={{ display: bare ? "none" : "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
           Cycle {cycleN} <span style={{ color: C.accent }}>progress</span>
         </div>

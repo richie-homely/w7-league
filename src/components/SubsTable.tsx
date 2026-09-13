@@ -5,7 +5,9 @@ import { useBoxSubs, type BoxTeam, type BoxMatch } from "@/lib/box";
 
 // Admin usage page (Richie, 10 Sep 2026): every substitute logged, with the rating gap
 // against the player replaced and a flag where it is outside the 0.75 rule.
-export function SubsTable({ teams, matches }: { teams: BoxTeam[]; matches: BoxMatch[] }) {
+export function SubsTable({ teams, matches, bare = false }: { teams: BoxTeam[]; matches: BoxMatch[];
+  /** hide the internal heading: the collapsible wrapper on the usage page supplies it */
+  bare?: boolean }) {
   const { byMatch } = useBoxSubs();
   const teamById = Object.fromEntries(teams.map((t) => [t.id, t]));
   const matchById = Object.fromEntries(matches.map((m) => [m.id, m]));
@@ -17,9 +19,11 @@ export function SubsTable({ teams, matches }: { teams: BoxTeam[]; matches: BoxMa
   }).length;
   return (
     <section style={{ marginTop: 28 }}>
-      <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>
-        SUBSTITUTES <span style={{ color: C.mute, fontSize: 14 }}>· {rows.length} logged · {outside} outside the 0.75 rule</span>
-      </h2>
+      {!bare && (
+        <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>
+          SUBSTITUTES <span style={{ color: C.mute, fontSize: 14 }}>· {rows.length} logged · {outside} outside the 0.75 rule</span>
+        </h2>
+      )}
       {rows.length === 0 ? (
         <div style={{ fontSize: 13, color: C.mute, marginTop: 6 }}>No subs logged yet.</div>
       ) : (

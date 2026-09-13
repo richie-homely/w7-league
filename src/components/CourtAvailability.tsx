@@ -33,7 +33,9 @@ function weekLabel(mon: Date): string {
   return `${mon.toLocaleDateString("en-IE", { day: "numeric", month: "short" })} – ${end.toLocaleDateString("en-IE", { day: "numeric", month: "short" })}`;
 }
 
-export function CourtAvailability({ matches }: { matches: BoxMatch[] }) {
+export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch[];
+  /** hide the internal heading: the collapsible wrapper on the usage page supplies it */
+  bare?: boolean }) {
   const { slots, ready } = useCourtSlots();
   const { bookings } = useLeagueBookings();
   const [pick, setPick] = useState(1);          // 0 = this week, 1 = next week
@@ -96,12 +98,14 @@ export function CourtAvailability({ matches }: { matches: BoxMatch[] }) {
 
   return (
     <section id="availability" style={{ marginTop: 22, scrollMarginTop: 60 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-        <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
-          Courts <span style={{ color: C.accent }}>free</span> to book
+      {!bare && (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+            Courts <span style={{ color: C.accent }}>free</span> to book
+          </div>
+          <div style={{ fontSize: 12, color: C.mute }}>what the league still has to fit in, and the hours it can go into</div>
         </div>
-        <div style={{ fontSize: 12, color: C.mute }}>what the league still has to fit in, and the hours it can go into</div>
-      </div>
+      )}
 
       <div style={{ display: "flex", gap: 6, margin: "10px 0 0", flexWrap: "wrap" }}>
         {weeks.map((w, i) => (

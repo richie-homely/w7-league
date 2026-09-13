@@ -6,6 +6,8 @@ import { C, F } from "@/theme/tokens";
 import { siteUsageReport, type UsageReport } from "@/lib/track";
 import { useBoxData } from "@/lib/box";
 import { BoxProgress } from "./BoxProgress";
+import { Collapsible } from "./Collapsible";
+import { CourtAvailability } from "./CourtAvailability";
 import { LeagueHeatmap } from "./LeagueHeatmap";
 import { SubsTable } from "./SubsTable";
 import { ResultsAudit } from "./ResultsAudit";
@@ -113,15 +115,37 @@ export function UsagePortal() {
                 </div>
               ))}
             </div>
-            <BoxProgress matches={boxMatches} teams={boxTeams} detailed />
-            <LeagueHeatmap matches={boxMatches} />
-            <ResultsAudit teams={boxTeams} matches={boxMatches} />
-            <SubsTable teams={boxTeams} matches={boxMatches} />
-            <p style={{ fontSize: 12, color: C.mute, marginTop: 8 }}>
+            <p style={{ fontSize: 12, color: C.mute, marginTop: 10 }}>
               Since {fmt(report.since)} · a visitor is one browser (random id, no personal data) · a team counts as “on the site” once a registered email has been used on it.
             </p>
 
-            <h2 style={{ fontFamily: F.display, fontSize: 20, marginTop: 28, color: C.accent, letterSpacing: "0.03em" }}>BY DAY</h2>
+            {/* Richie, 13 Sep 2026: "can those sections be collapsable, as it's long to
+                navigate that page". Each block remembers whether you left it open. */}
+            <Collapsible title="COURTS FREE TO BOOK" storageKey="courts" defaultOpen
+                         note="games needed vs booked vs the hours actually free">
+              <CourtAvailability matches={boxMatches} bare />
+            </Collapsible>
+
+            <Collapsible title="PLAYED, NO RESULT YET" storageKey="audit" defaultOpen
+                         note="fixtures booked 3h+ ago with no score entered">
+              <ResultsAudit teams={boxTeams} matches={boxMatches} bare />
+            </Collapsible>
+
+            <Collapsible title="CYCLE PROGRESS" storageKey="progress"
+                         note="played, booked and still to arrange, box by box">
+              <BoxProgress matches={boxMatches} teams={boxTeams} detailed bare />
+            </Collapsible>
+
+            <Collapsible title="WHEN LEAGUE GAMES GET PLAYED" storageKey="heatmap"
+                         note="every matched booking, last 60 days and the next three weeks">
+              <LeagueHeatmap matches={boxMatches} bare />
+            </Collapsible>
+
+            <Collapsible title="SUBSTITUTES" storageKey="subs" note="logged subs and the 0.75 rule">
+              <SubsTable teams={boxTeams} matches={boxMatches} bare />
+            </Collapsible>
+
+            <Collapsible title="BY DAY" storageKey="byday" note="page views and people, day by day">
             <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: 12 }}>
               {report.by_day.map((d) => (
                 <div key={d.day} style={{ display: "grid", gridTemplateColumns: "92px 1fr 120px", alignItems: "center", gap: 10, padding: "3px 0" }}>
@@ -134,8 +158,9 @@ export function UsagePortal() {
               ))}
               {report.by_day.length === 0 && <div style={{ fontSize: 13, color: C.mute }}>No page views yet in this window.</div>}
             </div>
+            </Collapsible>
 
-            <h2 style={{ fontFamily: F.display, fontSize: 20, marginTop: 28, color: C.accent, letterSpacing: "0.03em" }}>BY PAGE</h2>
+            <Collapsible title="BY PAGE" storageKey="bypage" note="which pages people open">
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead><tr><th style={th}>PAGE</th><th style={{ ...th, textAlign: "right" }}>VIEWS</th><th style={{ ...th, textAlign: "right" }}>UNIQUE VISITORS</th></tr></thead>
@@ -146,10 +171,10 @@ export function UsagePortal() {
                 </tbody>
               </table>
             </div>
+            </Collapsible>
 
-            <h2 style={{ fontFamily: F.display, fontSize: 20, marginTop: 28, color: C.accent, letterSpacing: "0.03em" }}>
-              BOX-LEAGUE TEAMS <span style={{ color: C.mute, fontSize: 14 }}>· {seen.length} on the site · {never.length} never</span>
-            </h2>
+            <Collapsible title="BOX-LEAGUE TEAMS" storageKey="teams"
+                         note={`${seen.length} on the site · ${never.length} never`}>
             <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
               {(["all", "seen", "never"] as const).map((f) => (
                 <button key={f} onClick={() => setTeamFilter(f)} style={{ padding: "5px 12px", borderRadius: 999, border: `1px solid ${teamFilter === f ? C.accent : C.border}`, background: teamFilter === f ? C.accent : C.card, color: teamFilter === f ? C.bg : C.text, fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
@@ -178,6 +203,7 @@ export function UsagePortal() {
                 </tbody>
               </table>
             </div>
+            </Collapsible>
           </>
         )}
       </div>
