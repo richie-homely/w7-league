@@ -13,6 +13,7 @@ teams in the same summer-league tier is a knockout tie. Only-the-booker bookings
 """
 import io, json, os, re, sys, urllib.request
 from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 W7 = os.path.join(os.path.dirname(ROOT), "w7-padel")
@@ -124,7 +125,8 @@ def detect(days=14):
     fixture_by_pair = {tuple(sorted((m["team1_id"], m["team2_id"]))): m for m in matches}
 
     box_hits, summer_hits = [], []
-    for b in fetch_bookings(days):
+    all_bookings = fetch_bookings(days)
+    for b in all_bookings:
         names = [p.get("name") for p in ((b.get("participant_info") or {}).get("participants") or [])]
         if not (2 <= len(names) <= 4):
             continue
@@ -169,13 +171,40 @@ def detect(days=14):
                                 "team_ids": sorted((two[0]["id"], two[1]["id"])),
                                 "team1": f"{two[0]['p1']} & {two[0]['p2']}", "team2": f"{two[1]['p1']} & {two[1]['p2']}",
                                 "confidence": "certain" if sum(v[1] for v in st.values()) == 4 else "probable"})
+    # Court slots (Richie, 13 Sep 2026): how many of the three courts are free in each hour
+    # for the next three weeks, so the site can show players what is actually bookable. Built
+    # from the same pull as the fixture matching, so it costs no extra Playtomic call.
+    from datetime import timezone as _tz
+    # Half-hour steps, not hourly: courts go out at :00 and :30, so an hourly grid would
+    # call 17:00 fully booked when the only game starts at 17:30 and 17:00-17:30 is free.
+    SLOT_DAYS, OPEN_H, CLOSE_H, STEP = 21, 7, 22, 30
+    busy = {}
+    for b in all_bookings:
+        if b.get("is_canceled"):
+            continue
+        st = datetime.fromisoformat(b["booking_start_date"]).replace(tzinfo=_tz.utc)
+        en = datetime.fromisoformat(b["booking_end_date"]).replace(tzinfo=_tz.utc)
+        cur = st.replace(minute=(st.minute // STEP) * STEP, second=0, microsecond=0)
+        while cur < en:
+            busy.setdefault(cur, set()).add(b.get("resource_name") or "?")
+            cur += timedelta(minutes=STEP)
+    slots = []
+    now_utc = datetime.now(_tz.utc)
+    t = now_utc.replace(minute=(now_utc.minute // STEP) * STEP, second=0, microsecond=0)
+    stop = t + timedelta(days=SLOT_DAYS)
+    while t < stop:
+        local_h = t.astimezone(ZoneInfo("Europe/Dublin")).hour
+        if OPEN_H <= local_h < CLOSE_H:
+            slots.append({"slot_at": t.isoformat(), "free": max(3 - len(busy.get(t, ())), 0)})
+        t += timedelta(minutes=STEP)
+
     box_hits.sort(key=lambda x: x["when"]); summer_hits.sort(key=lambda x: x["when"])
     pending = sum(1 for m in matches if m["status"] == "pending")
     today_iso = datetime.now().strftime("%Y-%m-%d %H:%M")
     # only a FUTURE booking counts as "has a court"; a past booking against a still-pending
     # fixture is a game played before the league (or one never entered), not a plan
     booked_pending = sum(1 for h in box_hits if h["status"] == "pending" and h["when"] >= today_iso)
-    res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits,
+    res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits, "slots": slots,
            "box_pending": pending, "box_pending_booked": booked_pending}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(res, open(OUT, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
@@ -228,6 +257,16 @@ def push(res):
     except urllib.error.HTTPError as e:
         raise SystemExit(f"league_bookings_set failed: HTTP {e.code} {e.read().decode(errors='replace')[:400]}")
     print("pushed:", out)
+
+    if res.get("slots"):
+        req2 = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/court_slots_set",
+                                      data=json.dumps({"p_key": key, "p_rows": res["slots"]}).encode(),
+                                      headers=H, method="POST")
+        try:
+            print("pushed slots:", json.load(urllib.request.urlopen(req2, timeout=60)))
+        except urllib.error.HTTPError as e:
+            # court_slots_13Sep2026.sql not run yet — the fixtures still pushed, so do not fail
+            print(f"court_slots_set skipped: HTTP {e.code} {e.read().decode(errors='replace')[:160]}")
     return out
 
 if __name__ == "__main__":
