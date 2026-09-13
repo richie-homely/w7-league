@@ -454,6 +454,18 @@ export const KNOCKOUT_RESULTS: {
     score: "6-7, 6-4, 10-7",
     playedOn: "2026-09-12",
   },
+  {
+    // Lower-tier QF4: G2 7th seed (Burihhin & Banim) v G2 2nd seed (Loboschi & Kaistha).
+    // 13 Sep 2026, from the Playtomic result card — Loboschi & Kaistha won without dropping a
+    // game. Winner meets Wojnar & Maguire in SF2.
+    teams: [
+      "6f988ace-a507-4ecc-865e-6b2710c8aec9", // Anton Burihhin & Mark Banim
+      "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48", // Antonio Loboschi & Sahil Kaistha
+    ],
+    winnerTeamId: "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48",
+    score: "6-0, 6-0",
+    playedOn: "2026-09-13",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
