@@ -12,7 +12,6 @@ import { BoxLeagueLive } from "./BoxLeagueLive";
 import { BoxCalendar } from "./BoxCalendar";
 import { UpcomingFixtures } from "./UpcomingFixtures";
 import { AwaitingScores, RecentBoxResults, ScoresDueBanner } from "./RecentResults";
-import { CourtAvailability } from "./CourtAvailability";
 import { BoxProgress } from "./BoxProgress";
 import Link from "next/link";
 import { SiteNav } from "./SiteNav";
@@ -309,7 +308,6 @@ export function BoxLeaguePage() {
           </div>
           <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
           <UpcomingFixtures compact showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
-          <CourtAvailability matches={matches} />
           <AwaitingScores matches={matches} teams={teams} />
           <RecentBoxResults matches={matches} teams={teams} />
           <BoxProgress matches={matches} teams={teams} />
