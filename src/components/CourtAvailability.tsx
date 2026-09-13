@@ -40,6 +40,7 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
   const { bookings } = useLeagueBookings();
   const [pick, setPick] = useState(1);          // 0 = this week, 1 = next week
   const [open, setOpen] = useState(false);
+  const [band, setBand] = useState<"all" | "peak" | "off">("all");
   // One snapshot of "now" for the whole component: a render has to be pure, and every week
   // boundary below has to agree with every other one.
   const [nowMs] = useState(() => Date.now());
@@ -86,8 +87,17 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
   if (!ready || !week) return null;
 
   const toGo = Math.max(week.need - week.booked, 0);
-  const freeHalfHours = days.reduce(
-    (n, d) => n + d.runs.reduce((m, r) => m + (r.to.getTime() - r.from.getTime()) / 1800000, 0), 0);
+  const hoursOf = (peakOnly: boolean | null) =>
+    days.reduce((n, d) => n + d.runs.reduce(
+      (m, r) => m + (peakOnly === null || r.peak === peakOnly
+        ? (r.to.getTime() - r.from.getTime()) / 3600000 : 0), 0), 0);
+  const freeHours = hoursOf(null);
+  const peakHours = hoursOf(true);
+  const offHours = hoursOf(false);
+  // Filtered view: drop blocks outside the chosen band, then days left with nothing.
+  const shownDays = days
+    .map((d) => ({ ...d, runs: d.runs.filter((r) => band === "all" || (band === "peak") === r.peak) }))
+    .filter((d) => d.runs.length > 0);
 
   const tile = (v: string, label: string, colour: string) => (
     <div style={{ flex: "1 1 90px", minWidth: 90 }}>
@@ -136,7 +146,8 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
                 {tile(String(toGo), "left to book", toGo > 0 ? C.amber : C.green)}
               </>
             )}
-          {tile(`${freeHalfHours / 2}h`, "court time free", C.info)}
+          {tile(`${freeHours}h`, "court time free", C.info)}
+          {tile(`${peakHours}h`, "of it at peak", peakHours > 0 ? C.amber : C.mute)}
         </div>
 
         <button
@@ -151,10 +162,34 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
 
         {open && (
           <div style={{ marginTop: 12 }}>
-            {days.length === 0 && (
-              <div style={{ fontSize: 13, color: C.mute }}>Nothing free left in this week.</div>
+            {/* Richie, 13 Sep 2026: "distinguish between peak and off peak availability by
+                colour code and maybe add a filter". Peak is weekday evenings and weekend
+                daytime — the hours members compete for. */}
+            <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap", alignItems: "center" }}>
+              {([["all", `All · ${freeHours}h`], ["peak", `Peak · ${peakHours}h`], ["off", `Off-peak · ${offHours}h`]] as const).map(([k, label]) => (
+                <button
+                  key={k}
+                  onClick={() => setBand(k)}
+                  style={{
+                    padding: "4px 11px", borderRadius: 999, cursor: "pointer", fontSize: 11.5, fontWeight: 700,
+                    border: `1px solid ${band === k ? (k === "peak" ? C.amber : k === "off" ? C.info : C.accent) : C.border}`,
+                    background: band === k ? (k === "peak" ? C.amber : k === "off" ? C.info : C.accent) : "transparent",
+                    color: band === k ? C.bg : C.mute,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+              <span style={{ fontSize: 11, color: C.mute, marginLeft: 2 }}>
+                peak = weekday 17:00–22:00 and weekends 08:00–18:00
+              </span>
+            </div>
+            {shownDays.length === 0 && (
+              <div style={{ fontSize: 13, color: C.mute }}>
+                {band === "all" ? "Nothing free left in this week." : "Nothing free in that band this week."}
+              </div>
             )}
-            {days.map(({ day, runs }) => (
+            {shownDays.map(({ day, runs }) => (
               <div
                 key={day.toDateString()}
                 style={{
@@ -166,25 +201,29 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
                   {fmtDay(day)}
                 </div>
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", flex: "1 1 240px" }}>
-                  {runs.map((r) => (
+                  {runs.map((r) => {
+                    const hue = r.peak ? C.amber : C.info;
+                    return (
                     <span
                       key={r.from.toISOString()}
-                      title={`${r.courts} court${r.courts === 1 ? "" : "s"} free`}
+                      title={`${r.courts} court${r.courts === 1 ? "" : "s"} free · ${r.peak ? "peak" : "off-peak"}`}
                       style={{
                         fontFamily: F.mono, fontSize: 11.5, padding: "3px 7px", borderRadius: 4,
-                        background: `${C.info}1a`, border: `1px solid ${C.info}44`, color: C.info,
+                        background: `${hue}1a`, border: `1px solid ${hue}44`, color: hue,
                         whiteSpace: "nowrap",
                       }}
                     >
                       {fmtTime(r.from)}–{fmtTime(r.to)}
                       <span style={{ color: C.mute }}> · {r.courts}</span>
                     </span>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}
             <div style={{ fontSize: 11.5, color: C.mute, marginTop: 10 }}>
               Each block is a stretch with a court free; the number after the dot is how many of the three.
+              <span style={{ color: C.amber }}> Amber is peak</span>,<span style={{ color: C.info }}> blue is off-peak</span>.
               Updated hourly from Playtomic, so book on Playtomic to claim one.
             </div>
           </div>

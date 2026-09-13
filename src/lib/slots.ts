@@ -45,10 +45,21 @@ export function useCourtSlots(): { slots: CourtSlot[]; loaded: boolean; ready: b
   return { slots, loaded, ready };
 }
 
+/** Peak is the time members actually compete for: weekday evenings, and weekend daytime.
+ *  Everything else is off-peak — where there is room, and where the league has to overflow
+ *  to. Matches the windows the capacity report measures (scripts/court_capacity.py):
+ *  weekday peak ran 94% used against weekday midday at 49%. */
+export function isPeak(d: Date): boolean {
+  const day = d.getDay();                      // 0 Sun … 6 Sat
+  const h = d.getHours();
+  return day === 0 || day === 6 ? h >= 8 && h < 18 : h >= 17 && h < 22;
+}
+
 export interface FreeRun {
   from: Date;
   to: Date;
   courts: number;      // fewest courts free at any point in the run
+  peak: boolean;
 }
 
 /** Contiguous half-hours with a court free, merged into runs a player can read as "book
@@ -62,12 +73,16 @@ export function freeRuns(slots: CourtSlot[], day: Date): FreeRun[] {
     .sort((a, b) => a.at.getTime() - b.at.getTime());
   const runs: FreeRun[] = [];
   for (const s of mine) {
+    const peak = isPeak(s.at);
     const last = runs[runs.length - 1];
-    const contiguous = last && last.to.getTime() === s.at.getTime() && last.courts === s.free;
+    // A run also breaks at the peak boundary, so every block shown is wholly peak or
+    // wholly off-peak and can be coloured and filtered without qualification.
+    const contiguous =
+      last && last.to.getTime() === s.at.getTime() && last.courts === s.free && last.peak === peak;
     if (contiguous) {
       last.to = new Date(s.at.getTime() + SLOT_MINUTES * 60000);
     } else {
-      runs.push({ from: s.at, to: new Date(s.at.getTime() + SLOT_MINUTES * 60000), courts: s.free });
+      runs.push({ from: s.at, to: new Date(s.at.getTime() + SLOT_MINUTES * 60000), courts: s.free, peak });
     }
   }
   return runs;
