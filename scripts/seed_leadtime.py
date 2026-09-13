@@ -108,6 +108,19 @@ def main():
         rows.append({"booking_id": b["booking_id"], "booked_at": sent.isoformat(),
                      "starts_at": plays.astimezone(timezone.utc).isoformat(),
                      "court": court, "is_league": key in league_keys, "source": "email"})
+    # One row per booking. The same booking can produce two or three emails (Playtomic
+    # re-sends on an edit, or a rebooked slot lands on the same court hour), and Postgres
+    # refuses to upsert the same key twice in one batch. The earliest send is the moment the
+    # booking was actually made, so that one wins.
+    best = {}
+    for r in rows:
+        cur = best.get(r["booking_id"])
+        if cur is None or r["booked_at"] < cur["booked_at"]:
+            best[r["booking_id"]] = r
+    dupes = len(rows) - len(best)
+    rows = list(best.values())
+    if dupes:
+        print(f"collapsed {dupes} repeat emails onto the booking they belong to")
     lead = [(datetime.fromisoformat(r["starts_at"]) - datetime.fromisoformat(r["booked_at"])).total_seconds() / 86400
             for r in rows]
     lg = [r for r in rows if r["is_league"]]

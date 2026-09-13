@@ -9,6 +9,7 @@ import { BoxProgress } from "./BoxProgress";
 import { Collapsible } from "./Collapsible";
 import { CourtAvailability } from "./CourtAvailability";
 import { OccupancyChart } from "./OccupancyChart";
+import { LeadTimeChart } from "./LeadTimeChart";
 import { LeagueHeatmap } from "./LeagueHeatmap";
 import { SubsTable } from "./SubsTable";
 import { ResultsAudit } from "./ResultsAudit";
@@ -100,6 +101,9 @@ export function UsagePortal() {
     { key: "occupancy", chip: "Occupancy", title: "COURT OCCUPANCY BY DAY", openByDefault: true,
       note: "last week and forward — peak, off-peak and overall",
       node: <OccupancyChart /> },
+    { key: "leadtime", chip: "Booked ahead", title: "HOW FAR AHEAD PEOPLE BOOK", openByDefault: true,
+      note: "bookings made each day, and median days ahead — league against social",
+      node: <LeadTimeChart /> },
     { key: "audit", chip: "No result yet", title: "PLAYED, NO RESULT YET", openByDefault: true,
       note: "fixtures booked 3h+ ago with no score entered",
       node: <ResultsAudit teams={boxTeams} matches={boxMatches} bare /> },
