@@ -119,8 +119,11 @@ def main():
         late.sort()
         L += ["", f"PLAYED, NO RESULT YET: {len(late)} fixture(s) with a W7 booking 3h+ ago and no score entered"
               + (" — the notifier reminds both teams" if late else " — every played fixture has a score in")]
-        for st, hrs, m, b in late:
-            L.append(f"  Box {m['box']:2}  {tn2.get(m['team1_id'], '?')}  v  {tn2.get(m['team2_id'], '?')}  played {datetime.fromisoformat(st).astimezone(DUBLIN):%a %d %b %H:%M} {b['court']}  ({hrs:.0f}h ago)")
+        # `started`, not `st`: `st` is the cycle-1 status Counter from line 73 and the tiles
+        # below still need it (it was being clobbered here, crashing the whole email on any
+        # day that had a late fixture).
+        for started, hrs, m, b in late:
+            L.append(f"  Box {m['box']:2}  {tn2.get(m['team1_id'], '?')}  v  {tn2.get(m['team2_id'], '?')}  played {datetime.fromisoformat(started).astimezone(DUBLIN):%a %d %b %H:%M} {b['court']}  ({hrs:.0f}h ago)")
     except Exception as exc:
         L += ["", f"PLAYED, NO RESULT YET: not available this run ({type(exc).__name__})"]
     # results vs W7 bookings (Richie, 11 Sep 2026): every entered result should sit on a W7
@@ -172,6 +175,14 @@ def main():
         L.append("  (summer group games appear as booked only — their results are in the league tables; 'ahead' weeks are bookings already made)")
     except Exception as exc:
         L += ["", f"LEAGUE FIXTURES BY WEEK: not available this run ({type(exc).__name__})"]
+    # court capacity (Richie, 13 Sep 2026): "make sure we're not overcapacity on the courts, and
+    # there is actually time for all these league games to be booked". Reads every Playtomic
+    # booking, not just the ones matched to a fixture, so it can show what is actually free.
+    try:
+        import court_capacity
+        L += [""] + court_capacity.report()
+    except Exception as exc:
+        L += ["", f"COURT CAPACITY: not available this run ({type(exc).__name__})"]
     L += ["", f"Portal: {SITE}/admin/usage", "— W7 league site"]
     text = "\n".join(L)
 
