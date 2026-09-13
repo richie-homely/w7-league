@@ -178,14 +178,18 @@ export function AwaitingScores({ matches, teams }: { matches: BoxMatch[]; teams:
 }
 
 /** Box league page: results from the page's own data. */
-export function RecentBoxResults({ matches, teams, limit = 10 }: { matches: BoxMatch[]; teams: BoxTeam[]; limit?: number }) {
+export function RecentBoxResults({ matches, teams, limit = 10, bare = false }: { matches: BoxMatch[]; teams: BoxTeam[]; limit?: number;
+  /** inside a collapsible: it supplies the heading and the #results anchor */
+  bare?: boolean }) {
   const teamsById = Object.fromEntries(teams.map((t) => [t.id, t]));
   const rows = boxRows(matches, teamsById).slice(0, limit);
   return (
-    <section id="results" style={{ marginTop: 22, scrollMarginTop: 60 }}>
-      <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
-        Recent <span style={{ color: C.accent }}>results</span>
-      </div>
+    <section id={bare ? undefined : "results"} style={{ marginTop: bare ? 0 : 22, scrollMarginTop: 60 }}>
+      {!bare && (
+        <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+          Recent <span style={{ color: C.accent }}>results</span>
+        </div>
+      )}
       <ResultsList rows={rows} empty="No confirmed results yet — games are on; a result appears here once both teams confirm it." />
     </section>
   );

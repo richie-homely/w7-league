@@ -9,11 +9,14 @@ import { BOX_CYCLES, CHRISTMAS_BREAK, SEASON, currentCycle, dayOf, daysLeft, fmt
  * Christmas break marked, today's position shown, and the live cycle's deadline
  * counted down — because the unplayed-match rule is strict and the one thing a
  * team needs to know at a glance is how many days are left in the cycle. */
-export function BoxCalendar() {
+export function BoxCalendar({ bare = false }: {
+  /** inside a collapsible: it supplies the heading and the #calendar anchor */
+  bare?: boolean;
+} = {}) {
   // Render deterministically on the server, then place "today" on the client.
   const [now, setNow] = useState<Date | null>(null);
-  // eslint-disable-next-line react-hooks/set-state-in-effect -- the clock only exists on the client
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- the clock only exists on the client
     setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 60_000);
     return () => clearInterval(id);
@@ -26,11 +29,13 @@ export function BoxCalendar() {
   const onBreak = now ? inBreak(now) : false;
 
   return (
-    <div id="calendar" style={{ scrollMarginTop: 60 }}>
+    <div id={bare ? undefined : "calendar"} style={{ scrollMarginTop: 60 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", marginBottom: 10 }}>
-        <div style={{ fontFamily: F.display, fontSize: 24, textTransform: "uppercase", letterSpacing: "0.02em" }}>
-          Season <span style={{ color: C.accent }}>calendar</span>
-        </div>
+        {!bare && (
+          <div style={{ fontFamily: F.display, fontSize: 24, textTransform: "uppercase", letterSpacing: "0.02em" }}>
+            Season <span style={{ color: C.accent }}>calendar</span>
+          </div>
+        )}
         <div style={{ fontSize: 12.5, color: C.mute }}>
           7 cycles · {fmtRange(SEASON.start, SEASON.end)} · up to 28 matches per team
         </div>

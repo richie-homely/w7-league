@@ -47,6 +47,28 @@ export function Collapsible({
     } catch { /* no storage */ }
   }, [storageKey, controlled]);
 
+  // Jump links open a folded section (Richie, 13 Sep 2026): a link to a closed header would
+  // otherwise land on a bare title. Opens for a matching #hash on load and on hashchange, and on
+  // the "w7-open-section" event the in-page nav fires — clicking the hash you are already on fires
+  // no hashchange, so the event is what makes a second click work.
+  useEffect(() => {
+    if (!id) return;
+    const openIfMine = (target: string) => {
+      if (target !== id) return;
+      if (controlled) { if (!controlledOpen) onToggle?.(); return; }
+      setOpen(true);
+    };
+    const onHash = () => openIfMine(window.location.hash.slice(1));
+    const onEvent = (e: Event) => openIfMine((e as CustomEvent<string>).detail);
+    onHash();
+    window.addEventListener("hashchange", onHash);
+    window.addEventListener("w7-open-section", onEvent);
+    return () => {
+      window.removeEventListener("hashchange", onHash);
+      window.removeEventListener("w7-open-section", onEvent);
+    };
+  }, [id, controlled, controlledOpen, onToggle]);
+
   const toggle = () => {
     if (controlled) { onToggle?.(); return; }
     setOpen((o) => {

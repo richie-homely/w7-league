@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { BoxGrid } from "./BoxGrid";
 import { SponsorBanner, SponsorCta } from "./Sponsor";
 import { BOX_LEAGUE_SPONSOR } from "@/lib/sponsors";
 import { C, F } from "@/theme/tokens";
@@ -160,6 +159,15 @@ export function BoxLeaguePage() {
   }, [teams, matches, linkTeam, focusMatch]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  // Score entry must never land on a folded section (Richie, 13 Sep 2026: "as long as teams can
+  // still enter scores"). "Enter the result" links and emails arrive with a match or box already
+  // chosen; if someone had folded The Boxes, open it so the form is there.
+  useEffect(() => {
+    if (focusMatch || focusBox !== null) {
+      window.dispatchEvent(new CustomEvent("w7-open-section", { detail: "scores" }));
+    }
+  }, [focusMatch, focusBox]);
+
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: F.body }}>
       <SiteNav />
@@ -174,19 +182,25 @@ export function BoxLeaguePage() {
         }}
       >
         {[
-          ["#boxes", "Boxes"],
+          ["#scores", "League tables"],
+          ["#scores", "Find my box"],
           ["#fixtures", "Fixtures"],
           ["#results", "Results"],
           ["#progress", "Progress"],
+          ["#facts", "Key facts"],
+          ["#how", "How it works"],
           ["#calendar", "Calendar"],
-          ["#scores", "Scores & results"],
-          ["#scores", "Find my box"],
           ["/box/how-to", "How to enter scores"],
           ["/box/rules", "Rules"],
         ].map(([href, label]) => (
           <a
             key={label}
             href={href}
+            // A folded section has to open before the jump lands on it; clicking the hash you are
+            // already on fires no hashchange, so tell the sections directly.
+            onClick={() => {
+              if (href.startsWith("#")) window.dispatchEvent(new CustomEvent("w7-open-section", { detail: href.slice(1) }));
+            }}
             style={{
               fontSize: 12.5, fontWeight: 700, color: C.text, textDecoration: "none",
               padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 999,
@@ -296,22 +310,32 @@ export function BoxLeaguePage() {
             {BOX_LEAGUE.cycles} cycles to April.
           </p>
         </div>
-        <div style={{ marginTop: 30 }}>
+        <div style={{ maxWidth: 900, margin: "30px auto 0", padding: "0 20px" }}>
           <ScoresDueBanner matches={matches} teams={teams} />
           <SponsorBanner slot={BOX_LEAGUE_SPONSOR} />
-          {/* Richie, 13 Sep 2026: "this section should be collapseable" — twenty box rows is
-              most of the page, and someone who knows their own box does not need the other
-              nineteen. Open by default, and it remembers being shut. Keeps the #boxes
-              anchor the top nav links to. */}
-          <Collapsible
-            id="boxes"
-            title="FINAL BOXES"
-            storageKey="box-grid"
-            defaultOpen
-            note="20 boxes of five · click a box to see who is in it"
-          >
-            <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
-          </Collapsible>
+          {/* Richie, 13 Sep 2026: "move the boxes with league tables up top", "make each similar
+              section collapsible", "kill the final boxes section". The league tables and Find my
+              box now lead the page. Every block folds and remembers being shut, and the jump
+              links above open a folded section. The Final boxes grid is gone: the tables here
+              already list every team in every box. */}
+          {teams.length > 0 && (
+            <Collapsible
+              id="scores"
+              title="THE BOXES"
+              storageKey="box-live"
+              defaultOpen
+              note="league tables, matches and score entry for every box"
+            >
+              <BoxLeagueLive
+                bare
+                teams={teams}
+                matches={matches}
+                focusBox={focusBox}
+                focusMatch={focusMatch}
+                onFocusBox={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }}
+              />
+            </Collapsible>
+          )}
           <Collapsible
             id="fixtures"
             title="UPCOMING LEAGUE FIXTURES"
@@ -322,8 +346,24 @@ export function BoxLeaguePage() {
             <UpcomingFixtures compact bare showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
           </Collapsible>
           <AwaitingScores matches={matches} teams={teams} />
-          <RecentBoxResults matches={matches} teams={teams} />
-          <BoxProgress matches={matches} teams={teams} />
+          <Collapsible
+            id="results"
+            title="RECENT RESULTS"
+            storageKey="box-results"
+            defaultOpen
+            note="confirmed box league results, newest first"
+          >
+            <RecentBoxResults bare matches={matches} teams={teams} />
+          </Collapsible>
+          <Collapsible
+            id="progress"
+            title="CYCLE PROGRESS"
+            storageKey="box-progress"
+            defaultOpen
+            note="played, booked and still to arrange, box by box"
+          >
+            <BoxProgress bare matches={matches} teams={teams} />
+          </Collapsible>
           <div style={{ marginTop: 24 }}>
             <SponsorCta
               headline="Sponsor a box"
@@ -337,12 +377,12 @@ export function BoxLeaguePage() {
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 20px 8px" }}>
         {/* Key facts */}
+        <Collapsible id="facts" title="KEY FACTS" storageKey="box-facts" defaultOpen note="dates, format, points, prizes and entries">
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
             gap: 12,
-            marginTop: 28,
           }}
         >
           <Fact label="STARTS" value="MON 14 SEP" sub={`${BOX_LEAGUE.cycles} four-week cycles · to Sun 11 Apr 2027`} />
@@ -365,14 +405,11 @@ export function BoxLeaguePage() {
           />
           <Fact label="ENTRIES" value="FULL" sub="All 100 team places taken, 7 Sep" />
         </div>
+        </Collapsible>
 
         {/* The format in five steps. It lived in one hero sentence, which is
             fine for someone already sold and useless for someone deciding. */}
-        <div style={{ marginTop: 30 }}>
-          <div style={{ fontFamily: F.display, fontSize: 24, textTransform: "uppercase",
-                        letterSpacing: "0.02em", marginBottom: 12 }}>
-            How it works
-          </div>
+        <Collapsible id="how" title="HOW IT WORKS" storageKey="box-how" defaultOpen note="the format in six steps">
           <div style={{ display: "grid", gap: 8 }}>
             {[
               ["Your box", "Five teams of a similar standard, cut by combined Playtomic rating. Boxes are redrawn every cycle, so you keep meeting new opponents at your level."],
@@ -394,7 +431,7 @@ export function BoxLeaguePage() {
               </div>
             ))}
           </div>
-        </div>
+        </Collapsible>
 
         {/* Countdown + CTA */}
         {regOpen && (
@@ -450,19 +487,9 @@ export function BoxLeaguePage() {
           season calendar is below.
         </p>
 
-        <div style={{ marginTop: 32 }}>
-          <BoxCalendar />
-        </div>
-
-        {teams.length > 0 && (
-          <BoxLeagueLive
-            teams={teams}
-            matches={matches}
-            focusBox={focusBox}
-            focusMatch={focusMatch}
-            onFocusBox={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }}
-          />
-        )}
+        <Collapsible id="calendar" title="SEASON CALENDAR" storageKey="box-calendar" defaultOpen note="seven four-week cycles to April, with the Christmas break">
+          <BoxCalendar bare />
+        </Collapsible>
       </div>
 
       {/* Footer */}

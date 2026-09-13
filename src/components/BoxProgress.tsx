@@ -132,7 +132,7 @@ export function BoxProgress({
   };
 
   return (
-    <section id="progress" style={{ marginTop: 22, scrollMarginTop: 60 }}>
+    <section id={bare ? undefined : "progress"} style={{ marginTop: bare ? 0 : 22, scrollMarginTop: 60 }}>
       <div style={{ display: bare ? "none" : "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div style={{ fontFamily: F.display, fontSize: 22, letterSpacing: "0.02em", textTransform: "uppercase" }}>
           Cycle {cycleN} <span style={{ color: C.accent }}>progress</span>

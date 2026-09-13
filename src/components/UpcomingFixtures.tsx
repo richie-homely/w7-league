@@ -116,7 +116,7 @@ export function UpcomingFixtures({
   }
 
   return (
-    <section id="fixtures" style={{ marginTop: compact ? 22 : 36, scrollMarginTop: 60 }}>
+    <section id={bare ? undefined : "fixtures"} style={{ marginTop: bare ? 0 : compact ? 22 : 36, scrollMarginTop: 60 }}>
       {!bare && (
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
           <div style={{ fontFamily: F.display, fontSize: compact ? 22 : 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>

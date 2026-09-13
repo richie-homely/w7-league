@@ -670,9 +670,13 @@ export function BoxLeagueLive({
   focusBox = null,
   focusMatch = null,
   onFocusBox,
+  bare = false,
 }: {
   teams: BoxTeam[];
   matches: BoxMatch[];
+  /** inside the page's collapsible: it supplies the "The Boxes" title and the #scores anchor.
+   *  Everything else — intro, Find my box, every box table and score entry — is unchanged. */
+  bare?: boolean;
   /** show only this box (from a deep link, the grid, or find-my-box); null = all */
   focusBox?: number | null;
   /** open this match's form straight away */
@@ -761,10 +765,12 @@ export function BoxLeagueLive({
   }
 
   return (
-    <div id="scores" style={{ marginTop: 36, scrollMarginTop: 60 }}>
-      <div style={{ fontFamily: F.display, fontSize: 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>
-        The <span style={{ color: C.accent }}>Boxes</span>
-      </div>
+    <div id={bare ? undefined : "scores"} style={{ marginTop: bare ? 0 : 36, scrollMarginTop: 60 }}>
+      {!bare && (
+        <div style={{ fontFamily: F.display, fontSize: 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+          The <span style={{ color: C.accent }}>Boxes</span>
+        </div>
+      )}
       <p style={{ fontSize: 13, color: C.mute, lineHeight: 1.6, maxWidth: 640, marginTop: 6 }}>
         Play everyone in your box, then post your result here — either team can enter it using a
         registered email address, and it counts once the opposing team confirms (entering the same
