@@ -12,6 +12,7 @@ import { BoxLeagueLive } from "./BoxLeagueLive";
 import { BoxCalendar } from "./BoxCalendar";
 import { UpcomingFixtures } from "./UpcomingFixtures";
 import { AwaitingScores, RecentBoxResults, ScoresDueBanner } from "./RecentResults";
+import { Collapsible } from "./Collapsible";
 import { BoxProgress } from "./BoxProgress";
 import Link from "next/link";
 import { SiteNav } from "./SiteNav";
@@ -298,15 +299,19 @@ export function BoxLeaguePage() {
         <div style={{ marginTop: 30 }}>
           <ScoresDueBanner matches={matches} teams={teams} />
           <SponsorBanner slot={BOX_LEAGUE_SPONSOR} />
-          <div
-            style={{
-              fontFamily: F.display, fontSize: 24, textTransform: "uppercase",
-              letterSpacing: "0.02em", margin: "22px 0 4px",
-            }}
+          {/* Richie, 13 Sep 2026: "this section should be collapseable" — twenty box rows is
+              most of the page, and someone who knows their own box does not need the other
+              nineteen. Open by default, and it remembers being shut. Keeps the #boxes
+              anchor the top nav links to. */}
+          <Collapsible
+            id="boxes"
+            title="FINAL BOXES"
+            storageKey="box-grid"
+            defaultOpen
+            note="20 boxes of five · click a box to see who is in it"
           >
-            <span id="boxes" style={{ scrollMarginTop: 60 }}>Final</span> <span style={{ color: C.accent }}>boxes</span>
-          </div>
-          <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
+            <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
+          </Collapsible>
           <UpcomingFixtures compact showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
           <AwaitingScores matches={matches} teams={teams} />
           <RecentBoxResults matches={matches} teams={teams} />

@@ -13,6 +13,7 @@ import { C, F } from "@/theme/tokens";
  * HTML agree. */
 
 export function Collapsible({
+  id,
   title,
   note,
   storageKey,
@@ -21,6 +22,8 @@ export function Collapsible({
   onToggle,
   children,
 }: {
+  /** anchor id, so an in-page nav link can still jump to the section */
+  id?: string;
   title: string;
   /** short grey line beside the title, readable while closed */
   note?: string;
@@ -38,7 +41,7 @@ export function Collapsible({
   useEffect(() => {
     if (!storageKey || controlled) return;
     try {
-      const v = window.localStorage.getItem(`w7-usage-${storageKey}`);
+      const v = window.localStorage.getItem(`w7-collapse-${storageKey}`);
       // eslint-disable-next-line react-hooks/set-state-in-effect
       if (v === "1" || v === "0") setOpen(v === "1");
     } catch { /* no storage */ }
@@ -48,14 +51,14 @@ export function Collapsible({
     if (controlled) { onToggle?.(); return; }
     setOpen((o) => {
       if (storageKey) {
-        try { window.localStorage.setItem(`w7-usage-${storageKey}`, o ? "0" : "1"); } catch { /* ignore */ }
+        try { window.localStorage.setItem(`w7-collapse-${storageKey}`, o ? "0" : "1"); } catch { /* ignore */ }
       }
       return !o;
     });
   };
 
   return (
-    <section style={{ marginTop: 22 }}>
+    <section id={id} style={{ marginTop: 22, scrollMarginTop: 60 }}>
       <button
         onClick={toggle}
         aria-expanded={open}
