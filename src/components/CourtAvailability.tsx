@@ -5,6 +5,7 @@ import { C, F } from "@/theme/tokens";
 import { useLeagueBookings } from "@/lib/bookings";
 import { bookableHours, freeRuns, MIN_GAME_MINUTES, useCourtSlots, type CourtSlot } from "@/lib/slots";
 import { currentCycle } from "@/lib/boxCalendar";
+import { unnamedForWeek, useUnnamedBookings } from "@/lib/unnamed";
 import type { BoxMatch } from "@/lib/box";
 
 /* Courts free vs games to book (Richie, 13 Sep 2026):
@@ -38,6 +39,9 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
   bare?: boolean }) {
   const { slots, ready, exact } = useCourtSlots();
   const { bookings } = useLeagueBookings();
+  // Bookings that do not name opponents yet but probably are league games (Richie, 13 Sep 2026).
+  const { rows: unnamedRows, ready: unnamedReady } = useUnnamedBookings();
+  const [showLikely, setShowLikely] = useState(false);
   const [pick, setPick] = useState(1);          // 0 = this week, 1 = next week
   const [open, setOpen] = useState(false);
   const [band, setBand] = useState<"all" | "peak" | "off">("all");
@@ -88,6 +92,10 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
   if (!ready || !week) return null;
 
   const toGo = Math.max(week.need - week.booked, 0);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const weekKey = `${week.mon.getFullYear()}-${pad(week.mon.getMonth() + 1)}-${pad(week.mon.getDate())}`;
+  const un = unnamedReady ? unnamedForWeek(unnamedRows, weekKey) : null;
+  const likely = un ? Math.round(un.central) : 0;
   // Bookable court-hours, not clock time: two courts free for an hour is two court-hours.
   const peakHours = days.reduce((n, d) => n + d.hours.peak, 0);
   const offHours = days.reduce((n, d) => n + d.hours.off, 0);
@@ -142,8 +150,10 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
                 {tile(String(week.need), "games needed", C.text)}
                 {tile(String(week.booked), "already booked", C.accent)}
                 {tile(String(toGo), "left to book", toGo > 0 ? C.amber : C.green)}
+                {un && un.high > 0 && tile(`~${Math.max(toGo - likely, 0)}`, "likely still to book", C.text)}
               </>
             )}
+          {un && un.high > 0 && tile(`~${likely}`, `likely in bookings missing opponents (${Math.round(un.low)}–${un.high})`, C.amber)}
           {tile(`${freeHours}h`, "bookable court-hours", C.info)}
           {tile(`${peakHours}h`, "of it at peak", peakHours > 0 ? C.amber : C.mute)}
         </div>
@@ -157,6 +167,43 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
         >
           {open ? "Hide the free hours" : "Show the free hours"} {open ? "▴" : "▾"}
         </button>
+        {un && un.high > 0 && (
+          <button
+            onClick={() => setShowLikely((o) => !o)}
+            style={{
+              marginTop: 12, marginLeft: 8, padding: "7px 14px", borderRadius: 8, cursor: "pointer", fontSize: 12.5,
+              fontWeight: 700, border: `1px solid ${C.amber}66`, background: "transparent", color: C.amber,
+            }}
+          >
+            {showLikely ? "Hide" : "Show"} bookings missing opponents {showLikely ? "▴" : "▾"}
+          </button>
+        )}
+        {showLikely && un && un.high > 0 && (
+          <div style={{ marginTop: 12 }}>
+            {un.likely.map((r) => (
+              <div
+                key={`${r.startsAt.toISOString()}${r.court}`}
+                style={{ display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap", padding: "6px 0", borderTop: `1px solid ${C.border}` }}
+              >
+                <span style={{ fontFamily: F.mono, fontSize: 12, minWidth: 150, color: C.text }}>
+                  {fmtDay(r.startsAt)} {fmtTime(r.startsAt)}
+                </span>
+                <span style={{ fontFamily: F.mono, fontSize: 11, color: C.mute, minWidth: 56 }}>{r.court}</span>
+                <span style={{ fontSize: 12.5, flex: "1 1 220px" }}>
+                  <span style={{ color: C.accent, fontWeight: 700 }}>Box {r.box}</span> {r.team}
+                  <span style={{ color: C.mute }}> · {r.shape === "pair" ? "pair booked, no opponents" : "booker only"}</span>
+                  {r.reason && <span style={{ color: C.mute }}> · {r.reason}</span>}
+                </span>
+                <span style={{ fontFamily: F.mono, fontSize: 12, fontWeight: 700, color: C.amber }}>{Math.round(r.p * 100)}%</span>
+              </div>
+            ))}
+            <div style={{ fontSize: 11.5, color: C.mute, marginTop: 8 }}>
+              The chance each booking turns out to be that team&apos;s league fixture, from the club&apos;s own bookings since the
+              league opened. Group sessions, teams with no fixtures left and pairs still in the summer knockouts are left out.
+              A booking drops off this list as soon as the opponents are named.
+            </div>
+          </div>
+        )}
 
         {open && (
           <div style={{ marginTop: 12 }}>

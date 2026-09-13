@@ -263,7 +263,16 @@ def detect(days=14):
     # only a FUTURE booking counts as "has a court"; a past booking against a still-pending
     # fixture is a game played before the league (or one never entered), not a plan
     booked_pending = sum(1 for h in box_hits if h["status"] == "pending" and h["when"] >= today_iso)
-    res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits, "slots": slots, "leadtime": leadtime,
+    # Likely league games in bookings that do not name opponents yet (Richie, 13 Sep 2026: "players
+    # book a court in their name and don't add opponents straight away ... mention these in the
+    # usage stats and emails"). Uses the bookings already fetched, so no extra Playtomic call.
+    try:
+        import unnamed_bookings
+        detected = {(h["when"], h["court"]) for h in box_hits if h.get("match_id")}
+        unnamed, unnamed_rates = unnamed_bookings.estimate(all_bookings, detected, get)
+    except Exception as exc:
+        unnamed, unnamed_rates = [], {"error": f"{type(exc).__name__}: {exc}"}
+    res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits, "slots": slots, "leadtime": leadtime, "unnamed": unnamed, "unnamed_rates": unnamed_rates,
            "box_pending": pending, "box_pending_booked": booked_pending}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(res, open(OUT, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
@@ -336,6 +345,16 @@ def push(res):
         except urllib.error.HTTPError as e:
             # booking_leadtime_13Sep2026.sql not run yet — everything else still pushed
             print(f"booking_leadtime_set skipped: HTTP {e.code} {e.read().decode(errors='replace')[:160]}")
+
+    if "unnamed" in res:
+        req4 = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/league_unnamed_set",
+                                      data=json.dumps({"p_key": key, "p_rows": res["unnamed"]}).encode(),
+                                      headers=H, method="POST")
+        try:
+            print("pushed unnamed:", json.load(urllib.request.urlopen(req4, timeout=60)), res.get("unnamed_rates"))
+        except urllib.error.HTTPError as e:
+            # league_unnamed_13Sep2026.sql not run yet — everything else still pushed
+            print(f"league_unnamed_set skipped: HTTP {e.code} {e.read().decode(errors='replace')[:160]}")
     return out
 
 if __name__ == "__main__":

@@ -66,6 +66,7 @@ C_TEXT, C_MUTE, C_CARD, C_BORDER = "#182430", "#68767f", "#f6f8f9", "#e2e7ea"
 C_TRACK = "#dfe5e9"                        # the unfilled part of a bar
 C_ACCENT, C_INFO = "#7f9a1e", "#1a4a6e"    # scheduled (lime dark), available (navy)
 C_NEED, C_RED, C_GREEN = "#b8b8b8", "#b3402e", "#2e7d32"
+C_LIKELY = "#b8821f"                       # likely league games in bookings missing opponents
 
 
 def is_peak(dt):
@@ -173,6 +174,18 @@ def tracker(bookings, matches, weeks_back=4, weeks=3):
             "room": room,
             "short": max(need - lg_h / avg_h - room, 0),
         })
+    # Likely league games hiding in bookings that do not name opponents yet, scored hourly by
+    # unnamed_bookings.py into league_unnamed (Richie, 13 Sep 2026: "mention these in the usage
+    # stats and emails"). Absent table = no figure, never a wrong one.
+    try:
+        import unnamed_bookings
+        from box_league_mailout import sb_get as _sbg
+        by_w = unnamed_bookings.summarise(_sbg("league_unnamed?select=week,p,shape&limit=2000"))
+    except Exception:
+        by_w = {}
+    for w in out:
+        u = by_w.get(w["mon"].strftime("%Y-%m-%d"), {})
+        w["likely"], w["likely_low"], w["likely_high"] = u.get("central", 0.0), u.get("low", 0.0), u.get("high", 0)
     return {"weeks": out, "per_week": per_week, "avg_h": avg_h, "left": left,
             "typical_other": typical_other, "today": today, "this_mon": this_mon,
             "filled": filled}
@@ -218,13 +231,15 @@ def report(weeks_ahead=4, weeks_back=4, data=None):
 
     L += ["", f"  LEAGUE SCHEDULING BY WEEK - {t['left']} fixtures to clear by {CYCLE_END}, "
               f"{t['per_week']:.0f} a week",
-          f"    {'week':17}{'need':>5}{'booked':>8}{'gap':>6}{'room left':>11}   verdict"]
+          f"    {'week':17}{'need':>5}{'booked':>8}{'likely':>8}{'gap':>6}{'room left':>11}   verdict"]
     for w in t["weeks"]:
         verdict = ("this week, mostly spent" if w["current"] else
                    "fits" if w["short"] <= 0 else f"{w['short']:.0f} short")
         need = "-" if w["current"] else f"{w['need']:.0f}"
         gap = "-" if w["current"] else f"{w['need'] - w['booked']:.0f}"
-        L.append(f"    {w['label']:17}{need:>5}{w['booked']:8.0f}{gap:>6}{w['room']:11.0f}   {verdict}")
+        likely = f"+{w['likely']:.0f}" if w.get("likely_high") else "-"
+        L.append(f"    {w['label']:17}{need:>5}{w['booked']:8.0f}{likely:>8}{gap:>6}{w['room']:11.0f}   {verdict}")
+    L.append("    likely = league games probably hiding in bookings that do not name opponents yet (weighted estimate)")
     L.append(f"    room left = the {USABLE_CAP:.0f} usable court-hours a week, less league games already "
              f"booked, less the {t['typical_other']:.0f}h a normal week's non-league demand takes")
 
@@ -282,8 +297,13 @@ def chart_html(weeks_ahead=4, weeks_back=4, data=None):
             tail = f'<span style="color:{C_GREEN}">fits - room for all {w["need"]:.0f}</span>'
         else:
             tail = f'<span style="color:{C_RED}">{w["short"]:.0f} short of {w["need"]:.0f}</span>'
+        if w.get("likely_high"):
+            tail += (f' <span style="color:{C_MUTE}">· about {w["likely"]:.0f} more likely in bookings '
+                     f'missing opponents ({w["likely_low"]:.0f}-{w["likely_high"]})</span>')
         rows = "" if w["current"] else bar(w["need"], C_NEED, "needed")
         rows += bar(w["booked"], C_ACCENT, "scheduled")
+        if w.get("likely_high"):
+            rows += bar(w["likely"], C_LIKELY, "likely, no opps")
         rows += bar(w["room"], C_INFO, "available")
         blocks.append(
             '<div style="margin:0 0 14px">'
