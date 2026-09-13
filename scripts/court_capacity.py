@@ -33,9 +33,26 @@ IE = ZoneInfo("Europe/Dublin")
 COURTS = 3
 OPEN_H, CLOSE_H = 7, 22           # the club's booked day, from the Playtomic feed
 PEAK = range(17, 22)              # 17:00-21:59, the five hours league games compete for
-DAY = range(10, 16)               # 10:00-15:59, the quiet middle of the day
 PEAK_CAP = COURTS * len(PEAK) * 7          # 105 court-hours of peak a week
-DAY_CAP = COURTS * len(DAY) * 7            # 126 court-hours of daytime a week
+
+# The windows a member can realistically book, because "free court-hours" on its own
+# flatters the picture badly: most of the empty time is weekday working hours.
+# (name, weekdays, hours, counts_as_usable) - Richie, 13 Sep 2026: "during the week,
+# daytime is tricky because people work. So the only real options there are, like, very
+# early morning. We'll try and make a four or five o'clock slot. And let's see if people
+# start finding weekend time."
+WINDOWS = [
+    ("weekday early    07:00-09:00", range(0, 5), range(7, 9), True),
+    ("weekday shoulder 16:00-17:00", range(0, 5), range(16, 17), True),
+    ("weekday peak     17:00-22:00", range(0, 5), range(17, 22), True),
+    # Sat and Sun are split: lumping them hid that Saturday evening is the emptiest
+    # block in the week while Sunday daytime is the fullest (Richie, 13 Sep 2026).
+    ("Saturday daytime 08:00-18:00", range(5, 6), range(8, 18), True),
+    ("Saturday evening 18:00-22:00", range(5, 6), range(18, 22), True),
+    ("Sunday daytime   08:00-18:00", range(6, 7), range(8, 18), True),
+    ("Sunday evening   18:00-22:00", range(6, 7), range(18, 22), True),
+    ("weekday midday   09:00-16:00", range(0, 5), range(9, 16), False),
+]
 CYCLE_END = "2026-10-11"          # cycle 1 deadline (BOX_CYCLES in src/lib/boxCalendar.ts)
 
 
@@ -118,30 +135,64 @@ def report(weeks_ahead=4, weeks_back=3, data=None):
     weeks_left = max(days_left / 7, 0.15)
     per_week = left / weeks_left
 
-    # Slot length and the share of league games that want a peak slot, measured not assumed.
+    # Slot length measured, not assumed.
     lg = [(s, e) for s, e, is_lg in bookings if is_lg]
     avg_h = (sum((e - s).total_seconds() for s, e in lg) / len(lg) / 3600) if lg else 1.5
-    peak_share = (sum(1 for s, _ in lg if s.hour in PEAK) / len(lg)) if lg else 0.66
 
-    need_h = per_week * avg_h
-    need_peak = need_h * peak_share
-    usual_other = sorted(settled)[len(settled) // 2] if settled else 0.0   # median of the filled weeks
-    likely_free = PEAK_CAP - usual_other
-    score = likely_free / need_peak if need_peak else 99
+    # Free time per window, averaged over the weeks that have already filled. A future
+    # week's emptiness is a booking lag, not capacity, so it is never counted here.
+    filled = [this_mon + timedelta(weeks=w) for w in range(-weeks_back, 1)]
+    L += ["", f"  USABLE WINDOWS - court-hours a week, averaged over the {len(filled)} weeks that have filled",
+          f"    {'window':29}{'cap':>5}{'league':>8}{'other':>7}{'free':>7}  used"]
+    usable_free = midday_free = 0.0
+    ranked = []
+    for name, wds, hours, usable in WINDOWS:
+        tot_l = tot_o = tot_c = 0.0
+        for mon in filled:
+            cap = COURTS * len(list(hours)) * len(list(wds))
+            l_h = o_h = 0.0
+            for i in range(7):
+                d = mon + timedelta(days=i)
+                if d.weekday() not in wds:
+                    continue
+                for st, en, is_lg in bookings:
+                    h = _hours(st, en, hours, d)
+                    if h:
+                        if is_lg:
+                            l_h += h
+                        else:
+                            o_h += h
+            tot_l += l_h; tot_o += o_h; tot_c += cap
+        n = len(filled)
+        l_h, o_h, cap = tot_l / n, tot_o / n, tot_c / n
+        free = cap - l_h - o_h
+        if usable:
+            usable_free += free
+        else:
+            midday_free += free
+        L.append(f"    {name:29}{cap:5.0f}{l_h:8.1f}{o_h:7.1f}{free:7.1f}  {(l_h + o_h) / cap * 100:3.0f}%"
+                 + ("" if usable else "   <- work hours for most members"))
+        if usable:
+            ranked.append((free, name))
 
-    day_league, day_other = week_split(this_mon, DAY)
-    day_free = DAY_CAP - day_league - day_other
-
+    can_hold = usable_free / avg_h
+    score = can_hold / per_week if per_week else 99
     verdict = ("comfortable" if score >= 1.5 else "workable but tight" if score >= 1.0 else
-               "short - peak alone will not hold it")
+               f"short by about {per_week - can_hold:.0f} games a week")
+    ranked.sort(reverse=True)
+    L += ["", "  WHERE TO POINT TEAMS - the usable windows with the most time genuinely free"]
+    for i, (free, name) in enumerate(ranked[:3], 1):
+        L.append(f"    {i}. {name.strip():28} {free:4.1f} free court-h a week = about {free / avg_h:.0f} games")
+    L.append("    A week that is still 5-6 days out looks far emptier on Playtomic than it will be -"
+             " members book late. Every figure above uses only weeks that have already filled.")
+
     L += ["",
           f"  ROOM FOR LEAGUE GAMES - {left} box fixtures unplayed, {days_left} days to the {CYCLE_END} deadline",
-          f"    needed      {per_week:.0f} games a week = {need_h:.0f} court-h, about {need_peak:.0f}h of it at peak "
-          f"(league games run {avg_h * 60:.0f} min and {peak_share * 100:.0f}% start after 17:00)",
-          f"    likely free {likely_free:.0f}h at peak, once the usual {usual_other:.0f}h of non-league demand lands",
+          f"    needed      {per_week:.0f} games a week, at the measured {avg_h * 60:.0f} min a game",
+          f"    available   {can_hold:.0f} games a week in the usable windows ({usable_free:.0f} free court-hours)",
           f"    score       {score:.2f} - {verdict}",
-          f"    daytime     10:00-16:00 this week is {(day_league + day_other) / DAY_CAP * 100:.0f}% used - "
-          f"{day_free:.0f} of {DAY_CAP} court-hours free, where any overflow has to go"]
+          f"    spare       another {midday_free / avg_h:.0f} games a week sit in weekday 09:00-16:00, "
+          f"open only to members who are off, retired or working from home"]
     return L
 
 
