@@ -183,7 +183,10 @@ def main():
         import court_capacity
         cap_data = court_capacity.gather()          # one Playtomic call for report and chart
         L += [""] + court_capacity.report(data=cap_data)
-        cap_chart = court_capacity.chart_html(data=cap_data) + '<div style="height:16px"></div>'
+        cap_chart = (court_capacity.chart_html(data=cap_data)
+                     + '<div style="height:16px"></div>'
+                     + court_capacity.occupancy_chart_html(data=cap_data)
+                     + '<div style="height:16px"></div>')
     except Exception as exc:
         L += ["", f"COURT CAPACITY: not available this run ({type(exc).__name__})"]
     L += ["", f"Portal: {SITE}/admin/usage", "— W7 league site"]

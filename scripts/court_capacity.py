@@ -39,6 +39,7 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 IE = ZoneInfo("Europe/Dublin")
 COURTS = 3
+OPEN_H, CLOSE_H = 7, 22                    # the club's booked day, from the Playtomic feed
 PEAK = range(17, 22)                       # 17:00-21:59, the hours league games compete for
 PEAK_CAP = COURTS * len(PEAK) * 7          # 105 court-hours of peak a week
 CYCLE_END = "2026-10-11"                   # cycle 1 deadline (BOX_CYCLES in boxCalendar.ts)
@@ -65,6 +66,14 @@ C_TEXT, C_MUTE, C_CARD, C_BORDER = "#182430", "#68767f", "#f6f8f9", "#e2e7ea"
 C_TRACK = "#dfe5e9"                        # the unfilled part of a bar
 C_ACCENT, C_INFO = "#7f9a1e", "#1a4a6e"    # scheduled (lime dark), available (navy)
 C_NEED, C_RED, C_GREEN = "#b8b8b8", "#b3402e", "#2e7d32"
+
+
+def is_peak(dt):
+    """Peak is time a working member can actually play: weekday evenings from 17:00, and the
+    whole weekend. Richie, 13 Sep 2026: "call all of weekend peak availability - people
+    aren't in work." Same rule as isPeak() in src/lib/slots.ts, so the email and the site
+    never disagree about what peak means."""
+    return dt.weekday() >= 5 or dt.hour >= 17
 
 
 def _loc(ts):
@@ -292,6 +301,93 @@ def chart_html(weeks_ahead=4, weeks_back=4, data=None):
         '"Available" is room outside weekday working hours, after the non-league bookings a '
         'normal week brings - not the empty space a future week shows today.</div>'
         f'{"".join(blocks)}</div>')
+
+
+def occupancy_chart_html(weeks_ahead=4, weeks_back=4, data=None, back_days=7, fwd_days=14):
+    """Overall occupancy day by day, last week and forward (Richie, 13 Sep 2026: "a proper
+    chart of overall bookings and occupancy for last week and forward by day, showing peak %,
+    off peak %, total %, and how that's filling up").
+
+    Forward days are always lighter than they will end up - members book a few days out - so
+    every future day is marked, and the fill you see there is a floor, not a forecast."""
+    bookings, _ = data or gather(weeks_ahead, weeks_back)
+    today = datetime.now(IE).date()
+    peak_h = [h for h in range(OPEN_H, CLOSE_H) if h >= 17]
+    off_h = [h for h in range(OPEN_H, CLOSE_H) if h < 17]
+
+    rows = []
+    for i in range(-back_days, fwd_days + 1):
+        d = today + timedelta(days=i)
+        weekend = d.weekday() >= 5
+        # On a weekend every open hour is peak, so there is no off-peak capacity at all.
+        pk_hours = list(range(OPEN_H, CLOSE_H)) if weekend else peak_h
+        of_hours = [] if weekend else off_h
+        used_pk = used_of = 0.0
+        for st, en, _ in bookings:
+            used_pk += _hours(st, en, pk_hours, d)
+            used_of += _hours(st, en, of_hours, d)
+        cap_pk = COURTS * len(pk_hours)
+        cap_of = COURTS * len(of_hours)
+        rows.append({
+            "date": d,
+            "future": d > today,
+            "today": d == today,
+            "peak": used_pk / cap_pk * 100 if cap_pk else None,
+            "off": used_of / cap_of * 100 if cap_of else None,
+            "total": (used_pk + used_of) / (cap_pk + cap_of) * 100,
+        })
+
+    def bar(pct, colour, width_px=118):
+        w = max(min(pct or 0, 100), 0)
+        return (
+            f'<table role="presentation" cellpadding="0" cellspacing="0" style="width:{width_px}px;'
+            f'border-collapse:collapse;display:inline-table;vertical-align:middle"><tr>'
+            f'<td style="width:{w:.1f}%;background:{colour};height:10px;line-height:10px;font-size:0">&nbsp;</td>'
+            f'<td style="width:{100 - w:.1f}%;background:{C_TRACK};height:10px;line-height:10px;font-size:0">&nbsp;</td>'
+            f'</tr></table>')
+
+    body = []
+    for r in rows:
+        pct = lambda v: "&mdash;" if v is None else f"{v:.0f}%"   # noqa: E731
+        label = f'{r["date"]:%a %d %b}'
+        weight = 700 if r["today"] else 400
+        colour = C_MUTE if r["future"] else C_TEXT
+        body.append(
+            f'<tr style="opacity:{"0.75" if r["future"] else "1"}">'
+            f'<td style="padding:2px 8px 2px 0;font:{weight} 11px -apple-system,Segoe UI,sans-serif;'
+            f'color:{colour};white-space:nowrap">{label}{" ·" if r["today"] else ""}</td>'
+            f'<td style="padding:2px 6px 2px 0">{bar(r["peak"], C_ACCENT)}</td>'
+            f'<td style="padding:2px 10px 2px 0;font:600 11px ui-monospace,Menlo,monospace;color:{C_TEXT};'
+            f'text-align:right;width:34px">{pct(r["peak"])}</td>'
+            f'<td style="padding:2px 6px 2px 0">{bar(r["off"], C_INFO)}</td>'
+            f'<td style="padding:2px 10px 2px 0;font:600 11px ui-monospace,Menlo,monospace;color:{C_MUTE};'
+            f'text-align:right;width:34px">{pct(r["off"])}</td>'
+            f'<td style="padding:2px 0;font:700 11px ui-monospace,Menlo,monospace;color:{C_TEXT};'
+            f'text-align:right;width:34px">{pct(r["total"])}</td>'
+            f'</tr>')
+
+    done = [r for r in rows if not r["future"]]
+    avg_pk = sum(r["peak"] for r in done if r["peak"] is not None) / max(len([r for r in done if r["peak"] is not None]), 1)
+    avg_of = sum(r["off"] for r in done if r["off"] is not None) / max(len([r for r in done if r["off"] is not None]), 1)
+
+    return (
+        f'<div style="background:{C_CARD};border:1px solid {C_BORDER};border-radius:8px;padding:14px 16px">'
+        f'<div style="font:700 13px -apple-system,Segoe UI,sans-serif;color:{C_ACCENT};'
+        'letter-spacing:.04em;margin:0 0 4px">COURT OCCUPANCY BY DAY</div>'
+        f'<div style="font:11px -apple-system,Segoe UI,sans-serif;color:{C_MUTE};margin:0 0 10px">'
+        f'Last {back_days} days and the next {fwd_days}. Peak is weekday evenings from 17:00 and all '
+        f'weekend; off-peak is weekday daytime, so a weekend has no off-peak hours. Days gone by ran '
+        f'{avg_pk:.0f}% at peak and {avg_of:.0f}% off-peak. Future days are still filling - what you '
+        'see there is a floor, not a forecast.</div>'
+        '<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse">'
+        f'<tr><td></td>'
+        f'<td colspan="2" style="font:700 9.5px -apple-system,Segoe UI,sans-serif;color:{C_ACCENT};'
+        'letter-spacing:.08em;padding:0 6px 5px 0">PEAK</td>'
+        f'<td colspan="2" style="font:700 9.5px -apple-system,Segoe UI,sans-serif;color:{C_INFO};'
+        'letter-spacing:.08em;padding:0 6px 5px 0">OFF-PEAK</td>'
+        f'<td style="font:700 9.5px -apple-system,Segoe UI,sans-serif;color:{C_MUTE};'
+        'letter-spacing:.08em;padding:0 0 5px;text-align:right">ALL</td></tr>'
+        f'{"".join(body)}</table></div>')
 
 
 if __name__ == "__main__":
