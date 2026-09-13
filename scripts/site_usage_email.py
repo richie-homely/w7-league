@@ -24,7 +24,9 @@ W7 = os.path.join(os.path.dirname(ROOT), "w7-padel")
 sys.path.insert(0, os.path.join(W7, "scripts"))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 DUBLIN = ZoneInfo("Europe/Dublin")
-TO = ["richiecarroll65@gmail.com"]
+# Richie, 13 Sep 2026: "add david to recipients" (he asked for this on 9 Sep too —
+# "copy Dave on these going forward").
+TO = ["richiecarroll65@gmail.com", "davidmhennebry7@gmail.com"]
 SITE = "https://league.w7padel.com"
 
 def load_env(path):

@@ -177,7 +177,10 @@ def detect(days=14):
     from datetime import timezone as _tz
     # Half-hour steps, not hourly: courts go out at :00 and :30, so an hourly grid would
     # call 17:00 fully booked when the only game starts at 17:30 and 17:00-17:30 is free.
-    SLOT_DAYS, OPEN_H, CLOSE_H, STEP = 21, 7, 22, 30
+    # Seven days back as well as forward: the occupancy chart on the usage page needs the
+    # week just gone to show what a filled week actually looks like beside the forward days,
+    # which are always lighter because members book late (Richie, 13 Sep 2026).
+    SLOT_BACK_DAYS, SLOT_DAYS, OPEN_H, CLOSE_H, STEP = 7, 21, 7, 22, 30
     busy = {}
     for b in all_bookings:
         if b.get("is_canceled"):
@@ -190,8 +193,8 @@ def detect(days=14):
             cur += timedelta(minutes=STEP)
     slots = []
     now_utc = datetime.now(_tz.utc)
-    t = now_utc.replace(minute=(now_utc.minute // STEP) * STEP, second=0, microsecond=0)
-    stop = t + timedelta(days=SLOT_DAYS)
+    t = (now_utc - timedelta(days=SLOT_BACK_DAYS)).replace(hour=0, minute=0, second=0, microsecond=0)
+    stop = now_utc.replace(minute=0, second=0, microsecond=0) + timedelta(days=SLOT_DAYS)
     while t < stop:
         local_h = t.astimezone(ZoneInfo("Europe/Dublin")).hour
         if OPEN_H <= local_h < CLOSE_H:

@@ -8,6 +8,7 @@ import { useBoxData } from "@/lib/box";
 import { BoxProgress } from "./BoxProgress";
 import { Collapsible } from "./Collapsible";
 import { CourtAvailability } from "./CourtAvailability";
+import { OccupancyChart } from "./OccupancyChart";
 import { LeagueHeatmap } from "./LeagueHeatmap";
 import { SubsTable } from "./SubsTable";
 import { ResultsAudit } from "./ResultsAudit";
@@ -96,6 +97,9 @@ export function UsagePortal() {
     { key: "courts", chip: "Courts free", title: "COURTS FREE TO BOOK", openByDefault: true,
       note: "games needed vs booked vs the hours actually free",
       node: <CourtAvailability matches={boxMatches} bare /> },
+    { key: "occupancy", chip: "Occupancy", title: "COURT OCCUPANCY BY DAY", openByDefault: true,
+      note: "last week and forward — peak, off-peak and overall",
+      node: <OccupancyChart /> },
     { key: "audit", chip: "No result yet", title: "PLAYED, NO RESULT YET", openByDefault: true,
       note: "fixtures booked 3h+ ago with no score entered",
       node: <ResultsAudit teams={boxTeams} matches={boxMatches} bare /> },
