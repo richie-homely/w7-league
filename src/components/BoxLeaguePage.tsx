@@ -312,7 +312,15 @@ export function BoxLeaguePage() {
           >
             <BoxGrid focusBox={focusBox} onPick={(b) => { setFocusBox(b); if (b === null) setFocusMatch(null); }} />
           </Collapsible>
-          <UpcomingFixtures compact showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
+          <Collapsible
+            id="fixtures"
+            title="UPCOMING LEAGUE FIXTURES"
+            storageKey="box-fixtures"
+            defaultOpen
+            note="courts booked on Playtomic · next 14 days · updated hourly"
+          >
+            <UpcomingFixtures compact bare showSummer={false} boxByKey={new Map(matches.map((m) => [m.id, m.box]))} />
+          </Collapsible>
           <AwaitingScores matches={matches} teams={teams} />
           <RecentBoxResults matches={matches} teams={teams} />
           <BoxProgress matches={matches} teams={teams} />

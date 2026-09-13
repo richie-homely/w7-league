@@ -65,6 +65,7 @@ export function UpcomingLeagueFixtures() {
 
 export function UpcomingFixtures({
   compact = false,
+  bare = false,
   boxByKey,
   limit,
   tieLabel,
@@ -74,6 +75,8 @@ export function UpcomingFixtures({
 }: {
   /** smaller heading, for the top of the box league page */
   compact?: boolean;
+  /** hide the internal heading: a collapsible wrapper supplies it */
+  bare?: boolean;
   /** box_matches.id -> box number, so a box fixture can be labelled "Box 7" */
   boxByKey?: Map<string, number>;
   limit?: number;
@@ -114,14 +117,16 @@ export function UpcomingFixtures({
 
   return (
     <section id="fixtures" style={{ marginTop: compact ? 22 : 36, scrollMarginTop: 60 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-        <div style={{ fontFamily: F.display, fontSize: compact ? 22 : 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>
-          Upcoming <span style={{ color: C.accent }}>league fixtures</span>
+      {!bare && (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ fontFamily: F.display, fontSize: compact ? 22 : 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>
+            Upcoming <span style={{ color: C.accent }}>league fixtures</span>
+          </div>
+          <div style={{ fontSize: 12, color: C.mute }}>
+            courts booked on Playtomic · next 14 days · updated hourly
+          </div>
         </div>
-        <div style={{ fontSize: 12, color: C.mute }}>
-          courts booked on Playtomic · next 14 days · updated hourly
-        </div>
-      </div>
+      )}
 
       {!loaded ? (
         <div style={{ fontSize: 13, color: C.mute, marginTop: 10 }}>Loading…</div>
