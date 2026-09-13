@@ -8,8 +8,31 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "./supabase/client";
 import { track } from "./track";
 import type { SetScore } from "./types";
+import { resultMissing, type LeagueBooking } from "./bookings";
 
 export type BoxMatchStatus = "pending" | "submitted" | "confirmed" | "disputed";
+
+/** Fixtures Playtomic shows as played with no score entered, and the teams who owe one.
+ *  Richie, 13 Sep 2026: "surface a little more visibly on the league home page and the box
+ *  league page ... recent games that haven't yet got a result, just to remind those players.
+ *  And then maybe if that flags up beside that particular team that they need to submit."
+ *  The test box (99) never counts. */
+export function scoresDue(
+  matches: BoxMatch[],
+  byKey: Map<string, LeagueBooking>,
+  nowMs: number
+): { late: { match: BoxMatch; booking: LeagueBooking }[]; teamIds: Set<string> } {
+  const late = matches
+    .filter((m) => m.status === "pending" && m.box < 90 && resultMissing(byKey.get(m.id), nowMs))
+    .map((m) => ({ match: m, booking: byKey.get(m.id)! }))
+    .sort((a, b) => (a.booking.startsAt < b.booking.startsAt ? -1 : 1));
+  const teamIds = new Set<string>();
+  for (const { match } of late) {
+    teamIds.add(match.team1Id);
+    teamIds.add(match.team2Id);
+  }
+  return { late, teamIds };
+}
 
 export interface BoxTeam {
   id: string;

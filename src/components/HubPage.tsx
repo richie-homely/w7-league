@@ -13,7 +13,7 @@ import {
 import { InterestForm } from "./InterestForm";
 import { KnockoutSpotlight } from "./KnockoutSpotlight";
 import { UpcomingLeagueFixtures } from "./UpcomingFixtures";
-import { RecentLeagueResults } from "./RecentResults";
+import { HubScoresDueBanner, RecentLeagueResults } from "./RecentResults";
 import { SponsorCta } from "./Sponsor";
 import { SiteNav } from "./SiteNav";
 import { SocialsSection } from "./SocialsSection";
@@ -250,6 +250,11 @@ export function HubPage() {
       </div>
 
       <div style={{ maxWidth: 1100, margin: "0 auto", padding: "8px 20px" }}>
+        {/* Games played with no score yet, above everything else (Richie, 13 Sep 2026) —
+            it is a nudge to the two teams involved, so it has to be seen, and it renders
+            nothing at all when every played fixture has its score in. */}
+        <HubScoresDueBanner />
+
         {/* The knockouts lead the page — they are what the season is for. */}
         <KnockoutSpotlight />
 

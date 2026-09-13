@@ -11,7 +11,7 @@ import { useBoxData } from "@/lib/box";
 import { BoxLeagueLive } from "./BoxLeagueLive";
 import { BoxCalendar } from "./BoxCalendar";
 import { UpcomingFixtures } from "./UpcomingFixtures";
-import { AwaitingScores, RecentBoxResults } from "./RecentResults";
+import { AwaitingScores, RecentBoxResults, ScoresDueBanner } from "./RecentResults";
 import { BoxProgress } from "./BoxProgress";
 import Link from "next/link";
 import { SiteNav } from "./SiteNav";
@@ -296,6 +296,7 @@ export function BoxLeaguePage() {
           </p>
         </div>
         <div style={{ marginTop: 30 }}>
+          <ScoresDueBanner matches={matches} teams={teams} />
           <SponsorBanner slot={BOX_LEAGUE_SPONSOR} />
           <div
             style={{

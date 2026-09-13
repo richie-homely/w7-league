@@ -5,9 +5,9 @@ import { C, F } from "@/theme/tokens";
 import { formatScore } from "@/lib/scoring";
 import { KNOCKOUT_RESULTS } from "@/lib/bracket";
 import { useLeagueData } from "@/lib/useLeagueData";
-import { useBoxData, type BoxMatch, type BoxTeam } from "@/lib/box";
+import { scoresDue, useBoxData, type BoxMatch, type BoxTeam } from "@/lib/box";
 import { useState } from "react";
-import { fmtBooking, resultMissing, useLeagueBookings } from "@/lib/bookings";
+import { fmtBooking, useLeagueBookings } from "@/lib/bookings";
 
 // Recent results (Richie, 9 Sep 2026): the latest confirmed box-league results and the
 // latest summer knockout results, newest first. On the hub both lists are merged; on the
@@ -71,16 +71,80 @@ function ResultsList({ rows, empty }: { rows: Row[]; empty: string }) {
   );
 }
 
+/** Scores due (Richie, 13 Sep 2026): "surface a little more visibly on the league home page
+ *  and the box league page ... just to remind those players." A short amber strip that sits
+ *  high on both pages, rather than a section buried under the boxes. Renders nothing when
+ *  every played fixture has its score in, so a clean week shows no scolding banner. */
+export function ScoresDueBanner({ matches, teams }: { matches: BoxMatch[]; teams: BoxTeam[] }) {
+  const { byKey, loaded } = useLeagueBookings();
+  const [nowMs] = useState(() => Date.now());
+  const teamsById = Object.fromEntries(teams.map((t) => [t.id, t]));
+  const { late } = scoresDue(matches, byKey, nowMs);
+  if (!loaded || late.length === 0) return null;
+  const shown = late.slice(0, 3);
+  return (
+    <section
+      style={{
+        background: C.card, border: `1px solid ${C.amber}66`, borderLeft: `4px solid ${C.amber}`,
+        borderRadius: 10, padding: "12px 16px", margin: "0 0 20px",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+        <div style={{ fontFamily: F.display, fontSize: 17, letterSpacing: "0.02em", textTransform: "uppercase", color: C.amber }}>
+          {late.length} game{late.length === 1 ? "" : "s"} played, no score yet
+        </div>
+        <div style={{ fontSize: 12, color: C.mute }}>either team can enter it — it takes half a minute</div>
+      </div>
+      <div style={{ marginTop: 8 }}>
+        {shown.map(({ match, booking }) => {
+          const t1 = teamsById[match.team1Id], t2 = teamsById[match.team2Id];
+          return (
+            <div
+              key={match.id}
+              style={{
+                display: "flex", gap: 10, alignItems: "baseline", flexWrap: "wrap",
+                padding: "6px 0", borderTop: `1px solid ${C.border}`,
+              }}
+            >
+              <span style={{ fontFamily: F.mono, fontSize: 11.5, color: C.amber, minWidth: 132 }}>
+                {fmtBooking(booking.startsAt)}
+              </span>
+              <span style={{ fontFamily: F.mono, fontSize: 11, color: C.mute, minWidth: 46 }}>BOX {match.box}</span>
+              <span style={{ fontSize: 13, flex: "1 1 220px", overflowWrap: "anywhere" }}>
+                <b>{t1?.name ?? "?"}</b> <span style={{ color: C.mute }}>v</span> <b>{t2?.name ?? "?"}</b>
+              </span>
+              <Link href={`/box?match=${match.id}`} style={{ fontSize: 12, fontWeight: 700, color: C.amber, textDecoration: "none", whiteSpace: "nowrap" }}>
+                Enter the result →
+              </Link>
+            </div>
+          );
+        })}
+        {late.length > shown.length && (
+          <div style={{ paddingTop: 7, borderTop: `1px solid ${C.border}`, fontSize: 12 }}>
+            <Link href="/box#awaiting" style={{ color: C.amber, fontWeight: 700, textDecoration: "none" }}>
+              and {late.length - shown.length} more →
+            </Link>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+/** The same reminder on the hub, which has no box data of its own. */
+export function HubScoresDueBanner() {
+  const { teams, matches } = useBoxData();
+  return <ScoresDueBanner matches={matches} teams={teams} />;
+}
+
 /** Box league page (Richie, 11 Sep 2026): fixtures Playtomic shows as played, with no score
- *  entered yet — flagged so the teams (and everyone else) can see the gap. */
+ *  entered yet — the full list, under the boxes. The banner above is the nudge; this is the
+ *  detail it points at. */
 export function AwaitingScores({ matches, teams }: { matches: BoxMatch[]; teams: BoxTeam[] }) {
   const { byKey, loaded } = useLeagueBookings();
   const [nowMs] = useState(() => Date.now());
   const teamsById = Object.fromEntries(teams.map((t) => [t.id, t]));
-  const late = matches
-    .filter((m) => m.status === "pending" && m.box < 90 && resultMissing(byKey.get(m.id), nowMs))
-    .map((m) => ({ m, b: byKey.get(m.id)! }))
-    .sort((a, b) => (a.b.startsAt < b.b.startsAt ? -1 : 1));
+  const late = scoresDue(matches, byKey, nowMs).late.map(({ match, booking }) => ({ m: match, b: booking }));
   if (!loaded || late.length === 0) return null;
   return (
     <section id="awaiting" style={{ marginTop: 22, scrollMarginTop: 60 }}>

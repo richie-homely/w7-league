@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { formatScore, parseSets, setsWon } from "@/lib/scoring";
-import { addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail, logBoxSub, useBoxSubs, type BoxSub } from "@/lib/box";
+import { scoresDue, addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail, logBoxSub, useBoxSubs, type BoxSub } from "@/lib/box";
 import { track } from "@/lib/track";
 import { fmtBooking, resultBooking, resultMissing, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 import {
@@ -551,6 +551,11 @@ function BoxSection({
   const [openState, setOpen] = useState<boolean | null>(null);
   const open = openState ?? defaultOpen;
   const standings = useMemo(() => computeBoxStandings(teams, matches), [teams, matches]);
+  // Teams with a game Playtomic shows as played and no score in yet (Richie, 13 Sep 2026:
+  // "maybe if that flags up beside that particular team that they need to submit"). Snapshot
+  // "now" so the render stays pure, same as the match rows above.
+  const [dueNow] = useState(() => Date.now());
+  const scoreDue = useMemo(() => scoresDue(matches, bookings, dueNow).teamIds, [matches, bookings, dueNow]);
   const teamsById = useMemo(() => Object.fromEntries(teams.map((t) => [t.id, t])), [teams]);
   const played = matches.filter((m) => m.status === "confirmed").length;
 
@@ -605,6 +610,18 @@ function BoxSection({
                 <td style={{ padding: "7px 8px 7px 0", fontFamily: F.mono, color: C.mute }}>{r.rank}</td>
                 <td style={{ padding: "7px 8px 7px 0", fontWeight: 600 }}>
                   {r.team.name}
+                  {scoreDue.has(r.teamId) && (
+                    <span
+                      title="This team played a game with no score entered yet"
+                      style={{
+                        marginLeft: 7, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.06em",
+                        color: C.amber, background: `${C.amber}1f`, border: `1px solid ${C.amber}66`,
+                        borderRadius: 3, padding: "1px 5px", whiteSpace: "nowrap",
+                      }}
+                    >
+                      SCORE DUE
+                    </span>
+                  )}
                   {needsEmail.has(r.teamId) && (
                     <div style={{ fontSize: 11, fontWeight: 500, color: C.red, marginTop: 2 }}>
                       No usable email registered &mdash; email welcome@w7padel.com with your name and email and we&apos;ll update it.
