@@ -201,13 +201,41 @@ def detect(days=14):
             slots.append({"slot_at": t.isoformat(), "free": max(3 - len(busy.get(t, ())), 0)})
         t += timedelta(minutes=STEP)
 
+    # Booking lead time (Richie, 13 Sep 2026): Playtomic's feed has no created-at, so the
+    # first hour we ever see a booking id is our best proxy for when it was made. The ledger
+    # lives beside the repo so it survives runs; rows are pushed to booking_leadtime.
+    SEEN = os.path.join(ROOT, "data", "booking_seen.json")
+    try:
+        ledger = json.load(io.open(SEEN, encoding="utf-8"))
+    except Exception:
+        ledger = {}
+    now_iso = datetime.now(_tz.utc).isoformat(timespec="seconds")
+    league_keys = {(h["starts_at"], h["court"]) for h in box_hits + summer_hits}
+    leadtime = []
+    for b in all_bookings:
+        bid = b.get("booking_id")
+        if not bid or b.get("is_canceled"):
+            continue
+        first = ledger.setdefault(bid, now_iso)
+        st = b["booking_start_date"]
+        leadtime.append({"booking_id": bid, "booked_at": first,
+                         "starts_at": datetime.fromisoformat(st).replace(tzinfo=_tz.utc).isoformat(),
+                         "court": b.get("resource_name") or "",
+                         "is_league": (st, b.get("resource_name")) in league_keys,
+                         "source": "detector"})
+    # Forget bookings whose game is long past, so the ledger cannot grow without limit.
+    cutoff = (datetime.now(_tz.utc) - timedelta(days=200)).isoformat()
+    ledger = {k: v for k, v in ledger.items() if v >= cutoff}
+    os.makedirs(os.path.dirname(SEEN), exist_ok=True)
+    json.dump(ledger, io.open(SEEN, "w", encoding="utf-8"), indent=0)
+
     box_hits.sort(key=lambda x: x["when"]); summer_hits.sort(key=lambda x: x["when"])
     pending = sum(1 for m in matches if m["status"] == "pending")
     today_iso = datetime.now().strftime("%Y-%m-%d %H:%M")
     # only a FUTURE booking counts as "has a court"; a past booking against a still-pending
     # fixture is a game played before the league (or one never entered), not a plan
     booked_pending = sum(1 for h in box_hits if h["status"] == "pending" and h["when"] >= today_iso)
-    res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits, "slots": slots,
+    res = {"read_at": datetime.now().isoformat(timespec="minutes"), "days": days, "box": box_hits, "summer": summer_hits, "slots": slots, "leadtime": leadtime,
            "box_pending": pending, "box_pending_booked": booked_pending}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(res, open(OUT, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
@@ -270,6 +298,16 @@ def push(res):
         except urllib.error.HTTPError as e:
             # court_slots_13Sep2026.sql not run yet — the fixtures still pushed, so do not fail
             print(f"court_slots_set skipped: HTTP {e.code} {e.read().decode(errors='replace')[:160]}")
+
+    if res.get("leadtime"):
+        req3 = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/booking_leadtime_set",
+                                      data=json.dumps({"p_key": key, "p_rows": res["leadtime"]}).encode(),
+                                      headers=H, method="POST")
+        try:
+            print("pushed leadtime:", json.load(urllib.request.urlopen(req3, timeout=90)))
+        except urllib.error.HTTPError as e:
+            # booking_leadtime_13Sep2026.sql not run yet — everything else still pushed
+            print(f"booking_leadtime_set skipped: HTTP {e.code} {e.read().decode(errors='replace')[:160]}")
     return out
 
 if __name__ == "__main__":
