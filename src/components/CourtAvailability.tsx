@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { C, F } from "@/theme/tokens";
 import { useLeagueBookings } from "@/lib/bookings";
-import { freeRuns, useCourtSlots, type CourtSlot } from "@/lib/slots";
+import { bookableHours, freeRuns, MIN_GAME_MINUTES, useCourtSlots, type CourtSlot } from "@/lib/slots";
 import { currentCycle } from "@/lib/boxCalendar";
 import type { BoxMatch } from "@/lib/box";
 
@@ -36,7 +36,7 @@ function weekLabel(mon: Date): string {
 export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch[];
   /** hide the internal heading: the collapsible wrapper on the usage page supplies it */
   bare?: boolean }) {
-  const { slots, ready } = useCourtSlots();
+  const { slots, ready, exact } = useCourtSlots();
   const { bookings } = useLeagueBookings();
   const [pick, setPick] = useState(1);          // 0 = this week, 1 = next week
   const [open, setOpen] = useState(false);
@@ -74,12 +74,13 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
 
   const days = useMemo(() => {
     if (!week) return [];
-    const out: { day: Date; runs: ReturnType<typeof freeRuns> }[] = [];
+    const out: { day: Date; runs: ReturnType<typeof freeRuns>; hours: { peak: number; off: number } }[] = [];
     for (let i = 0; i < 7; i++) {
       const day = new Date(week.mon.getTime() + i * DAY_MS);
       if (day.getTime() + DAY_MS < nowMs) continue;        // a day already gone
+      // Only windows a game can use: an hour or more on one court (Richie, 13 Sep 2026).
       const runs = freeRuns(slots as CourtSlot[], day);
-      if (runs.length) out.push({ day, runs });
+      if (runs.length) out.push({ day, runs, hours: bookableHours(slots as CourtSlot[], day) });
     }
     return out;
   }, [slots, week, nowMs]);
@@ -87,13 +88,10 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
   if (!ready || !week) return null;
 
   const toGo = Math.max(week.need - week.booked, 0);
-  const hoursOf = (peakOnly: boolean | null) =>
-    days.reduce((n, d) => n + d.runs.reduce(
-      (m, r) => m + (peakOnly === null || r.peak === peakOnly
-        ? (r.to.getTime() - r.from.getTime()) / 3600000 : 0), 0), 0);
-  const freeHours = hoursOf(null);
-  const peakHours = hoursOf(true);
-  const offHours = hoursOf(false);
+  // Bookable court-hours, not clock time: two courts free for an hour is two court-hours.
+  const peakHours = days.reduce((n, d) => n + d.hours.peak, 0);
+  const offHours = days.reduce((n, d) => n + d.hours.off, 0);
+  const freeHours = peakHours + offHours;
   // Filtered view: drop blocks outside the chosen band, then days left with nothing.
   const shownDays = days
     .map((d) => ({ ...d, runs: d.runs.filter((r) => band === "all" || (band === "peak") === r.peak) }))
@@ -146,7 +144,7 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
                 {tile(String(toGo), "left to book", toGo > 0 ? C.amber : C.green)}
               </>
             )}
-          {tile(`${freeHours}h`, "court time free", C.info)}
+          {tile(`${freeHours}h`, "bookable court-hours", C.info)}
           {tile(`${peakHours}h`, "of it at peak", peakHours > 0 ? C.amber : C.mute)}
         </div>
 
@@ -206,7 +204,7 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
                     return (
                     <span
                       key={r.from.toISOString()}
-                      title={`${r.courts} court${r.courts === 1 ? "" : "s"} free · ${r.peak ? "peak" : "off-peak"}`}
+                      title={`up to ${r.courts} court${r.courts === 1 ? "" : "s"} free at once · ${r.peak ? "peak" : "off-peak"}`}
                       style={{
                         fontFamily: F.mono, fontSize: 11.5, padding: "3px 7px", borderRadius: 4,
                         background: `${hue}1a`, border: `1px solid ${hue}44`, color: hue,
@@ -222,7 +220,9 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
               </div>
             ))}
             <div style={{ fontSize: 11.5, color: C.mute, marginTop: 10 }}>
-              Each block is a stretch with a court free; the number after the dot is how many of the three.
+              Each block is a window with at least one court free for {MIN_GAME_MINUTES} minutes or more, so a game can
+              actually be booked in it; the number after the dot is the most courts free at once.
+              {!exact && " Figures are approximate until the latest court-slot update is applied."}
               <span style={{ color: C.amber }}> Amber is peak</span>,<span style={{ color: C.info }}> blue is off-peak</span>.
               Updated hourly from Playtomic, so book on Playtomic to claim one.
             </div>

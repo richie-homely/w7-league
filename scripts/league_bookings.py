@@ -191,15 +191,43 @@ def detect(days=14):
         while cur < en:
             busy.setdefault(cur, set()).add(b.get("resource_name") or "?")
             cur += timedelta(minutes=STEP)
-    slots = []
+    COURTS = ["Padel 1", "Padel 2", "Padel 3"]
+    MIN_GAME = 2   # half-hours: a game needs at least an hour on ONE court (Richie, 13 Sep 2026)
+    dublin = ZoneInfo("Europe/Dublin")
     now_utc = datetime.now(_tz.utc)
     t = (now_utc - timedelta(days=SLOT_BACK_DAYS)).replace(hour=0, minute=0, second=0, microsecond=0)
     stop = now_utc.replace(minute=0, second=0, microsecond=0) + timedelta(days=SLOT_DAYS)
+    grid = []   # open half-hours in order, with the set of courts free in each
     while t < stop:
-        local_h = t.astimezone(ZoneInfo("Europe/Dublin")).hour
-        if OPEN_H <= local_h < CLOSE_H:
-            slots.append({"slot_at": t.isoformat(), "free": max(3 - len(busy.get(t, ())), 0)})
+        local = t.astimezone(dublin)
+        if OPEN_H <= local.hour < CLOSE_H:
+            grid.append((t, local.date(), {c for c in COURTS if c not in busy.get(t, ())}))
         t += timedelta(minutes=STEP)
+    # Per court, find each unbroken free stretch within a day. A stretch of at least MIN_GAME
+    # half-hours is bookable: every half-hour in it is "usable", and every half-hour from which
+    # MIN_GAME half-hours still remain is a possible "start". Stretches never cross a closed
+    # night, because the grid only holds open hours and the day must match.
+    usable = [0] * len(grid)
+    startable = [0] * len(grid)
+    for c in COURTS:
+        i = 0
+        while i < len(grid):
+            if c not in grid[i][2]:
+                i += 1
+                continue
+            j = i
+            while (j + 1 < len(grid) and c in grid[j + 1][2] and grid[j + 1][1] == grid[i][1]
+                   and grid[j + 1][0] - grid[j][0] == timedelta(minutes=STEP)):
+                j += 1
+            length = j - i + 1
+            if length >= MIN_GAME:
+                for k in range(i, j + 1):
+                    usable[k] += 1
+                for k in range(i, j - MIN_GAME + 2):
+                    startable[k] += 1
+            i = j + 1
+    slots = [{"slot_at": g[0].isoformat(), "free": len(g[2]), "startable": startable[n], "usable": usable[n]}
+             for n, g in enumerate(grid)]
 
     # Booking lead time (Richie, 13 Sep 2026): Playtomic's feed has no created-at, so the
     # first hour we ever see a booking id is our best proxy for when it was made. The ledger
