@@ -441,6 +441,19 @@ export const KNOCKOUT_RESULTS: {
     score: "6-3, 6-0",
     playedOn: "2026-09-12",
   },
+  {
+    // Lower-tier R1 (tie D): G3 4th seed (Wuyls & Maciaine) v G1 12th seed (Kennelly &
+    // O'Brien). 12 Sep 2026, from Patrick Kennelly's Playtomic result card — Kennelly &
+    // O'Brien took the first set, then Wuyls & Maciaine won the second and the
+    // championship tiebreak 10-7. Playtomic spells her "Mel Maclaine".
+    teams: [
+      "df9455f0-a3c9-4f52-bc46-7a937486bf27", // Toby Wuyls & Mel Maciaine
+      "017dcc0e-056b-41ec-a42c-627cdb7dd85b", // Patrick Kennelly & Aisling O'Brien
+    ],
+    winnerTeamId: "df9455f0-a3c9-4f52-bc46-7a937486bf27",
+    score: "6-7, 6-4, 10-7",
+    playedOn: "2026-09-12",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
