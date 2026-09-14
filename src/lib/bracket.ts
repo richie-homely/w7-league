@@ -466,6 +466,18 @@ export const KNOCKOUT_RESULTS: {
     score: "6-0, 6-0",
     playedOn: "2026-09-13",
   },
+  {
+    // Lower-tier R1A: G3 1st seed (Earls & Keogh) v G1 14th seed (Hamilton & McGettigan).
+    // 14 Sep 2026, from Robert Keogh's Playtomic result card — the card shows 6-1, 6-1, 6-2;
+    // the match was already won 2-0, so the extra set is left out of the official score.
+    teams: [
+      "8bd7bb6e-beb7-41e5-968e-168f458faa0e", // Andy Earls & Robert Keogh
+      "26d031b3-f774-4476-b7f8-1e805143ac6c", // Ross Hamilton & Lucy McGettigan
+    ],
+    winnerTeamId: "8bd7bb6e-beb7-41e5-968e-168f458faa0e",
+    score: "6-1, 6-1",
+    playedOn: "2026-09-14",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
