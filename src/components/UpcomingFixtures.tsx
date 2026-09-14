@@ -29,7 +29,7 @@ function tieLabelFor(b: LeagueBooking, tieLabel?: Map<string, string>, tieByTeam
 /** Hub version: only summer bookings that are a real, unplayed bracket tie are shown —
  *  two qualifiers booking a friendly is not a fixture (Richie, 9 Sep 2026: Carthy & Dunne
  *  did not qualify, yet a booking with them appeared in the list). */
-export function UpcomingLeagueFixtures() {
+export function UpcomingLeagueFixtures({ bare = false }: { bare?: boolean } = {}) {
   const { teamsByDiv, fixtures, loading } = useLeagueData();
   const { matches: boxMatches } = useBoxData();
   const tieLabel = new Map<string, string>();
@@ -55,6 +55,7 @@ export function UpcomingLeagueFixtures() {
   }
   return (
     <UpcomingFixtures
+      bare={bare}
       tieLabel={tieLabel}
       tieByTeam={tieByTeam}
       summerReady={!loading}

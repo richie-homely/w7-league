@@ -62,7 +62,7 @@ function SocialRow({ s }: { s: Social }) {
   );
 }
 
-export function SocialsSection() {
+export function SocialsSection({ bare = false }: { bare?: boolean } = {}) {
   const { socials, cadence } = useSocialsData();
   if (socials.length === 0 && cadence.length === 0) return null;
 
@@ -72,9 +72,10 @@ export function SocialsSection() {
   }
 
   return (
-    <div style={{ marginTop: 40 }}>
+    <div style={{ marginTop: bare ? 0 : 40 }}>
       <div
         style={{
+          display: bare ? "none" : undefined,
           fontFamily: F.body,
           fontSize: 12,
           fontWeight: 700,

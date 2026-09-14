@@ -65,11 +65,12 @@ function CoachingCard({ option }: { option: CoachingOption }) {
   );
 }
 
-export function CoachingSection() {
+export function CoachingSection({ bare = false }: { bare?: boolean } = {}) {
   return (
-    <div style={{ marginTop: 40 }}>
+    <div style={{ marginTop: bare ? 0 : 40 }}>
       <div
         style={{
+          display: bare ? "none" : undefined,
           fontFamily: F.body,
           fontSize: 12,
           fontWeight: 700,

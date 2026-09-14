@@ -196,7 +196,7 @@ export function RecentBoxResults({ matches, teams, limit = 10, bare = false }: {
 }
 
 /** Hub: box results and summer knockout results merged, newest first. */
-export function RecentLeagueResults({ limit = 8 }: { limit?: number }) {
+export function RecentLeagueResults({ limit = 8, bare = false }: { limit?: number; bare?: boolean }) {
   const { teams: boxTeams, matches } = useBoxData();
   const { teams } = useLeagueData();
   const byId: Record<string, { name: string; tier: string }> = {};
@@ -214,8 +214,8 @@ export function RecentLeagueResults({ limit = 8 }: { limit?: number }) {
     .sort((a, b) => (a.when < b.when ? 1 : -1))
     .slice(0, limit);
   return (
-    <section id="results" style={{ marginTop: 36, scrollMarginTop: 60 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+    <section id={bare ? undefined : "results"} style={{ marginTop: bare ? 0 : 36, scrollMarginTop: 60 }}>
+      <div style={{ display: bare ? "none" : "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
         <div style={{ fontFamily: F.display, fontSize: 28, letterSpacing: "0.02em", textTransform: "uppercase" }}>
           Recent <span style={{ color: C.accent }}>results</span>
         </div>

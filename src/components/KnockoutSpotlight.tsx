@@ -171,7 +171,7 @@ function TierBlock({
   );
 }
 
-export function KnockoutSpotlight() {
+export function KnockoutSpotlight({ bare = false }: { bare?: boolean } = {}) {
   const { teamsByDiv, fixtures, loading } = useLeagueData();
   if (loading) return null;
 
@@ -195,7 +195,7 @@ export function KnockoutSpotlight() {
     (n, p) => n + Number(p.amount.replace(/[^0-9]/g, "")), 0);
 
   return (
-    <div style={{ margin: "4px 0 34px" }}>
+    <div style={{ margin: bare ? "0" : "4px 0 34px" }}>
       <div
         style={{
           display: "flex", alignItems: "flex-end", justifyContent: "space-between",
@@ -205,7 +205,7 @@ export function KnockoutSpotlight() {
         <div>
           <div
             style={{
-              fontSize: 11.5, fontWeight: 700, letterSpacing: "0.18em",
+              display: bare ? "none" : undefined, fontSize: 11.5, fontWeight: 700, letterSpacing: "0.18em",
               color: C.accent,
             }}
           >
@@ -213,6 +213,7 @@ export function KnockoutSpotlight() {
           </div>
           <div
             style={{
+              display: bare ? "none" : undefined,
               fontFamily: F.display,
               fontSize: "clamp(26px, 5vw, 40px)",
               textTransform: "uppercase",

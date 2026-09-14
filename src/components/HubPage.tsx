@@ -12,6 +12,7 @@ import {
 } from "@/lib/competitions";
 import { InterestForm } from "./InterestForm";
 import { KnockoutSpotlight } from "./KnockoutSpotlight";
+import { Collapsible } from "./Collapsible";
 import { UpcomingLeagueFixtures } from "./UpcomingFixtures";
 import { HubScoresDueBanner, RecentLeagueResults } from "./RecentResults";
 import { SponsorCta } from "./Sponsor";
@@ -256,20 +257,28 @@ export function HubPage() {
         <HubScoresDueBanner />
 
         {/* The knockouts lead the page — they are what the season is for. */}
-        <KnockoutSpotlight />
+        {/* Every hub section folds and remembers it, like the box page (Richie, 14 Sep 2026). */}
+        <Collapsible id="knockouts" title="THE KNOCKOUTS" note="summer leagues 2026 · both tiers" storageKey="hub-knockouts" defaultOpen>
+          <KnockoutSpotlight bare />
+        </Collapsible>
 
         {/* Who's playing, when and on which court — from the Playtomic bookings (Richie, 8 Sep 2026) */}
-        <UpcomingLeagueFixtures />
-        <RecentLeagueResults />
+        <Collapsible id="fixtures" title="UPCOMING LEAGUE FIXTURES" note="courts booked on Playtomic · next 14 days · updated hourly" storageKey="hub-fixtures" defaultOpen>
+          <UpcomingLeagueFixtures bare />
+        </Collapsible>
+        <Collapsible id="results" title="RECENT RESULTS" note="box league and summer knockouts · newest first" storageKey="hub-results" defaultOpen>
+          <RecentLeagueResults bare />
+        </Collapsible>
 
 
         {/* Featured: live + open */}
+        <Collapsible id="competitions" title="LEAGUES ON NOW" note="live and open for entry" storageKey="hub-competitions" defaultOpen>
         <div
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
             gap: 16,
-            marginBottom: 34,
+            marginBottom: 16,
           }}
         >
           {featured.map((c) => (
@@ -277,23 +286,11 @@ export function HubPage() {
           ))}
         </div>
 
-        <div style={{ marginBottom: 34 }}>
-          <SponsorCta />
-        </div>
+        <SponsorCta />
+        </Collapsible>
 
         {/* Upcoming formats */}
-        <div
-          style={{
-            fontFamily: F.body,
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: "0.15em",
-            color: C.mute,
-            marginBottom: 14,
-          }}
-        >
-          UPCOMING FORMATS · REGISTER YOUR INTEREST
-        </div>
+        <Collapsible id="formats" title="UPCOMING FORMATS" note="register your interest" storageKey="hub-formats" defaultOpen>
         <div
           style={{
             display: "grid",
@@ -305,26 +302,20 @@ export function HubPage() {
             <CompetitionCard key={c.id} comp={c} />
           ))}
         </div>
+        </Collapsible>
 
         {/* Socials calendar (live from Playtomic via the pipeline) */}
-        <SocialsSection />
+        <Collapsible id="socials" title="SOCIALS AT W7" note="jump into a game" storageKey="hub-socials" defaultOpen>
+          <SocialsSection bare />
+        </Collapsible>
 
         {/* Coaching & lessons */}
-        <CoachingSection />
+        <Collapsible id="coaching" title="COACHING" note="level up your game" storageKey="hub-coaching" defaultOpen>
+          <CoachingSection bare />
+        </Collapsible>
 
         {/* Roll of honour: past seasons & winners */}
-        <div
-          style={{
-            fontFamily: F.body,
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: "0.15em",
-            color: C.mute,
-            margin: "36px 0 14px",
-          }}
-        >
-          ROLL OF HONOUR · PAST SEASONS &amp; WINNERS
-        </div>
+        <Collapsible id="honours" title="ROLL OF HONOUR" note="past seasons & winners" storageKey="hub-honours" defaultOpen>
         {PAST_SEASONS.length === 0 ? (
           <div
             style={{
@@ -391,6 +382,7 @@ export function HubPage() {
             ))}
           </div>
         )}
+        </Collapsible>
       </div>
 
       {/* Footer */}
