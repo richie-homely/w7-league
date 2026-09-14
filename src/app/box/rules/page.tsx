@@ -72,6 +72,8 @@ const SECTIONS: { h: string; body: (string | string[])[] }[] = [
     h: "Match format & scoring",
     body: [
       "Matches are 2 full sets, then a championship tie-break if the match is tied at one set each. The championship tie-break is the deciding set for the official league result. If both teams prefer a full third set and there is court time, they may play one by mutual agreement.",
+      // Deuce rule added by Richie, 14 Sep 2026.
+      "Deuce: the first two deuces in a game are played with advantage as normal. If the game reaches deuce a third time, the next point is a golden point and wins the game.",
       "League points:",
       [
         "4 points — win in 2 straight sets",
