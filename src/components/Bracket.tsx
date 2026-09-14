@@ -12,6 +12,8 @@ import { FINALS, FINALS_COURT_SPONSOR } from "@/lib/sponsors";
 import { TeamH2H } from "./TeamH2H";
 import { fmtBooking, summerKey, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
 
+const KNOCKOUTS_BEGAN = new Date("2026-09-01T00:00:00+01:00");
+
 function TeamSlot({
   slot,
   tierColor,
@@ -139,7 +141,11 @@ function BracketMatch({
   // A court booked for this tie (from Playtomic participants) — shown until a result is in.
   const idA = match.a && !isPlaceholderSlot(match.a) ? match.a.teamId : null;
   const idB = match.b && !isPlaceholderSlot(match.b) ? match.b.teamId : null;
-  const booking = !match.result && idA && idB && bookings ? bookings.get(summerKey(idA, idB)) : undefined;
+  // A booking is keyed by team pair, so two teams that met in the round-robin share a key with
+  // their knockout tie. Ignore anything before the knockouts began (first tie played 1 Sep 2026),
+  // or QF1 showed Earls & Keogh v Smale & Tolan's July league game as the tie booking.
+  const found = !match.result && idA && idB && bookings ? bookings.get(summerKey(idA, idB)) : undefined;
+  const booking = found && new Date(found.startsAt) >= KNOCKOUTS_BEGAN ? found : undefined;
   return (
     <div
       style={{
