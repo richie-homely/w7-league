@@ -69,12 +69,16 @@ function SubmitForm({
   team1,
   team2,
   onDone,
+  wrongMatch = null,
 }: {
   match: BoxMatch;
   team1: BoxTeam;
   team2: BoxTeam;
   onDone: (msg: { ok: boolean; text: string }) => void;
+  /** set when Playtomic suggests this team just played a different box opponent */
+  wrongMatch?: string | null;
 }) {
+  const [warned, setWarned] = useState(false);
   const [raw, setRaw] = useState<[string, string][]>([
     ["", ""],
     ["", ""],
@@ -118,6 +122,11 @@ function SubmitForm({
     }
     if (!email.includes("@")) {
       setError("Enter the email address you registered with.");
+      return;
+    }
+    if (wrongMatch && !warned) {
+      setWarned(true);
+      setError("Press Submit result again if this really is the match you played.");
       return;
     }
     setBusy(true);
@@ -226,6 +235,9 @@ function SubmitForm({
           {busy ? "Submitting…" : "Submit result"}
         </button>
       </div>
+      {wrongMatch && (
+        <div style={{ color: C.amber, fontSize: 12.5, lineHeight: 1.45 }}>⚠ {wrongMatch}</div>
+      )}
       {error && <div style={{ color: C.red, fontSize: 12.5 }}>{error}</div>}
     </form>
   );
@@ -373,6 +385,37 @@ function SubForm({ match, team, onDone }: { match: BoxMatch; team: BoxTeam; onDo
   );
 }
 
+/** Box 16, 14 Sep 2026: a team entered Monday's win over Sandra Dunne & Kerrie Beacom on its
+ *  Caragh Daly & Kerry Callery fixture ("they got mixed up with another Kerrie"). When this
+ *  fixture's own W7 booking is still ahead, or there is none, but a W7 booking in the last three
+ *  days put one of its teams against a different box opponent, the form checks before it submits. */
+function wrongMatchHint(
+  m: BoxMatch,
+  boxMatches: BoxMatch[],
+  bookings: Map<string, LeagueBooking>,
+  teamsById: Record<string, BoxTeam>,
+  nowMs: number,
+): string | null {
+  const startMs = (b: LeagueBooking) => new Date(b.startsAt.length === 16 ? b.startsAt + ":00" : b.startsAt).getTime();
+  const own = bookings.get(m.id);
+  if (own && startMs(own) <= nowMs) return null;
+  for (const o of boxMatches) {
+    if (o.id === m.id) continue;
+    const b = bookings.get(o.id);
+    if (!b) continue;
+    const ago = nowMs - startMs(b);
+    if (ago < 0 || ago > 3 * 24 * 3600e3) continue;
+    const shared = [o.team1Id, o.team2Id].find((t) => t === m.team1Id || t === m.team2Id);
+    if (!shared) continue;
+    const played = o.team1Id === shared ? o.team2Id : o.team1Id;
+    const opponent = m.team1Id === shared ? m.team2Id : m.team1Id;
+    const [st, pt, ot] = [teamsById[shared], teamsById[played], teamsById[opponent]];
+    if (!st || !pt || !ot) continue;
+    return `Playtomic shows ${st.name} played ${pt.name} on ${fmtBooking(b.startsAt)}, and this form is for the match against ${ot.name}. Check it is the right match.`;
+  }
+  return null;
+}
+
 function MatchRow({
   match,
   teamsById,
@@ -382,6 +425,8 @@ function MatchRow({
   booking,
   subs,
   onSubLogged,
+  boxMatches = [],
+  allBookings,
 }: {
   match: BoxMatch;
   teamsById: Record<string, BoxTeam>;
@@ -395,6 +440,9 @@ function MatchRow({
   /** subs already logged for this fixture */
   subs?: BoxSub[];
   onSubLogged?: () => void;
+  /** every fixture in this box and their bookings, to spot a score entered on the wrong fixture */
+  boxMatches?: BoxMatch[];
+  allBookings?: Map<string, LeagueBooking>;
 }) {
   const [subOpen, setSubOpen] = useState(false);
   const [nowMs] = useState(() => Date.now());   // snapshot for the result-missing test (render stays pure)
@@ -438,7 +486,7 @@ function MatchRow({
               title={rb.state === "future" ? "The booking starts after this result was entered" : "This result sits on a W7 court booking with the players named on it"}
               style={{ fontSize: 11, fontWeight: 700, color: C.mute, border: `1px solid ${C.border}`, borderRadius: 999, padding: "2px 9px", letterSpacing: "0.03em" }}
             >
-              Played at W7 · {fmtBooking(booking.startsAt)} · {booking.court}
+              {rb.state === "future" ? "Booked" : "Played at W7"} · {fmtBooking(booking.startsAt)} · {booking.court}
             </span>
           );
         })()}
@@ -493,7 +541,15 @@ function MatchRow({
       {subOpen && viewerTeamId && teamsById[viewerTeamId] && (
         <SubForm match={match} team={teamsById[viewerTeamId]} onDone={(msg) => { setSubOpen(false); onMessage(msg); if (msg.ok) onSubLogged?.(); }} />
       )}
-      {open === "submit" && <SubmitForm match={match} team1={t1} team2={t2} onDone={done} />}
+      {open === "submit" && (
+        <SubmitForm
+          match={match}
+          team1={t1}
+          team2={t2}
+          onDone={done}
+          wrongMatch={allBookings ? wrongMatchHint(match, boxMatches, allBookings, teamsById, nowMs) : null}
+        />
+      )}
       {open === "confirm" && <ConfirmForm match={match} onDone={done} />}
     </div>
   );
@@ -654,7 +710,7 @@ function BoxSection({
           </div>
         )}
         {matches.map((m) => (
-          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} booking={bookings.get(m.id)} subs={subs.get(m.id)} onSubLogged={onSubLogged} />
+          <MatchRow key={m.id} match={m} teamsById={teamsById} onMessage={onMessage} autoOpen={m.id === focusMatch} viewerTeamId={viewerTeamId} booking={bookings.get(m.id)} subs={subs.get(m.id)} onSubLogged={onSubLogged} boxMatches={matches} allBookings={bookings} />
         ))}
       </div>
       </>)}
