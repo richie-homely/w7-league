@@ -23,12 +23,11 @@ no score entered. Every run prints that list; with PLAYER_REMINDERS on (or --rem
 teams get one reminder email 3h after the booking and a second one 48h later, each once
 (state keys remind:<match> / remind2:<match>).
 
-Dispute follow-up (Richie, 15 Sep 2026: "when a disputed result happens we can follow up 15 mins
-later with an email asking them to confirm final score and winner by reply and we'll update in
-system accordingly - like i did this am"): a match still disputed 15+ minutes after the dispute
-gets one email to both teams and welcome@, asking for the winner and final score by reply-all.
-Reply-To is welcome@, where W7 sets the result by hand (state key disputefollow:<match>:<updated_at>,
-so a fresh dispute after a correction gets its own follow-up).
+Dispute flag (Richie, 15 Sep 2026: "If disputed result flag to me and I'll review and sort"):
+a match still disputed 15+ minutes after the dispute is flagged to Richie only, with both teams'
+names, the score showing and the match link. Nothing further goes to the teams — Richie sorts it.
+(It replaced a same-day follow-up that asked both teams to reply with the score.) State key
+disputefollow:<match>:<updated_at>, so a fresh dispute after a correction is flagged again.
 """
 import io, json, os, sys, urllib.request
 from datetime import datetime
@@ -39,6 +38,7 @@ from box_league_mailout import SITE, RELAY, load_env, sb_get, contacts_by_team_n
 
 STATE = os.path.join(ROOT, "data", "box_notify_state.json")
 W7_INBOX = "welcome@w7padel.com"
+RICHIE = "richiecarroll65@gmail.com"   # disputed results are flagged to Richie only
 PLAYER_REMINDERS = False          # flip to True once Richie has approved the reminder text
 REMIND_AFTER_H, REMIND2_AFTER_H = 3, 48
 DISPUTE_FOLLOWUP_MIN = 15
@@ -156,7 +156,7 @@ def main():
             wh.send(subject, to, text, html)
             state[key] = datetime.now().isoformat(timespec="seconds")
             sent += 1
-    # ── dispute follow-up: 15 min after a dispute, ask both teams for the agreed score by reply ──
+    # ── dispute flag: 15 min after a dispute, tell Richie only; he reviews and sorts it ──
     from datetime import timezone as tz_
     now_utc = datetime.now(tz_.utc)
     for m in matches:
@@ -171,32 +171,23 @@ def main():
         t1, t2 = teams.get(m["team1_id"]), teams.get(m["team2_id"])
         if not t1 or not t2:
             continue
-        to = addrs(t1, t2)
-        if not to:
-            print(f"  no deliverable address for dispute follow-up {t1['name']} v {t2['name']} (box {m['box']}) - skipped")
-            if not dry:
-                state[key] = "no-recipient"
-            continue
-        to = to + [W7_INBOX]
-        subject = f"W7 Box League — please confirm the final score: {t1['name']} v {t2['name']}"
+        sub = teams.get(m["submitted_team"])
+        link = f"{SITE}/box?match={m['id']}"
+        subject = f"W7 Box League — disputed, for you to sort: Box {m['box']} {t1['name']} v {t2['name']}"
         text = "\n".join([
-            "Hi all,",
-            "",
-            f"The two teams entered different scores for your Box {m['box']} match:",
+            f"A Box {m['box']} result is disputed:",
             f"  {t1['name']} v {t2['name']}",
+            f"  showing {fmt_sets(m['sets'])}" + (f", entered by {sub['name']}" if sub else ""),
             "",
-            "PLEASE REPLY ALL TO THIS EMAIL",
-            "  with the winning team and the final score, set by set (for example 6-3, 4-6, 10-8),",
-            "  and we will update it in the system.",
+            f"Match: {link}",
             "",
-            "Thanks,",
-            "Richie · W7 Padel · 085 135 4570",
+            "Nothing has been sent to the teams beyond the automatic 'scores differ' notice.",
         ])
-        html = wh.shell("Box League", f"Please confirm the final score · Box {m['box']}", wh.auto_body(text))
+        html = wh.shell("Box League", f"Disputed result · Box {m['box']}", wh.auto_body(text))
         if dry:
-            print(f"[dry-run] dispute follow-up ({mins:.0f} min) -> {', '.join(to)} | {subject}")
+            print(f"[dry-run] dispute flag ({mins:.0f} min) -> {RICHIE} | {subject}")
         else:
-            wh.send(subject, to, text, html, reply_to=W7_INBOX)
+            wh.send(subject, [RICHIE], text, html)
             state[key] = datetime.now().isoformat(timespec="seconds")
             sent += 1
     # ── results watch: booked, played, no score yet ──
