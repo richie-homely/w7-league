@@ -478,6 +478,18 @@ export const KNOCKOUT_RESULTS: {
     score: "6-1, 6-1",
     playedOn: "2026-09-14",
   },
+  {
+    // Lower-tier QF1: G3 1st seed (Earls & Keogh) v G3 8th seed (Smale & Tolan). 15 Sep 2026,
+    // from Robert Keogh's Playtomic result card — Earls & Keogh won in two. Winner meets the
+    // QF2 winner in SF1.
+    teams: [
+      "8bd7bb6e-beb7-41e5-968e-168f458faa0e", // Andy Earls & Robert Keogh
+      "8b0ad15f-c884-4554-8ec5-3354db001967", // Callum Smale & Ryan Tolan
+    ],
+    winnerTeamId: "8bd7bb6e-beb7-41e5-968e-168f458faa0e",
+    score: "7-6, 6-2",
+    playedOn: "2026-09-15",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
