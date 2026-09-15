@@ -827,7 +827,13 @@ export function BoxLeagueLive({
           The <span style={{ color: C.accent }}>Boxes</span>
         </div>
       )}
-      <p style={{ fontSize: 13, color: C.mute, lineHeight: 1.6, maxWidth: 640, marginTop: 6 }}>
+      {/* On a card, not straight on the page photo, so it stays readable (Richie, 15 Sep 2026) */}
+      <p
+        style={{
+          fontSize: 13, color: C.text, lineHeight: 1.6, marginTop: 6, marginBottom: 14,
+          background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "12px 16px",
+        }}
+      >
         Play everyone in your box, then post your result here — either team can enter it using a
         registered email address, and it counts once the opposing team confirms (entering the same
         score also confirms it). Points: 4 for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if
