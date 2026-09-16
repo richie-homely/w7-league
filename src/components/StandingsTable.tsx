@@ -73,7 +73,7 @@ export function StandingsTable({
                     team={r.team}
                     size={dense ? "sm" : "md"}
                     mute={r.team.placeholder}
-                    showRatings={false}
+                    showRatings
                     onClick={onTeam}
                   />
                 </td>

@@ -665,7 +665,16 @@ function BoxSection({
               <tr key={r.teamId} style={{ borderTop: `1px solid ${C.border}` }}>
                 <td style={{ padding: "7px 8px 7px 0", fontFamily: F.mono, color: C.mute }}>{r.rank}</td>
                 <td style={{ padding: "7px 8px 7px 0", fontWeight: 600 }}>
-                  {r.team.name}
+                  {/* Each player with their current Playtomic rating (Richie, 16 Sep 2026) */}
+                  {r.team.p1}
+                  <span style={{ fontFamily: F.mono, fontSize: 10.5, fontWeight: 600, color: r.team.r1 === null ? C.mute : C.accentDim, marginLeft: 5 }}>
+                    {r.team.r1 === null ? "—" : r.team.r1.toFixed(2)}
+                  </span>
+                  <span style={{ color: C.mute, fontWeight: 400 }}> &amp; </span>
+                  {r.team.p2}
+                  <span style={{ fontFamily: F.mono, fontSize: 10.5, fontWeight: 600, color: r.team.r2 === null ? C.mute : C.accentDim, marginLeft: 5 }}>
+                    {r.team.r2 === null ? "—" : r.team.r2.toFixed(2)}
+                  </span>
                   {scoreDue.has(r.teamId) && (
                     <span
                       title="This team played a game with no score entered yet"
