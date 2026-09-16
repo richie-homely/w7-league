@@ -307,9 +307,16 @@ def push(res):
         if h["match_id"]:
             rows.append({"match_key": h["match_id"], "kind": "box", "starts_at": aware(h["starts_at"]), "court": h["court"],
                          "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
+    # Say what a summer booking actually is (Richie, 16 Sep 2026: "let's stop showing those as
+    # summer league and see what they actually are"). Four players from two same-tier teams is
+    # not a fixture once the group stage is over: only a bracket tie is. 'open' = opponents not
+    # named yet, 'friendly' = two league pairs who are not drawn against each other.
+    import summer_ties
+    tie_rule = summer_ties.rule()
     for h in res["summer"]:
         mk = ("summer:" + ":".join(h["team_ids"])) if len(h["team_ids"]) == 2 else f"summer1:{h['team_ids'][0]}:{h['starts_at']}"
-        rows.append({"match_key": mk, "kind": "summer", "starts_at": aware(h["starts_at"]),
+        kind = tie_rule.kind_for(h["team_ids"], h["starts_at"]) if tie_rule else "summer"
+        rows.append({"match_key": mk, "kind": kind, "starts_at": aware(h["starts_at"]),
                      "court": h["court"], "team1": h["team1"], "team2": h["team2"], "confidence": h["confidence"]})
     # one row per fixture: if the same pair has two bookings, keep the earliest
     uniq = {}
@@ -323,8 +330,22 @@ def push(res):
     try:
         out = json.load(urllib.request.urlopen(req, timeout=60))
     except urllib.error.HTTPError as e:
-        raise SystemExit(f"league_bookings_set failed: HTTP {e.code} {e.read().decode(errors='replace')[:400]}")
+        body = e.read().decode(errors="replace")[:400]
+        # league_bookings_kinds_16Sep2026.sql not run yet: the table still only allows box/summer.
+        # Push the old way rather than losing an hourly run; the labels land once the SQL is run.
+        if "kind" in body or "check constraint" in body:
+            print(f"league_bookings_set rejected the new kinds ({e.code}); retrying with box/summer only")
+            for r in rows:
+                if r["kind"] in ("open", "friendly"):
+                    r["kind"] = "summer"
+            req = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/league_bookings_set",
+                                         data=json.dumps({"p_key": key, "p_rows": rows}).encode(), headers=H, method="POST")
+            out = json.load(urllib.request.urlopen(req, timeout=60))
+        else:
+            raise SystemExit(f"league_bookings_set failed: HTTP {e.code} {body}")
     print("pushed:", out)
+    from collections import Counter as _C
+    print("  kinds:", dict(_C(r["kind"] for r in rows)))
 
     if res.get("slots"):
         req2 = urllib.request.Request(f"{env['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/court_slots_set",

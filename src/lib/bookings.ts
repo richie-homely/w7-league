@@ -8,7 +8,10 @@ import { createClient } from "./supabase/client";
 
 export interface LeagueBooking {
   matchKey: string;      // box: box_matches.id · summer: "summer:<teamId>:<teamId>" (sorted)
-  kind: "box" | "summer";
+  /** box = box league fixture · summer = a real summer game (group fixture or bracket tie)
+   *  open = only one summer team named yet · friendly = two league pairs, not a fixture
+   *  (Richie, 16 Sep 2026: "let's stop showing those as summer league") */
+  kind: "box" | "summer" | "open" | "friendly";
   startsAt: string;      // ISO, Dublin wall-clock as booked
   court: string;
   team1: string;

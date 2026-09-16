@@ -44,7 +44,7 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
 
   const grid: number[][] = DAYS.map(() => HOURS.map(() => 0));
   const courts: Record<string, number> = {};
-  let n = 0, evening = 0, weekend = 0, morning = 0, box = 0, summer = 0, played = 0;
+  let n = 0, evening = 0, weekend = 0, morning = 0, box = 0, summer = 0, other = 0, played = 0;
   for (const b of rows) {
     const d = new Date(b.startsAt);
     const day = (d.getDay() + 6) % 7, hour = d.getHours();
@@ -54,7 +54,7 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
     if (day >= 5) weekend++;
     else if (hour >= 17 && hour < 22) evening++;
     if (hour < 12) morning++;
-    if (b.kind === "box") box++; else summer++;
+    if (b.kind === "box") box++; else if (b.kind === "summer") summer++; else other++;
     if (d.getTime() < nowMs) played++;
     courts[b.court] = (courts[b.court] ?? 0) + 1;
   }
@@ -72,21 +72,29 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
   // ── league fixtures by week (Richie, 11 Sep 2026): the same Mon–Sun buckets as the grid.
   // booked = league bookings starting that week (played or still ahead); played = box results
   // confirmed that week + summer knockout results by date played. Click a row to open that week.
-  type Wk = { start: number; boxBooked: number; boxPlayed: number; sumBooked: number; sumPlayed: number };
+  type Wk = { start: number; boxBooked: number; boxPlayed: number; sumBooked: number; sumPlayed: number; other: number };
   const wk = new Map<number, Wk>();
-  const at = (t: number) => { const k = mondayOf(t); if (!wk.has(k)) wk.set(k, { start: k, boxBooked: 0, boxPlayed: 0, sumBooked: 0, sumPlayed: 0 }); return wk.get(k)!; };
-  for (const b of bookings) { const w = at(new Date(b.startsAt).getTime()); if (b.kind === "box") w.boxBooked++; else w.sumBooked++; }
+  const at = (t: number) => { const k = mondayOf(t); if (!wk.has(k)) wk.set(k, { start: k, boxBooked: 0, boxPlayed: 0, sumBooked: 0, sumPlayed: 0, other: 0 }); return wk.get(k)!; };
+  for (const b of bookings) {
+    const w = at(new Date(b.startsAt).getTime());
+    // Only real fixtures are league games (Richie, 16 Sep 2026: the weekly count read 10 summer
+    // games this week when there was one tie). friendly = two league pairs who do not owe each
+    // other a game; open = a league pair whose opponents are not on the booking yet.
+    if (b.kind === "box") w.boxBooked++;
+    else if (b.kind === "summer") w.sumBooked++;
+    else w.other++;
+  }
   for (const m of matches) if (m.status === "confirmed" && m.updatedAt && m.box < 90) at(new Date(m.updatedAt).getTime()).boxPlayed++;
   for (const r of KNOCKOUT_RESULTS) at(new Date(r.playedOn + "T12:00:00").getTime()).sumPlayed++;
   const weeks = [...wk.values()].sort((a, b) => a.start - b.start);
-  const tot = weeks.reduce((a, w) => ({ boxBooked: a.boxBooked + w.boxBooked, boxPlayed: a.boxPlayed + w.boxPlayed, sumBooked: a.sumBooked + w.sumBooked, sumPlayed: a.sumPlayed + w.sumPlayed }),
-                           { boxBooked: 0, boxPlayed: 0, sumBooked: 0, sumPlayed: 0 });
+  const tot = weeks.reduce((a, w) => ({ boxBooked: a.boxBooked + w.boxBooked, boxPlayed: a.boxPlayed + w.boxPlayed, sumBooked: a.sumBooked + w.sumBooked, sumPlayed: a.sumPlayed + w.sumPlayed, other: a.other + w.other }),
+                           { boxBooked: 0, boxPlayed: 0, sumBooked: 0, sumPlayed: 0, other: 0 });
 
   return (
     <section style={{ marginTop: 28 }}>
       {!bare && <h2 style={{ fontFamily: F.display, fontSize: 20, margin: 0, color: C.accent, letterSpacing: "0.03em" }}>WHEN LEAGUE GAMES GET PLAYED</h2>}
       <p style={{ fontSize: 12, color: C.mute, margin: "4px 0 10px" }}>
-        Every league booking the detector has matched: box fixtures and summer-league games, last 60 days plus the next three weeks. Times are court start times.
+        Every league booking the detector has matched: box fixtures and summer-league games, last 60 days plus the next three weeks. Bookings between league players that are not a fixture are counted separately. Times are court start times.
       </p>
 
       {weeks.length > 0 && (
@@ -97,6 +105,7 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
                 <th style={{ padding: "4px 8px" }}>WEEK</th>
                 <th style={{ padding: "4px 8px", textAlign: "right" }}>BOX BOOKED</th><th style={{ padding: "4px 8px", textAlign: "right" }}>BOX PLAYED</th>
                 <th style={{ padding: "4px 8px", textAlign: "right" }}>SUMMER BOOKED</th><th style={{ padding: "4px 8px", textAlign: "right" }}>SUMMER PLAYED</th>
+                <th style={{ padding: "4px 8px", textAlign: "right" }}>NOT A FIXTURE</th>
                 <th style={{ padding: "4px 8px", textAlign: "right" }}>LEAGUE GAMES</th><th style={{ padding: "4px 8px", textAlign: "right" }}>COURT-HRS</th>
               </tr>
             </thead>
@@ -113,6 +122,7 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
                     <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{w.boxPlayed || ""}</td>
                     <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.info }}>{w.sumBooked || ""}</td>
                     <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{w.sumPlayed || ""}</td>
+                    <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.mute }}>{w.other || ""}</td>
                     <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, fontWeight: 700 }}>{games}</td>
                     <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono }}>{(games * 1.5).toFixed(0)}h</td>
                   </tr>
@@ -124,13 +134,14 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
                 <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{tot.boxPlayed}</td>
                 <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.info }}>{tot.sumBooked}</td>
                 <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.green }}>{tot.sumPlayed}</td>
+                <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono, color: C.mute }}>{tot.other}</td>
                 <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono }}>{tot.boxBooked + tot.sumBooked}</td>
                 <td style={{ padding: "5px 8px", textAlign: "right", fontFamily: F.mono }}>{((tot.boxBooked + tot.sumBooked) * 1.5).toFixed(0)}h</td>
               </tr>
             </tbody>
           </table>
           <div style={{ fontSize: 11, color: C.mute, marginTop: 4 }}>
-            Booked = league bookings the detector matched, by the week the court is booked (games already played included). Played = box results confirmed that week and summer knockout results by date played. Summer group games show as booked only, their results live in the league tables. Click a week to open it in the grid below.
+            Booked = league fixtures the detector matched, by the week the court is booked (games already played included). Played = box results confirmed that week and summer knockout results by date played. Summer group games show as booked only, their results live in the league tables. Not a fixture = two league pairs who do not owe each other a game, or a booking whose opponents are not named yet — those are left out of league games. Click a week to open it in the grid below.
           </div>
         </div>
       )}
@@ -198,6 +209,7 @@ export function LeagueHeatmap({ matches = [], bare = false }: { matches?: BoxMat
               ["League games", n, mode === "week" ? `week of ${weekLabel}` : "whole window"],
               ["Box league", box, "fixtures"],
               ["Summer league", summer, "games"],
+              ["Not a fixture", other, "friendlies / opponents not named"],
               ["Played", played, "before now"],
               ["Still to come", n - played, "booked ahead"],
               ["Court-hours", `${(n * 1.5).toFixed(0)}h`, "at 90 min a game"],

@@ -156,10 +156,12 @@ def main():
             return d - timedelta(days=d.weekday())
         wk = {}
         def at(d):
-            k = monday(d); return wk.setdefault(k, {"bb": 0, "bp": 0, "sb": 0, "sp": 0})
+            k = monday(d); return wk.setdefault(k, {"bb": 0, "bp": 0, "sb": 0, "sp": 0, "other": 0})
         for r in lbs:
             d = datetime.fromisoformat(r["starts_at"]).astimezone(DUBLIN).date()
-            at(d)["bb" if r["kind"] == "box" else "sb"] += 1
+            # only real games count: 'friendly' and 'open' bookings are not fixtures
+            # (Richie, 16 Sep 2026). They are reported on their own line below.
+            at(d)["bb" if r["kind"] == "box" else "sb" if r["kind"] == "summer" else "other"] += 1
         for m in bm:
             if m["status"] == "confirmed" and m.get("updated_at"):
                 at(datetime.fromisoformat(m["updated_at"].replace("Z", "+00:00")).astimezone(DUBLIN).date())["bp"] += 1
@@ -172,9 +174,14 @@ def main():
             w = wk[k]; games = w["bb"] + w["sb"]
             tag = "  <- this week" if k == this_mon else ("  (ahead)" if k > this_mon else "")
             L.append(f"  {k:%d %b}–{k + timedelta(days=6):%d %b}   {w['bb']:6}   {w['bp']:6}   {w['sb']:6}   {w['sp']:6}   {games:5}   {games * 1.5:5.0f}h{tag}")
-        T = {k2: sum(w[k2] for w in wk.values()) for k2 in ("bb", "bp", "sb", "sp")}
+        T = {k2: sum(w.get(k2, 0) for w in wk.values()) for k2 in ("bb", "bp", "sb", "sp", "other")}
         L.append(f"  {'all weeks':15} {T['bb']:6}   {T['bp']:6}   {T['sb']:6}   {T['sp']:6}   {T['bb'] + T['sb']:5}   {(T['bb'] + T['sb']) * 1.5:5.0f}h")
         L.append("  (summer group games appear as booked only — their results are in the league tables; 'ahead' weeks are bookings already made)")
+        # Bookings between league players that are not a fixture were being counted as summer
+        # league games (Richie, 16 Sep 2026). They are reported here instead of in the table.
+        if T.get("other"):
+            L.append(f"  not counted as league games: {T['other']} bookings between league players that are not a fixture"
+                     " (friendlies, or opponents not named on the booking yet)")
     except Exception as exc:
         L += ["", f"LEAGUE FIXTURES BY WEEK: not available this run ({type(exc).__name__})"]
     # court capacity (Richie, 13 Sep 2026): "make sure we're not overcapacity on the courts, and
