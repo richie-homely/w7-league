@@ -55,13 +55,15 @@ export function CourtAvailability({ matches, bare = false }: { matches: BoxMatch
     const cyc = currentCycle(new Date(nowMs));
     const cycleEnd = cyc ? new Date(cyc.cycle.end + "T23:59:59") : null;
     const pending = matches.filter((m) => m.status === "pending" && m.box < 90).length;
-    // Whole weeks still ahead carry the target; this week is already part spent.
-    let wholeAhead = 0;
-    for (let i = 1; i < 12; i++) {
-      const m = new Date(thisMon.getTime() + i * 7 * DAY_MS);
-      if (cycleEnd && m <= cycleEnd) wholeAhead++;
-    }
-    const perWeek = wholeAhead > 0 ? Math.round(pending / wholeAhead) : pending;
+    // Spread what is left over ALL the time left, including the rest of this week — counting
+    // only whole weeks ahead put every unplayed fixture into three weeks and asked for 62 a
+    // week when the cycle had 3.7 weeks to run (Richie, 16 Sep 2026: "Where does 62 games
+    // needed come from? It's about 50 a week max").
+    // Whole days left, today included — the same count the daily email uses, so the two agree.
+    const midnight = new Date(nowMs); midnight.setHours(0, 0, 0, 0);
+    const daysLeft = cycleEnd ? Math.max(Math.round((cycleEnd.getTime() - midnight.getTime()) / DAY_MS), 1) : 0;
+    const weeksLeft = daysLeft / 7;
+    const perWeek = weeksLeft > 0 ? Math.round(pending / weeksLeft) : pending;
     return [0, 1, 2].map((i) => {
       const mon = new Date(thisMon.getTime() + i * 7 * DAY_MS);
       const next = new Date(mon.getTime() + 7 * DAY_MS);

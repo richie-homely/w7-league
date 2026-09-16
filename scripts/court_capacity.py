@@ -151,10 +151,12 @@ def tracker(bookings, matches, weeks_back=4, weeks=3):
     others = sorted(_split(bookings, m, USABLE)[1] for m in filled)
     typical_other = others[len(others) // 2] if others else 0.0
 
-    # Whole weeks still ahead carry the target; the current week is mostly spent.
-    whole = [this_mon + timedelta(weeks=w) for w in range(1, 12)]
-    whole = [m for m in whole if m <= end]
-    per_week = left / len(whole) if whole else float(left)
+    # Spread what is left over ALL the time left, the rest of this week included. Counting only
+    # whole weeks ahead squeezed every unplayed fixture into three weeks and asked for 62 games a
+    # week when the cycle had 3.7 weeks to run (Richie, 16 Sep 2026: "Where does 62 games needed
+    # come from? It's about 50 a week max").
+    weeks_left = max((end - today).days + 1, 1) / 7
+    per_week = left / weeks_left
 
     out = []
     for i in range(weeks):
