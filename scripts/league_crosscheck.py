@@ -113,6 +113,28 @@ def main():
     for b in inactive:
         out.append(f"   {b['starts_at'][:16]}  {b['team1']} v {b['team2']}")
 
+    # 10: "change my email" requests players have submitted on the site and nobody has approved.
+    # box_contact_requests is admin-read only, so this needs the passcode RPC from
+    # box_contact_requests_admin_16Sep2026.sql (Richie, 16 Sep 2026: Eoin Tiernan's request sat
+    # unseen because nothing outside the Supabase editor could read the table).
+    try:
+        import json
+        import urllib.request
+        key = os.environ.get("SITE_ADMIN_KEY", "")
+        req = urllib.request.Request(
+            f"{os.environ['NEXT_PUBLIC_SUPABASE_URL']}/rest/v1/rpc/box_admin_contact_requests",
+            data=json.dumps({"p_key": key}).encode(), method="POST",
+            headers={"apikey": os.environ["NEXT_PUBLIC_SUPABASE_ANON_KEY"],
+                     "Authorization": f"Bearer {os.environ['NEXT_PUBLIC_SUPABASE_ANON_KEY']}",
+                     "Content-Type": "application/json"})
+        pend = json.loads(urllib.request.urlopen(req, timeout=30).read())
+        out.append(f"10. email changes players asked for, still waiting: {len(pend)}")
+        for r in pend:
+            out.append(f"   box {r['box']:2} {r['team']} — asked {str(r['created_at'])[:10]}"
+                       + (f" · {r['note']}" if r.get("note") else ""))
+    except Exception as exc:
+        out.append(f"10. email change requests: not available ({type(exc).__name__}) — run box_contact_requests_admin_16Sep2026.sql")
+
     print("\n".join(out))
     return 0
 
