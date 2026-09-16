@@ -109,8 +109,8 @@ def main():
                 f"  {t1['name']} v {t2['name']}  —  {score}",
                 "",
                 "PLEASE CONFIRM OR DISPUTE",
-                f"  {link}",
-                "  Tap Confirm result, enter the email you registered with, and Confirm — or Dispute if the score is wrong.",
+                *[f"  {opp['p1'].split()[0] if i == 0 else opp['p2'].split()[0]}: {link}&as={a}" for i, a in enumerate(addrs(opp)[:2])],
+                "  The link opens the match with your email already filled in: tap Confirm, or Dispute if the score is wrong.",
                 "  The result only counts in the table once it is confirmed.",
                 "",
                 "— W7 Padel · Wicklow Town · welcome@w7padel.com",
@@ -146,9 +146,20 @@ def main():
             if not dry:
                 state[key] = "no-recipient"
             continue
-        button = (f'<div style="text-align:center;margin:6px 0 14px;"><a href="{link}" style="display:inline-block;'
-                  f'background:{color};color:#ffffff;text-decoration:none;font-weight:700;padding:12px 22px;'
-                  f'border-radius:8px;font-size:15px;">Open the match &rarr;</a></div>')
+        def cta(href, label, bg=None):
+            return (f'<a href="{href}" style="display:inline-block;margin:4px 6px;background:{bg or color};color:#ffffff;'
+                    f'text-decoration:none;font-weight:700;padding:12px 22px;border-radius:8px;font-size:15px;">{label}</a>')
+
+        # A confirmation email gets one button per player, each opening the match with that player's
+        # registered address filled in, so confirming is a single tap. Everything else keeps one button.
+        if m["status"] == "submitted":
+            people = [opp["p1"].split()[0], opp["p2"].split()[0]]
+            buttons = [cta(f"{link}&as={a}", f"Confirm as {people[i] if i < len(people) else 'me'} &check;")
+                       for i, a in enumerate(addrs(opp)[:2])]
+            buttons.append(cta(link, "Open the match &rarr;", "#3f3f46"))
+            button = '<div style="text-align:center;margin:6px 0 14px;">' + "".join(buttons) + "</div>"
+        else:
+            button = '<div style="text-align:center;margin:6px 0 14px;">' + cta(link, "Open the match &rarr;") + "</div>"
         html = wh.shell("Box League", headline + " · " + subline, button + wh.auto_body(text))
         if dry:
             print(f"[dry-run] {m['status']:9} -> {', '.join(to)} | {subject}")

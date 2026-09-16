@@ -105,6 +105,23 @@ export const RPC_MESSAGES: Record<string, { ok: boolean; text: string }> = {
 // courtside. localStorage can throw in private browsing; fail quietly.
 const EMAIL_KEY = "w7-box-email";
 export function rememberedEmail(): string {
+  // A confirmation email links to ?as=<the player's registered address>, so the form opens ready to
+  // press Confirm. It only fills the box: nothing is submitted until the player taps, so a mail
+  // scanner that follows the link cannot confirm a result.
+  try {
+    const fromLink = new URLSearchParams(window.location.search).get("as");
+    if (fromLink && fromLink.includes("@")) {
+      const clean = fromLink.trim();
+      try {
+        localStorage.setItem(EMAIL_KEY, clean);
+      } catch {
+        /* ignore */
+      }
+      return clean;
+    }
+  } catch {
+    /* no window, or a blocked search string */
+  }
   try {
     return localStorage.getItem(EMAIL_KEY) ?? "";
   } catch {
