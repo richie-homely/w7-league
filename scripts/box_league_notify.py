@@ -20,8 +20,8 @@ Apple relay addresses are skipped. Nothing is sent for the test box (99) unless
 Results watch (Richie, 11 Sep 2026: "we'll have to make sure there are results"): a box
 fixture whose Playtomic booking started 3h+ ago and is still pending is a game played with
 no score entered. Every run prints that list; with PLAYER_REMINDERS on (or --remind) both
-teams get one reminder email 3h after the booking and a second one 48h later, each once
-(state keys remind:<match> / remind2:<match>).
+teams get one chaser email three days after the booking, once (state key remind:<match>). Richie, 17 Sep 2026:
+"we should send a chaser after 3 days of not entering a result".
 
 Dispute flag (Richie, 15 Sep 2026: "If disputed result flag to me and I'll review and sort"):
 a match still disputed 15+ minutes after the dispute is flagged to Richie only, with both teams'
@@ -39,8 +39,9 @@ from box_league_mailout import SITE, RELAY, load_env, sb_get, contacts_by_team_n
 STATE = os.path.join(ROOT, "data", "box_notify_state.json")
 W7_INBOX = "welcome@w7padel.com"
 RICHIE = "richiecarroll65@gmail.com"   # disputed results are flagged to Richie only
-PLAYER_REMINDERS = False          # flip to True once Richie has approved the reminder text
-REMIND_AFTER_H, REMIND2_AFTER_H = 3, 48
+PLAYER_REMINDERS = True           # on from 17 Sep 2026 (Richie: "we should send a chaser after 3 days")
+REMIND_AFTER_H = 72               # one chaser, three days after the booking
+REMIND2_AFTER_H = 10 ** 6         # effectively never: a single chaser, not a second one
 DISPUTE_FOLLOWUP_MIN = 15
 from datetime import timezone as _tz
 LEAGUE_OPEN = datetime(2026, 9, 10, tzinfo=_tz.utc)   # cycle 1 opened early on 10 Sep 2026 (lib/boxCalendar.ts)
