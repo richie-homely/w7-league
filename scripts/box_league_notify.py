@@ -117,7 +117,10 @@ def main():
             ])
             headline, subline, color = "Result awaiting your confirmation", f"Box {m['box']} · {score}", wh.GOLD
         elif m["status"] == "confirmed":
-            to = addrs(t1, t2)
+            # Only the team that entered the score needs telling: the other team just tapped
+            # Confirm and saw it happen (Richie, 17 Sep 2026: "one team can submit, and then one
+            # team can confirm and then it's done - to avoid overkill on the emails").
+            to = addrs(sub) if sub else addrs(t1, t2)
             subject = f"W7 Box League — confirmed: {t1['name']} v {t2['name']} {score}"
             text = "\n".join([
                 f"Result confirmed in Box {m['box']}:",
