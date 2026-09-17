@@ -286,9 +286,25 @@ def lines(res):
             continue                       # history feeds the admin heatmap, not this list
         L.append(f"    {h['when']}  {h['court']:8} box {h['box']:2}  {h['team1']}  v  {h['team2']}"
                  + ("" if h["status"] == "pending" else f"  [{h['status']}]") + ("" if h["confidence"] == "certain" else "  (probable: not all four named)"))
-    L.append(f"  Summer league knockouts: {len(res['summer'])} ties booked")
-    for h in res["summer"]:
+    # Only real fixtures, and only the days ahead (Richie, 16 Sep 2026: "Refresh the logic on this
+    # email per latest updates to usage tab please"). The old list called every summer booking a
+    # tie and reached back to July, so group rematches and friendlies were counted as knockout ties.
+    from datetime import timedelta
+    import summer_ties
+    rule = summer_ties.rule()
+    now_s = datetime.now().strftime("%Y-%m-%d %H:%M")
+    horizon = (datetime.now() + timedelta(days=res["days"])).strftime("%Y-%m-%d %H:%M")
+    ahead = [h for h in res["summer"] if now_s <= h["when"] <= horizon]
+    tagged = [(h, rule.kind_for(h["team_ids"], h["starts_at"]) if rule else "summer") for h in ahead]
+    ties = [h for h, k in tagged if k == "summer"]
+    L.append(f"  Summer league knockouts: {len(ties)} tie{'' if len(ties) == 1 else 's'} booked")
+    for h in ties:
         L.append(f"    {h['when']}  {h['court']:8} {h['tier']:5}  {h['team1']}  v  {h['team2'] or '(opponents not named)'}")
+    friendly = sum(1 for _, k in tagged if k == "friendly")
+    openb = sum(1 for _, k in tagged if k == "open")
+    if friendly or openb:
+        L.append(f"    (not fixtures, so not counted: {friendly} between league pairs who do not owe each other a game,"
+                 f" {openb} with the opponents not named yet)")
     return L
 
 def push(res):
