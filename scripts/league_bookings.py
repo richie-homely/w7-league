@@ -110,6 +110,25 @@ def site_env():
         if os.environ.get(k): e[k] = os.environ[k]
     return e
 
+def not_fixtures():
+    """{(Dublin "YYYY-MM-DD HH:MM", court)} a team has told us was NOT their league game.
+
+    Four team-mates playing a social look exactly like their own fixture, so nothing can tell
+    them apart automatically. scripts/not_fixtures.csv is the manual override (Richie, 17 Sep
+    2026, after Kris Rybak: "that wasn't league match"). Listed bookings are skipped entirely:
+    no fixture match, no "played, no result" flag, no chaser, not counted as booked.
+    """
+    import csv
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "not_fixtures.csv")
+    out = set()
+    if not os.path.exists(path):
+        return out
+    for row in csv.reader(io.open(path, encoding="utf-8-sig")):
+        if row and not row[0].lstrip().startswith("#") and len(row) >= 2:
+            out.add((row[0].strip(), row[1].strip()))
+    return out
+
+
 def detect(days=14):
     env = site_env()
     H = {"apikey": env["NEXT_PUBLIC_SUPABASE_ANON_KEY"], "Authorization": f"Bearer {env['NEXT_PUBLIC_SUPABASE_ANON_KEY']}"}
@@ -125,6 +144,9 @@ def detect(days=14):
     fixture_by_pair = {tuple(sorted((m["team1_id"], m["team2_id"]))): m for m in matches}
 
     box_hits, summer_hits = [], []
+    excluded = not_fixtures()
+    if excluded:
+        print(f"not_fixtures.csv: {len(excluded)} booking(s) excluded by hand")
     all_bookings = fetch_bookings(days)
     for b in all_bookings:
         names = [p.get("name") for p in ((b.get("participant_info") or {}).get("participants") or [])]
@@ -134,6 +156,8 @@ def detect(days=14):
         from zoneinfo import ZoneInfo
         when = datetime.fromisoformat(b["booking_start_date"]).replace(tzinfo=timezone.utc).astimezone(ZoneInfo("Europe/Dublin")).strftime("%Y-%m-%d %H:%M")
         court = b.get("resource_name") or ""
+        if (when, court) in excluded:
+            continue
         # box fixture: two full teams, same box
         cnt = {}
         for n in names:

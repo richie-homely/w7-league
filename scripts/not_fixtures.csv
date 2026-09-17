@@ -1,0 +1,9 @@
+# Bookings that are NOT the league fixture they look like (Richie, 17 Sep 2026).
+# The detector matches a booking to a box fixture when the players on court are that
+# fixture's two teams. Four team-mates playing a social look identical to their league
+# game, so when a team tells us a booking was not their fixture it goes here and the
+# detector leaves it alone: no "played, no result" flag, no chaser, not counted as booked.
+#
+# starts_at is Dublin local time, exactly as the site shows it.
+# starts_at,court,note
+2026-09-11 19:30,Padel 1,"Box 14 Eva Rybak & Kris Rybak v John Lester & Kyle Dempsey — Kris Rybak, 17 Sep 2026: ""that wasn't league match"""
