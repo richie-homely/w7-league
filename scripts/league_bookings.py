@@ -83,7 +83,7 @@ def playtomic_env():
         raise SystemExit("PLAYTOMIC_CLIENT_ID / PLAYTOMIC_SECRET / PLAYTOMIC_VENUE_ID not set")
     return cid, sec, ven
 
-def fetch_bookings(days, back=60):
+def fetch_bookings(days, back=60, include_cancelled=False):
     """Bookings from `back` days ago to `days` ahead. The past window is what lets the admin
     page show WHEN league games actually get played (Richie, 10 Sep 2026)."""
     import requests
@@ -102,6 +102,10 @@ def fetch_bookings(days, back=60):
         batch = r.json(); out += batch
         if len(batch) < 200: break
         page += 1
+    if include_cancelled:
+        # court_watch.py needs the cancelled ones: a court booked weeks out and dropped at short
+        # notice is the thing we are trying to measure (Richie, 19 Sep 2026).
+        return out
     return [b for b in out if b.get("status") != "CANCELED" and not b.get("is_canceled")]
 
 def site_env():
@@ -300,6 +304,14 @@ def detect(days=14):
            "box_pending": pending, "box_pending_booked": booked_pending}
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(res, open(OUT, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    # Keep the court ledger current on every run: cancellations are only visible while they sit in
+    # the feed window, and a refill is only provable by seeing the slot taken again (Richie, 19 Sep
+    # 2026). It reuses the bookings already fetched, so it costs no extra Playtomic call.
+    try:
+        import court_watch
+        court_watch.scan(days=days, bookings=all_bookings)
+    except Exception as exc:
+        print(f"court_watch skipped ({type(exc).__name__}: {exc})")
     return res
 
 def lines(res):

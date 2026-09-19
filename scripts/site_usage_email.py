@@ -103,6 +103,15 @@ def main():
         L += [""] + lb.lines(lb.detect(14))
     except Exception as exc:
         L += ["", f"LEAGUE COURTS BOOKED: not available this run ({type(exc).__name__})"]
+    # Courts held without the other pair named, and courts dropped late (Richie, 19 Sep 2026:
+    # "these are the following courts that may not be filled ... if we see late cancellations
+    # booked a long time in advance, then cancelled last minute that don't refill").
+    try:
+        import court_watch
+        held, dropped, _ = court_watch.scan(days=21)
+        L += [""] + court_watch.lines(held, dropped)
+    except Exception as exc:
+        L += ["", f"COURTS HELD / DROPPED: not available this run ({type(exc).__name__})"]
     # played, no result (Richie, 11 Sep 2026: "we'll have to make sure there are results"):
     # a pending fixture whose W7 booking is 3h+ in the past. The notifier reminds the teams.
     try:
