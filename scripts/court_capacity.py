@@ -64,7 +64,8 @@ USABLE_CAP = sum(COURTS * len(list(h)) * len(list(w)) for w, h in USABLE)
 # uses that palette: neon yellow is unreadable on white, hence the darkened lime.
 C_TEXT, C_MUTE, C_CARD, C_BORDER = "#182430", "#68767f", "#f6f8f9", "#e2e7ea"
 C_TRACK = "#dfe5e9"                        # the unfilled part of a bar
-C_ACCENT, C_INFO = "#7f9a1e", "#1a4a6e"    # scheduled (lime dark), available (navy)
+C_ACCENT, C_INFO = "#7f9a1e", "#1a4a6e"    # scheduled (lime dark), room for league (navy)
+C_EMPTY = "#9db7c9"                        # empty now: the same navy, lightened
 C_NEED, C_RED, C_GREEN = "#b8b8b8", "#b3402e", "#2e7d32"
 C_LIKELY = "#b8821f"                       # likely league games in bookings missing opponents
 
@@ -166,6 +167,11 @@ def tracker(bookings, matches, weeks_back=4, weeks=3):
         # A part-spent week is only charged the share of typical demand matching the days left.
         expect_other = max(oth_h, typical_other * (cap / USABLE_CAP if USABLE_CAP else 1))
         room = max((cap - lg_h - expect_other) / avg_h, 0)
+        # What the calendar shows TODAY, before the rest of a normal week arrives. Richie,
+        # 20 Sep 2026: "why do you show only 11 available hours, when there is plenty of
+        # occupancy available next weekend?" Both are true; the gap between them is the
+        # forward-booking curve, so the chart shows each.
+        free_now = max((cap - lg_h - oth_h) / avg_h, 0)
         need = 0.0 if current else per_week
         out.append({
             "mon": mon,
@@ -174,6 +180,7 @@ def tracker(bookings, matches, weeks_back=4, weeks=3):
             "need": need,
             "booked": lg_h / avg_h,
             "room": room,
+            "free_now": free_now,
             "short": max(need - lg_h / avg_h - room, 0),
         })
     # Likely league games hiding in bookings that do not name opponents yet, scored hourly by
@@ -191,6 +198,53 @@ def tracker(bookings, matches, weeks_back=4, weeks=3):
     return {"weeks": out, "per_week": per_week, "avg_h": avg_h, "left": left,
             "typical_other": typical_other, "today": today, "this_mon": this_mon,
             "filled": filled}
+
+
+def displacement(weeks_back=8):
+    """Are league games new demand, or the same regulars playing their usual hours differently?
+
+    Richie, 20 Sep 2026: "you'll get a few players who are normal regulars, but now they're
+    playing box league games." It matters for the capacity model: a future week is charged the
+    non-league demand a normal week brings, and that average was measured before the league
+    existed. If league players have simply moved their own court time into fixtures, the charge
+    is too high and the room left for league games is understated.
+
+    Returns court-hours a week for box league players: their play before the league opened, and
+    since, split into league fixtures and everything else.
+    """
+    import league_bookings as lb
+    from box_league_mailout import load_env, sb_get
+    load_env()
+    open_day = datetime(2026, 9, 10, tzinfo=IE)
+    teams = [t for t in sb_get("box_teams?select=p1,p2,active&box=lt.90&limit=500") if t["active"]]
+    players = {lb.norm(t["p1"]) for t in teams} | {lb.norm(t["p2"]) for t in teams}
+    raw = [b for b in lb.fetch_bookings(0, back=weeks_back * 7) if not b.get("is_canceled")]
+    if not raw:
+        return None
+    league_keys = {(datetime.fromisoformat(r["starts_at"]).astimezone(IE).strftime("%Y-%m-%dT%H:%M"),
+                    r["court"])
+                   for r in sb_get("league_bookings?select=starts_at,court&limit=5000")}
+    before = after_fx = after_oth = 0.0
+    first = None
+    for b in raw:
+        st, en = _loc(b["booking_start_date"]), _loc(b["booking_end_date"])
+        first = st if first is None or st < first else first
+        names = [p.get("name") for p in ((b.get("participant_info") or {}).get("participants") or [])]
+        if not any(lb.norm(n) in players for n in names):
+            continue
+        h = (en - st).total_seconds() / 3600
+        if st < open_day:
+            before += h
+        elif (st.strftime("%Y-%m-%dT%H:%M"), b.get("resource_name")) in league_keys:
+            after_fx += h
+        else:
+            after_oth += h
+    wk_b = max((open_day - first).days / 7, 0.1)
+    wk_a = max((datetime.now(IE) - open_day).days / 7, 0.1)
+    return {"weeks_before": wk_b, "weeks_after": wk_a,
+            "before_other": before / wk_b, "after_fixtures": after_fx / wk_a,
+            "after_other": after_oth / wk_a,
+            "change_other": after_oth / wk_a - before / wk_b}
 
 
 def report(weeks_ahead=4, weeks_back=4, data=None):
@@ -233,15 +287,30 @@ def report(weeks_ahead=4, weeks_back=4, data=None):
 
     L += ["", f"  LEAGUE SCHEDULING BY WEEK - {t['left']} fixtures to clear by {CYCLE_END}, "
               f"{t['per_week']:.0f} a week",
-          f"    {'week':17}{'need':>5}{'booked':>8}{'likely':>8}{'gap':>6}{'room left':>11}   verdict"]
+          f"    {'week':17}{'need':>5}{'booked':>8}{'likely':>8}{'gap':>6}{'room left':>11}{'empty now':>10}   verdict"]
     for w in t["weeks"]:
         verdict = ("this week, mostly spent" if w["current"] else
                    "fits" if w["short"] <= 0 else f"{w['short']:.0f} short")
         need = "-" if w["current"] else f"{w['need']:.0f}"
         gap = "-" if w["current"] else f"{w['need'] - w['booked']:.0f}"
         likely = f"+{w['likely']:.0f}" if w.get("likely_high") else "-"
-        L.append(f"    {w['label']:17}{need:>5}{w['booked']:8.0f}{likely:>8}{gap:>6}{w['room']:11.0f}   {verdict}")
+        L.append(f"    {w['label']:17}{need:>5}{w['booked']:8.0f}{likely:>8}{gap:>6}{w['room']:11.0f}"
+                 f"{w['free_now']:10.0f}   {verdict}")
     L.append("    likely = league games probably hiding in bookings that do not name opponents yet (weighted estimate)")
+    try:
+        d = displacement()
+    except Exception:
+        d = None
+    if d:
+        L += ["",
+              "  ARE LEAGUE GAMES NEW DEMAND? - box league players' court-hours a week",
+              f"    before the league opened   {d['before_other']:5.0f}  (all of it non-league)",
+              f"    since it opened            {d['after_fixtures']:5.0f}  league fixtures"
+              f"  +{d['after_other']:.0f} everything else",
+              f"    their non-league play is {d['change_other']:+.0f} court-h a week",
+              "    A fall here means league games are partly the same people playing their usual hours",
+              "    differently, so the non-league demand charged to future weeks is too high and the room",
+              f"    left is understated. Measured over {d['weeks_after']:.1f} weeks so far - watch it, do not act on it yet."]
     L.append(f"    room left = the {USABLE_CAP:.0f} usable court-hours a week, less league games already "
              f"booked, less the {t['typical_other']:.0f}h a normal week's non-league demand takes")
 
@@ -272,7 +341,8 @@ def chart_html(weeks_ahead=4, weeks_back=4, data=None):
     bookings, matches = data or gather(weeks_ahead, weeks_back)
     t = tracker(bookings, matches, weeks_back)
     scale = max([w["need"] for w in t["weeks"]]
-                + [w["booked"] + w["room"] for w in t["weeks"]] + [1])
+                + [w["booked"] + w["room"] for w in t["weeks"]]
+                + [w["free_now"] for w in t["weeks"]] + [1])
 
     def bar(value, colour, label):
         pct = max(min(value / scale * 100, 100), 0)
@@ -306,7 +376,9 @@ def chart_html(weeks_ahead=4, weeks_back=4, data=None):
         rows += bar(w["booked"], C_ACCENT, "scheduled")
         if w.get("likely_high"):
             rows += bar(w["likely"], C_LIKELY, "likely, no opps")
-        rows += bar(w["room"], C_INFO, "available")
+        rows += bar(w["room"], C_INFO, "room for league")
+        if not w["current"]:
+            rows += bar(w["free_now"], C_EMPTY, "empty now")
         blocks.append(
             '<div style="margin:0 0 14px">'
             f'<div style="font:700 12px -apple-system,Segoe UI,sans-serif;color:{C_TEXT};'
