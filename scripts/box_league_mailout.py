@@ -64,6 +64,16 @@ def contacts_by_team_name():
         for row in csv.reader(io.open(extra, encoding="utf-8-sig")):
             if len(row) >= 2 and "@" in row[1]:
                 out[row[0].strip()].append(row[1].strip().lower())
+    # Addresses a player has replaced. The launch pack is a generated record of who entered, so it
+    # is never edited; a replaced address goes here instead and stops receiving anything
+    # (Richie, 20 Sep 2026: "loboschi@hotmail.com to replace Antonio's current email").
+    # One address per line, anything after a comma is a note.
+    drop = os.path.join(ROOT, "data", "box_suppressed.csv")
+    if os.path.exists(drop):
+        dead = {r[0].strip().lower() for r in csv.reader(io.open(drop, encoding="utf-8-sig"))
+                if r and "@" in r[0]}
+        if dead:
+            out = defaultdict(list, {k: [e for e in v if e.lower() not in dead] for k, v in out.items()})
     return out
 
 
