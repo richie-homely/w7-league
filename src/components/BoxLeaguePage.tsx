@@ -192,6 +192,7 @@ export function BoxLeaguePage() {
           ["#calendar", "Calendar"],
           ["/box/how-to", "How to enter scores"],
           ["/box/rules", "Rules"],
+          ["/box/subs", "Need a sub?"],
         ].map(([href, label]) => (
           <a
             key={label}
