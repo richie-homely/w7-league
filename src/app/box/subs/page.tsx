@@ -3,9 +3,28 @@ import { C, F } from "@/theme/tokens";
 import { KeanoCredit } from "@/components/KeanoCredit";
 import { SubRosterForm } from "@/components/SubRosterForm";
 
+const SHARE = {
+  title: "Play as a stand-in · W7 Box League",
+  description: "Teams lose a player every week. Put your name down and we'll call you when a team at your level is short.",
+  // WhatsApp caches a preview by URL, so a changed card gets a new filename (make_sub_card.py).
+  image: "/og-subs-v1.png",
+};
+
 export const metadata = {
   title: "Stand-in list · W7 Autumn/Winter Padel Box League",
-  description: "Put your name down to play as a sub in the W7 box league. We email you when a team at your level is short a player.",
+  description: SHARE.description,
+  openGraph: {
+    title: SHARE.title,
+    description: SHARE.description,
+    url: "/box/subs",
+    images: [{ url: SHARE.image, width: 1200, height: 630, alt: "Play as a stand-in — W7 Box League" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SHARE.title,
+    description: SHARE.description,
+    images: [SHARE.image],
+  },
 };
 
 // Richie, 20 Sep 2026: "players who aren't in the box league but they want to put their name down

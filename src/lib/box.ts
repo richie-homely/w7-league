@@ -403,6 +403,34 @@ export async function logBoxSub(
   return { ok: false, text: "Check the names and the rating (0–7) and try again." };
 }
 
+/** Stand-ins on the roster who are within the league's 0.75 of a given rating (the roster page
+ *  never shows contact details, and neither does this). */
+export async function eligibleSubs(rating: number | null): Promise<{ name: string; rating: number | null; plays: string }[]> {
+  const { data, error } = await createClient().rpc("sub_roster_for", { p_rating: rating, p_within: 0.75 });
+  if (error || !data) return [];
+  return (data as { name: string; rating: number | null; plays: string }[]).map((r) => ({
+    name: r.name, rating: r.rating === null ? null : Number(r.rating), plays: r.plays ?? "",
+  }));
+}
+
+/** Ask for a stand-in on your own fixture. The notifier then emails both team addresses and the
+ *  stand-in on one thread (Richie, 20 Sep 2026). */
+export async function requestBoxSub(
+  matchId: string, email: string, replaced: string, subName: string
+): Promise<{ ok: boolean; text: string }> {
+  const { data, error } = await createClient().rpc("box_sub_request", {
+    p_match: matchId, p_email: email, p_replaced: replaced, p_sub_name: subName,
+  });
+  if (error) return { ok: false, text: error.message.includes("box_sub_request") ? "Asking for a stand-in isn't switched on yet — run box_sub_request_20Sep2026.sql." : error.message };
+  const code = data as string;
+  if (code === "ok") return { ok: true, text: "Asked. We email you, your partner and the stand-in on one thread within the hour." };
+  if (code === "already_open") return { ok: true, text: "You already have a request open on this fixture — we are waiting on a reply." };
+  if (code === "not_registered") return { ok: false, text: "That email isn't registered to your team." };
+  if (code === "no_sub") return { ok: false, text: "That stand-in is no longer on the list." };
+  if (code === "no_match") return { ok: false, text: "That fixture no longer exists." };
+  return { ok: false, text: "Check who is sitting out and try again." };
+}
+
 /** All logged subs, keyed by match id (a fixture can have more than one). */
 export function useBoxSubs(): { byMatch: Map<string, BoxSub[]>; refresh: () => void } {
   const [subs, setSubs] = useState<BoxSub[]>([]);

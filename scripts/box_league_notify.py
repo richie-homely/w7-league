@@ -37,6 +37,17 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 from box_league_mailout import SITE, RELAY, load_env, sb_get, contacts_by_team_name  # noqa: E402
 
 STATE = os.path.join(ROOT, "data", "box_notify_state.json")
+NL = chr(10)          # the stand-in email is built line by line
+
+
+def sb_rpc(fn, body):
+    """POST an RPC with the anon key, the same way results_check.py does."""
+    url, key = os.environ["NEXT_PUBLIC_SUPABASE_URL"], os.environ["NEXT_PUBLIC_SUPABASE_ANON_KEY"]
+    req = urllib.request.Request(f"{url}/rest/v1/rpc/{fn}", data=json.dumps(body).encode(),
+                                 method="POST",
+                                 headers={"apikey": key, "Authorization": f"Bearer {key}",
+                                          "Content-Type": "application/json"})
+    return json.loads(urllib.request.urlopen(req, timeout=30).read())
 W7_INBOX = "welcome@w7padel.com"
 RICHIE = "richiecarroll65@gmail.com"   # disputed results are flagged to Richie only
 PLAYER_REMINDERS = True           # on from 17 Sep 2026 (Richie: "we should send a chaser after 3 days")
@@ -205,6 +216,60 @@ def main():
             wh.send(subject, [RICHIE], text, html)
             state[key] = datetime.now().isoformat(timespec="seconds")
             sent += 1
+    # ── stand-in requests: one thread to the team and the stand-in (Richie, 20 Sep 2026) ──
+    # "send an email to the two team members, the person who is away and then the main player,
+    # and then the sub, and say would you like to play, when can you play."
+    try:
+        pending = sb_rpc("sub_requests_pending", {"p_key": os.environ.get("SITE_ADMIN_KEY", "")})
+    except Exception as exc:
+        pending = []
+        print(f"stand-in requests: not available ({type(exc).__name__}) - run box_sub_request_20Sep2026.sql")
+    for r in pending or []:
+        key = f"subreq:{r['id']}"
+        if key in state:
+            continue
+        team = next((t for t in teams.values() if t["name"] == r["team_name"]), None)
+        to = (addrs(team) if team else []) + ([r["sub_email"]] if r.get("sub_email") else [])
+        to = sorted(set(to))
+        if not to:
+            print(f"  no deliverable address for the stand-in request on box {r['box']} - skipped")
+            if not dry:
+                state[key] = "no-recipient"
+            continue
+        rating = f"{float(r['sub_rating']):.2f}" if r.get("sub_rating") is not None else "to be checked"
+        link = f"{SITE}/box?match={r['match_id']}"
+        subject = f"W7 Box League - can you play? Box {r['box']}: {r['team_name']} v {r['opponent']}"
+        text = NL.join([
+            f"Hi {r['partner'].split()[0]}, {r['replaced'].split()[0]} and {r['sub_name'].split()[0]},",
+            "",
+            f"{r['replaced']} cannot play {r['team_name']}'s Box {r['box']} fixture against"
+            f" {r['opponent']}, so {r['sub_name']} has been asked to stand in.",
+            "",
+            f"  Stand-in: {r['sub_name']} (Playtomic {rating})",
+            f"  Usually plays: {r['sub_plays'] or 'not said'}",
+            "",
+            f"{r['sub_name'].split()[0]}: can you play, and when suits you?",
+            f"{r['partner'].split()[0]}: agree a time on this thread and book the court as usual.",
+            "",
+            "Reply to everyone here so the three of you settle it in one place. Nothing is booked"
+            " until the stand-in says yes.",
+            "",
+            f"When the game is played, enter the score as normal and log the stand-in on the"
+            f" fixture: {link}",
+            "",
+            "A stand-in has to be within 0.75 of the Playtomic rating of the player sitting out."
+            " This one is, or W7 checks it before the game.",
+            "",
+            "- W7 Padel - Wicklow Town - welcome@w7padel.com",
+        ])
+        html = wh.shell("Box League", f"Can you play? Box {r['box']}", wh.auto_body(text))
+        if dry:
+            print(f"[dry-run] stand-in request -> {', '.join(to)} | {subject}")
+        else:
+            wh.send(subject, to, text, html, reply_to=W7_INBOX)
+            state[key] = datetime.now().isoformat(timespec="seconds")
+            sent += 1
+
     # ── results watch: booked, played, no score yet ──
     from zoneinfo import ZoneInfo
     dub = ZoneInfo("Europe/Dublin")

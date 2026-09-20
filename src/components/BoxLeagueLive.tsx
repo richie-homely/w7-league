@@ -10,6 +10,7 @@ import { formatScore, parseSets, setsWon } from "@/lib/scoring";
 import { scoresDue, addTeamContact, findBoxForEmail, rememberEmail, rememberedEmail, teamsNeedingEmail, logBoxSub, useBoxSubs, type BoxSub } from "@/lib/box";
 import { track } from "@/lib/track";
 import { fmtBooking, resultBooking, resultMissing, useLeagueBookings, type LeagueBooking } from "@/lib/bookings";
+import { FindSubForm } from "./FindSubForm";
 import {
   computeBoxStandings,
   confirmBoxScore,
@@ -445,6 +446,7 @@ function MatchRow({
   allBookings?: Map<string, LeagueBooking>;
 }) {
   const [subOpen, setSubOpen] = useState(false);
+  const [findOpen, setFindOpen] = useState(false);
   const [nowMs] = useState(() => Date.now());   // snapshot for the result-missing test (render stays pure)
   const [open, setOpen] = useState<false | "submit" | "confirm">(
     autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
@@ -522,6 +524,10 @@ function MatchRow({
         {mine && match.status !== "confirmed" && (
           <button onClick={() => setSubOpen(!subOpen)} style={ghostBtn}>{subOpen ? "Close" : "Log a sub"}</button>
         )}
+        {/* A player away and the fixture still to play: ask the stand-in list (Richie, 20 Sep 2026) */}
+        {mine && match.status === "pending" && (
+          <button onClick={() => setFindOpen(!findOpen)} style={ghostBtn}>{findOpen ? "Close" : "Find a stand-in"}</button>
+        )}
         {mine && (match.status === "pending" || match.status === "disputed") && (
           <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={actionBtn}>
             {open === "submit" ? "Close" : "Enter result"}
@@ -538,6 +544,9 @@ function MatchRow({
           </>
         )}
       </div>
+      {findOpen && viewerTeamId && teamsById[viewerTeamId] && (
+        <FindSubForm match={match} team={teamsById[viewerTeamId]} onDone={(msg) => { if (msg.ok) setFindOpen(false); onMessage(msg); }} />
+      )}
       {subOpen && viewerTeamId && teamsById[viewerTeamId] && (
         <SubForm match={match} team={teamsById[viewerTeamId]} onDone={(msg) => { setSubOpen(false); onMessage(msg); if (msg.ok) onSubLogged?.(); }} />
       )}
