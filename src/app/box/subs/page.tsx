@@ -2,6 +2,7 @@ import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { KeanoCredit } from "@/components/KeanoCredit";
 import { SubRosterForm } from "@/components/SubRosterForm";
+import { SubRosterPublic } from "@/components/SubRosterPublic";
 
 const SHARE = {
   title: "Play as a stand-in · W7 Box League",
@@ -79,6 +80,8 @@ export default function BoxSubsPage() {
 
         <SubRosterForm />
 
+        <SubRosterPublic />
+
         <div>
           <div style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: "0.15em", color: C.mute, marginBottom: 12 }}>
             HOW IT WORKS
@@ -113,8 +116,9 @@ export default function BoxSubsPage() {
             leave it blank and we will look it up.
           </p>
           <p style={{ fontSize: 13.5, color: C.mute, lineHeight: 1.6, margin: 0 }}>
-            Your email and phone number stay with W7. Teams see your name, your rating and when you can
-            play, never your contact details, and we make the introduction ourselves.
+            Your name, your level and when you can play are shown on the list above, so teams can see
+            who is around. Your email and phone number stay with W7 and are never shown to anyone:
+            a team asks through the site and we put you all on one email thread.
           </p>
         </div>
 
