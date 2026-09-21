@@ -8,6 +8,7 @@ import { useBoxData } from "@/lib/box";
 import { BoxProgress } from "./BoxProgress";
 import { Collapsible } from "./Collapsible";
 import { CourtAvailability } from "./CourtAvailability";
+import { SubRosterList } from "./SubRosterList";
 import { OccupancyChart } from "./OccupancyChart";
 import { LeadTimeChart } from "./LeadTimeChart";
 import { LeagueHeatmap } from "./LeagueHeatmap";
@@ -107,6 +108,9 @@ export function UsagePortal() {
     { key: "audit", chip: "No result yet", title: "PLAYED, NO RESULT YET", openByDefault: true,
       note: "fixtures booked 3h+ ago with no score entered",
       node: <ResultsAudit teams={boxTeams} matches={boxMatches} bare /> },
+    { key: "standins", chip: "Stand-ins", title: "STAND-IN LIST", openByDefault: true,
+      note: "players who have put their name down to sub, and their level",
+      node: <SubRosterList bare /> },
     { key: "progress", chip: "Cycle progress", title: "CYCLE PROGRESS", openByDefault: false,
       note: "played, booked and still to arrange, box by box",
       node: <BoxProgress matches={boxMatches} teams={boxTeams} detailed bare /> },
