@@ -506,6 +506,18 @@ export const KNOCKOUT_RESULTS: {
     score: "7-6, 4-3",
     playedOn: "2026-09-22",
   },
+  {
+    // Lower-tier SF1: G3 1st seed (Earls & Keogh) v G2 5th seed (O'Sullivan & O'Sullivan).
+    // 23 Sep 2026, from Robert Keogh's Playtomic result card — won in two, a game dropped in the
+    // first and none in the second. Earls & Keogh into the final on birthday weekend.
+    teams: [
+      "8bd7bb6e-beb7-41e5-968e-168f458faa0e", // Andy Earls & Robert Keogh
+      "e5775ed4-cb67-41a5-a15a-6468c5c845d2", // Mark O'Sullivan 1 & Brian O'Sullivan
+    ],
+    winnerTeamId: "8bd7bb6e-beb7-41e5-968e-168f458faa0e",
+    score: "6-1, 6-0",
+    playedOn: "2026-09-23",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
