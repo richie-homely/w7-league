@@ -491,19 +491,18 @@ export const KNOCKOUT_RESULTS: {
     playedOn: "2026-09-15",
   },
   {
-    // Lower tier: O'Sullivan & O'Sullivan v Wuyls & Maciaine, 22 Sep 2026. Reported by Richie
-    // from the Playtomic post-result screen — Mark's team goes through.
+    // Lower-tier QF2: O'Sullivan & O'Sullivan v Wuyls & Maciaine, 22 Sep 2026.
     //
-    // Playtomic flagged the card "Score invalid" and it is easy to see why: it reads 7-6 then
-    // 4-3, and 4-3 is not a finished set. The first set and the winner are not in doubt, so the
-    // tie is recorded, but the second set needs confirming with the four of them before this
-    // score is shown as final.
+    // The tie was not played to a finish — Playtomic flagged the card "Score invalid" because the
+    // second set stops at 4-3 — so the league awarded it to O'Sullivan & O'Sullivan, who had the
+    // first set and were ahead in the second (Richie, 23 Sep 2026). The score is shown with
+    // "awarded" against it so nobody reads 4-3 as a set anyone won on court.
     teams: [
       "e5775ed4-cb67-41a5-a15a-6468c5c845d2", // Mark O'Sullivan 1 & Brian O'Sullivan
       "df9455f0-a3c9-4f52-bc46-7a937486bf27", // Toby Wuyls & Mel Maciaine
     ],
     winnerTeamId: "e5775ed4-cb67-41a5-a15a-6468c5c845d2",
-    score: "7-6, 4-3",
+    score: "7-6, 4-3 · awarded",
     playedOn: "2026-09-22",
   },
   {
