@@ -39,12 +39,13 @@ export const FINALS_COURT_SPONSOR: SponsorSlot = {
   context: "Court 1 naming rights",
 };
 
-/** Finals weekend — provisional until the semi-finals are played. */
+/** Finals day. Both tiers play their finals on the Sunday alongside the birthday party, rather
+ *  than spread across the weekend as first planned (Richie, 23 Sep 2026). */
 export const FINALS = {
-  dates: "26 / 27 September 2026",
+  dates: "Sunday 27 September 2026",
   court: "Court 1",
-  provisional: true,
-  /** Finals weekend doubles as W7's first birthday (Richie, 10 Sep 2026) — details to follow */
+  provisional: false,
+  /** Finals day doubles as W7's first birthday (Richie, 10 Sep 2026) — details to follow */
   event: "W7's first birthday party",
   eventDate: "Sunday 27 September",
   eventNote: "details to follow",

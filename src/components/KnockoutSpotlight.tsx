@@ -225,7 +225,7 @@ export function KnockoutSpotlight({ bare = false }: { bare?: boolean } = {}) {
           </div>
           <div style={{ fontSize: 13.5, color: C.mute, marginTop: 6, maxWidth: 560 }}>
             Into the final stages: {upper.length + lower.length} teams started across both tiers, playing for
-            €{(pot * 2).toLocaleString()} in prizes. Semi-finals and finals are played on finals weekend,{" "}
+            €{(pot * 2).toLocaleString()} in prizes. Both tiers play their finals at the club on{" "}
             <span style={{ color: C.text }}>{FINALS.dates}</span>{FINALS.provisional ? " (provisional)" : ""}.
           </div>
           {FINALS.event && (
