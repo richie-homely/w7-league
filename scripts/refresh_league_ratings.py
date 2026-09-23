@@ -6,9 +6,11 @@ the leagues?" — the site stores r1/r2 on box_teams and teams, but the summer s
 the level they entered with in June, so "current" has to be refreshed before it is shown.
 
 Matching is by normalised name against W7's venue player list, the same way
-refresh_ratings_from_venue.py does it. Where two accounts share a name the one nearest the
-stored rating is taken, and anything unmatched keeps the rating it has. Writes an SQL file of
-updates for Supabase (ratings only — no emails, so it is safe in the repo) and prints the moves.
+refresh_ratings_from_venue.py does it. Anything unmatched keeps the rating it has. Where two
+accounts share a name, scripts/rating_overrides.csv says which account the team means and the
+level still comes live; without an override the one nearest the stored rating is taken and the
+pair is printed, because that fallback keeps whatever we guessed first and never corrects itself.
+Writes an SQL file of updates for Supabase (ratings only — no emails, so it is safe in the repo).
 
     python scripts/refresh_league_ratings.py            # writes supabase/ratings_refresh_<date>.sql
 """
@@ -23,13 +25,40 @@ from box_league_mailout import load_env, sb_get  # noqa: E402
 import refresh_ratings_from_venue as venue  # noqa: E402
 
 
+OVERRIDES = os.path.join(ROOT, "scripts", "rating_overrides.csv")
+
+
 def levels():
-    """{normalised name: [levels]} from the venue player list."""
+    """{normalised name: [(level, player_id, email)]} from the venue player list.
+
+    The player_id comes back too, because two people at the club really do share a name and the
+    only stable way to say which one a team means is the account id.
+    """
     out = defaultdict(list)
     for p in venue.fetch_players():
         for s in p.get("sports") or []:
             if s.get("sport_id") == "PADEL" and s.get("level_value") is not None:
-                out[venue.norm(p.get("name") or "")].append(float(s["level_value"]))
+                out[venue.norm(p.get("name") or "")].append(
+                    (float(s["level_value"]), str(p.get("player_id") or ""), p.get("email") or ""))
+    return out
+
+
+def overrides():
+    """Which Playtomic account a given league player label means.
+
+    Name matching cannot separate two Mark O'Sullivans, and "nearest to the rating we already
+    hold" quietly keeps whichever one we guessed the first time - so a wrong pick never corrects
+    itself. This file pins the account by id; the level still comes live from Playtomic each run.
+    """
+    out = {}
+    if not os.path.exists(OVERRIDES):
+        return out
+    import csv
+    for r in csv.DictReader(open(OVERRIDES, encoding="utf-8-sig")):
+        label = (r.get("label") or "").strip()
+        pid = (r.get("player_id") or "").strip()
+        if label and pid:
+            out[label] = pid
     return out
 
 
@@ -38,7 +67,8 @@ def main():
     venue.load_env()
     lv = levels()
     print(f"venue players with a padel level: {len(lv)}")
-    rows, moves, unmatched, ambiguous = [], [], [], []
+    pins = overrides()
+    rows, moves, unmatched, ambiguous, pinned_used = [], [], [], [], []
     q = lambda s: "'" + s.replace("'", "''") + "'"   # noqa: E731
 
     for table, query in (("box_teams", "box_teams?select=id,box,name,p1,p2,r1,r2,active&limit=500"),
@@ -59,11 +89,17 @@ def main():
                     unmatched.append(f"{table}: {nm}")
                     continue
                 if len(vals) > 1:
-                    ambiguous.append(f"{table}: {nm} {vals}")
-                    ref = old if old is not None else 0.5
-                    live = min(vals, key=lambda v: abs(v - ref))
+                    pinned = [v for v in vals if v[1] == pins.get(nm)]
+                    if pinned:
+                        live = pinned[0][0]
+                        pinned_used.append(f"{table}: {nm} -> account {pinned[0][1]} ({live:.2f})")
+                    else:
+                        ambiguous.append(f"{table}: {nm} {[v[0] for v in vals]}"
+                                         + "  accounts " + ", ".join(f"{v[1]}={v[0]:.2f}" for v in vals))
+                        ref = old if old is not None else 0.5
+                        live = min((v[0] for v in vals), key=lambda v: abs(v - ref))
                 else:
-                    live = vals[0]
+                    live = vals[0][0]
                 live = round(live, 2)
                 if old is None or abs(live - old) >= 0.01:
                     new[col] = live
@@ -88,9 +124,15 @@ def main():
     print(f"not on Playtomic by name: {len(unmatched)}")
     for u in unmatched[:20]:
         print("   " + u)
-    print(f"more than one account with that name: {len(ambiguous)}")
+    if pinned_used:
+        print(f"pinned to a named account by scripts/rating_overrides.csv: {len(pinned_used)}")
+        for p in pinned_used:
+            print("   " + p)
+    print(f"more than one account with that name, and no override: {len(ambiguous)}")
     for a in ambiguous[:10]:
         print("   " + a)
+    if ambiguous:
+        print("   (add label,player_id to scripts/rating_overrides.csv to settle these for good)")
     print("wrote", path)
     return 0
 
