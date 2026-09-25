@@ -80,6 +80,25 @@ def fmt_sets(sets):
     return ", ".join(f"{a}-{b}" for a, b in (sets or []))
 
 
+def outcome(sets, t1, t2):
+    """"X beat Y 7-5, 6-0" — who won, in words, not two names beside two columns.
+
+    Anna Higgins confirmed a result against her own team on 25 Sep 2026: "I just looked at the
+    score and it was correct so I confirmed not realising the names were reversed." The email had
+    shown "Anna Higgins & Sharon McDevitt v Elaine Kirwan & Christina Reilly — 7-5, 6-0", which is
+    only readable if you know the first name owns the first number. Nobody should have to.
+    """
+    s1 = sum(1 for a, b in (sets or []) if a > b)
+    s2 = sum(1 for a, b in (sets or []) if b > a)
+    if s1 == s2:
+        return f"{t1['name']} v {t2['name']}  —  {fmt_sets(sets)}"
+    t1_won = s1 > s2
+    win, lose = (t1, t2) if t1_won else (t2, t1)
+    # read the sets from the winner's side, so the numbers agree with the sentence
+    line = fmt_sets((sets or []) if t1_won else [[b, a] for a, b in (sets or [])])
+    return f"{win['name']} beat {lose['name']} {line}"
+
+
 def main():
     load_env()
     sys.path.insert(0, os.path.join(os.path.dirname(ROOT), "w7-padel", "scripts"))
@@ -110,15 +129,19 @@ def main():
         sub = teams.get(m["submitted_team"])
         opp = t2 if sub and sub["id"] == t1["id"] else t1
         score = fmt_sets(m["sets"])
+        result = outcome(m["sets"], t1, t2)
         link = f"{SITE}/box?match={m['id']}"
         if m["status"] == "submitted":
             to = addrs(opp)
-            subject = f"W7 Box League — please confirm: {t1['name']} v {t2['name']} {score}"
+            subject = f"W7 Box League — please confirm: {result}"
             text = "\n".join([
                 f"Hi {opp['p1'].split()[0]} and {opp['p2'].split()[0]},",
                 "",
-                f"{sub['name'] if sub else 'Your opponents'} have entered a result for your Box {m['box']} match:",
-                f"  {t1['name']} v {t2['name']}  —  {score}",
+                f"{sub['name'] if sub else 'Your opponents'} have entered this result for your Box {m['box']} match:",
+                f"  {result}",
+                "",
+                "CHECK THE NAMES, NOT JUST THE SCORE — confirming the wrong way round puts the win",
+                "on the wrong team, and the table follows the names.",
                 "",
                 "PLEASE CONFIRM OR DISPUTE",
                 *[f"  {opp['p1'].split()[0] if i == 0 else opp['p2'].split()[0]}: {link}&as={a}" for i, a in enumerate(addrs(opp)[:2])],
@@ -127,28 +150,28 @@ def main():
                 "",
                 "— W7 Padel · Wicklow Town · welcome@w7padel.com",
             ])
-            headline, subline, color = "Result awaiting your confirmation", f"Box {m['box']} · {score}", wh.GOLD
+            headline, subline, color = "Result awaiting your confirmation", f"Box {m['box']} · {result}", wh.GOLD
         elif m["status"] == "confirmed":
             # Only the team that entered the score needs telling: the other team just tapped
             # Confirm and saw it happen (Richie, 17 Sep 2026: "one team can submit, and then one
             # team can confirm and then it's done - to avoid overkill on the emails").
             to = addrs(sub) if sub else addrs(t1, t2)
-            subject = f"W7 Box League — confirmed: {t1['name']} v {t2['name']} {score}"
+            subject = f"W7 Box League — confirmed: {result}"
             text = "\n".join([
                 f"Result confirmed in Box {m['box']}:",
-                f"  {t1['name']} v {t2['name']}  —  {score}",
+                f"  {result}",
                 "",
                 f"The box table is updated: {SITE}/box?box={m['box']}",
                 "",
                 "— W7 Padel · Wicklow Town",
             ])
-            headline, subline, color = "Result confirmed", f"Box {m['box']} · {score}", wh.LIME_DK
+            headline, subline, color = "Result confirmed", f"Box {m['box']} · {result}", wh.LIME_DK
         else:
             to = addrs(t1, t2) + [W7_INBOX]
             subject = f"W7 Box League — scores differ: {t1['name']} v {t2['name']}"
             text = "\n".join([
                 f"The two teams entered different scores for their Box {m['box']} match:",
-                f"  {t1['name']} v {t2['name']}  —  currently showing {score}",
+                f"  {t1['name']} v {t2['name']}  —  currently showing {result}",
                 "",
                 "The W7 team will check with both teams and set the result. Either team can also",
                 f"re-enter the agreed score here: {link}",
@@ -169,12 +192,12 @@ def main():
         # registered address filled in, so confirming is a single tap. Everything else keeps one button.
         if m["status"] == "submitted":
             people = [opp["p1"].split()[0], opp["p2"].split()[0]]
-            buttons = [cta(f"{link}&as={a}", f"Confirm as {people[i] if i < len(people) else 'me'} &check;")
+            buttons = [cta(f"{link}&as={a}", f"Confirm as {people[i] if i < len(people) else 'me'} &#10003;")
                        for i, a in enumerate(addrs(opp)[:2])]
-            buttons.append(cta(link, "Open the match &rarr;", "#3f3f46"))
+            buttons.append(cta(link, "Open the match &#8594;", "#3f3f46"))
             button = '<div style="text-align:center;margin:6px 0 14px;">' + "".join(buttons) + "</div>"
         else:
-            button = '<div style="text-align:center;margin:6px 0 14px;">' + cta(link, "Open the match &rarr;") + "</div>"
+            button = '<div style="text-align:center;margin:6px 0 14px;">' + cta(link, "Open the match &#8594;") + "</div>"
         html = wh.shell("Box League", headline + " · " + subline, button + wh.auto_body(text))
         if dry:
             print(f"[dry-run] {m['status']:9} -> {', '.join(to)} | {subject}")
@@ -315,7 +338,7 @@ def main():
             continue
         button = (f'<div style="text-align:center;margin:6px 0 14px;"><a href="{link}" style="display:inline-block;'
                   f'background:{wh.GOLD};color:#ffffff;text-decoration:none;font-weight:700;padding:12px 22px;'
-                  f'border-radius:8px;font-size:15px;">Enter the result &rarr;</a></div>')
+                  f'border-radius:8px;font-size:15px;">Enter the result &#8594;</a></div>')
         html = wh.shell("Box League", ("Still no score" if second else "Enter your score") + f" · Box {m['box']}", button + wh.auto_body(text))
         if dry:
             print(f"    [dry-run] {stage} -> {', '.join(to)} | {subject}")
