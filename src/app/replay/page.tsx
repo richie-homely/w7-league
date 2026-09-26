@@ -6,12 +6,25 @@ import { ReplayFinder } from "@/components/ReplayFinder";
 const SHARE = {
   title: "Find the clips from your game · W7 Padel",
   description: "Pressed the button on court? Your email finds your bookings, and every clip cut during them.",
+  // WhatsApp caches a preview by URL, so a changed card gets a new filename (make_replay_card.py).
+  image: "/og-replay-v1.png",
 };
 
 export const metadata = {
   title: "Replay · W7 Padel",
   description: SHARE.description,
-  openGraph: { title: SHARE.title, description: SHARE.description, url: "/replay" },
+  openGraph: {
+    title: SHARE.title,
+    description: SHARE.description,
+    url: "/replay",
+    images: [{ url: SHARE.image, width: 1200, height: 630, alt: "Find the clips from your game — W7 Replay" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SHARE.title,
+    description: SHARE.description,
+    images: [SHARE.image],
+  },
 };
 
 // Richie, 26 Sep 2026: "a web page ready to add to the w7 site with find clips from my game ... we
