@@ -91,7 +91,9 @@ def main():
         print(text)
         print("[dry-run] would send to", ", ".join(TO), "|", subject)
         return 0
-    wh.send(subject, TO, text, wh.shell("Box League", "Stand-in list", wh.auto_body(text)))
+    # prose_body reflows the paragraphs on a phone; the roster block stays monospace because its
+    # columns are aligned with wide gaps, which is how the renderer tells a table from prose
+    wh.send(subject, TO, text, wh.shell("Box League", "Stand-in list", wh.prose_body(text)))
     print("sent to", ", ".join(TO))
     return 0
 
