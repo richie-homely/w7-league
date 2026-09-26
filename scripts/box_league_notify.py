@@ -80,6 +80,42 @@ def fmt_sets(sets):
     return ", ".join(f"{a}-{b}" for a, b in (sets or []))
 
 
+def table_lines(box, teams, matches, highlight=()):
+    """Where the box stands after this result, for the teams it concerns.
+
+    Richie, 26 Sep 2026: "with link back to box league position which we may already have" — the
+    link was there, the position was not, so anyone wanting to know what a win did had to open the
+    site. Scored the same way lib/box.ts does it: 4 for a straight-sets win, 3 for a win after
+    splitting sets, 1 to the losers if they took one.
+    """
+    tab = {t["id"]: {"n": t["name"], "P": 0, "W": 0, "pts": 0, "sd": 0, "gd": 0}
+           for t in teams.values() if t.get("box") == box}
+    for m in matches:
+        if m["box"] != box or m["status"] != "confirmed" or not m["sets"]:
+            continue
+        a, b = tab.get(m["team1_id"]), tab.get(m["team2_id"])
+        if not a or not b:
+            continue
+        s1 = sum(1 for x, y in m["sets"] if x > y)
+        s2 = sum(1 for x, y in m["sets"] if y > x)
+        g1 = sum(x for x, y in m["sets"])
+        g2 = sum(y for x, y in m["sets"])
+        a["P"] += 1; b["P"] += 1
+        a["sd"] += s1 - s2; b["sd"] += s2 - s1
+        a["gd"] += g1 - g2; b["gd"] += g2 - g1
+        win, lose = (a, b) if s1 > s2 else (b, a)
+        win["W"] += 1
+        win["pts"] += 4 if min(s1, s2) == 0 else 3
+        if min(s1, s2) > 0:
+            lose["pts"] += 1
+    order = sorted(tab.values(), key=lambda t: (-t["pts"], -t["sd"], -t["gd"], t["n"]))
+    out = []
+    for i, t in enumerate(order, 1):
+        mark = ">" if t["n"] in highlight else " "
+        out.append(f"  {mark} {i}. {t['n'][:34]:34} {t['P']} played  {t['W']} won  {t['pts']} pts")
+    return out
+
+
 def outcome(sets, t1, t2):
     """"X beat Y 7-5, 6-0" — who won, in words, not two names beside two columns.
 
@@ -155,17 +191,30 @@ def main():
             # Only the team that entered the score needs telling: the other team just tapped
             # Confirm and saw it happen (Richie, 17 Sep 2026: "one team can submit, and then one
             # team can confirm and then it's done - to avoid overkill on the emails").
-            to = addrs(sub) if sub else addrs(t1, t2)
-            subject = f"W7 Box League — confirmed: {result}"
+            #
+            # Unless the result has changed since we last emailed a confirmation for it. Then
+            # nobody tapped anything — the league corrected it — and both teams need telling,
+            # because the table moved under them.
+            corrected = any(k.startswith(f"{m['id']}:confirmed:") for k in state)
+            to = addrs(t1, t2) if corrected else (addrs(sub) if sub else addrs(t1, t2))
+            subject = (f"W7 Box League — corrected: {result}" if corrected
+                       else f"W7 Box League — confirmed: {result}")
             text = "\n".join([
-                f"Result confirmed in Box {m['box']}:",
+                (f"This result in Box {m['box']} has been corrected by W7:" if corrected
+                 else f"Result confirmed in Box {m['box']}:"),
                 f"  {result}",
+                *(["", "It had been recorded the other way round. The table below is how it stands now."]
+                  if corrected else []),
                 "",
-                f"The box table is updated: {SITE}/box?box={m['box']}",
+                f"BOX {m['box']} AFTER THIS RESULT",
+                *table_lines(m["box"], teams, matches, highlight=(t1["name"], t2["name"])),
+                "",
+                f"The full table, with sets and games: {SITE}/box?box={m['box']}",
                 "",
                 "— W7 Padel · Wicklow Town",
             ])
-            headline, subline, color = "Result confirmed", f"Box {m['box']} · {result}", wh.LIME_DK
+            headline, subline, color = ("Result corrected" if corrected else "Result confirmed"), \
+                f"Box {m['box']} · {result}", (wh.GOLD if corrected else wh.LIME_DK)
         else:
             to = addrs(t1, t2) + [W7_INBOX]
             subject = f"W7 Box League — scores differ: {t1['name']} v {t2['name']}"
