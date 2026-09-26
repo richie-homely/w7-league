@@ -517,6 +517,19 @@ export const KNOCKOUT_RESULTS: {
     score: "6-1, 6-0",
     playedOn: "2026-09-23",
   },
+  {
+    // Lower-tier SF2: G1 11th seed (Wojnar & Maguire) v G2 2nd seed (Loboschi & Kaistha).
+    // Sat 26 Sep 2026, 10:00 Padel 3, from the Playtomic result card — Loboschi & Kaistha took the
+    // first set, then Wojnar & Maguire won the second and the championship tiebreak 10-8. The
+    // 11th seed into the final, against the 1st: Earls & Keogh, Sunday.
+    teams: [
+      "62da68dd-80f6-4d26-ae14-a449466bf150", // Wesley Wojnar & Tom Maguire
+      "92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48", // Antonio Loboschi & Sahil Kaistha
+    ],
+    winnerTeamId: "62da68dd-80f6-4d26-ae14-a449466bf150",
+    score: "5-7, 7-6, 10-8",
+    playedOn: "2026-09-26",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
