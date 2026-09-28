@@ -45,10 +45,12 @@ export const FINALS = {
   dates: "Sunday 27 September 2026",
   court: "Court 1",
   provisional: false,
-  /** Finals day doubles as W7's first birthday (Richie, 10 Sep 2026) — details to follow */
-  event: "W7's first birthday party",
-  eventDate: "Sunday 27 September",
-  eventNote: "details to follow",
+  /** The birthday party that shared finals day has been and gone. An empty event hides the
+   *  site-wide banner, the spotlight line and the finals-day note (Richie, 28 Sep 2026: "remove
+   *  the birthday party messaging from the website"). Fill it in again for the next one. */
+  event: "",
+  eventDate: "",
+  eventNote: "",
   /** the banner and notes hide themselves after this date */
   eventUntil: "2026-09-27",
 };

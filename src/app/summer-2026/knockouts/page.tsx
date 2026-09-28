@@ -10,10 +10,10 @@ const OG = "/og-knockouts-v1.png";
 export const metadata: Metadata = {
   title: "W7 Padel · Summer Leagues 2026 · Knockouts",
   description:
-    "Summer Leagues 2026 knockout brackets — upper and lower tier, live scores as the ties are played. Finals day Sunday 27 September at W7 Padel, Wicklow Town, alongside the club's first birthday party.",
+    "Summer Leagues 2026 knockout brackets — upper and lower tier, live scores as the ties are played. Finals were played Sunday 27 September at W7 Padel, Wicklow Town.",
   openGraph: {
     title: "W7 Padel · Summer Leagues 2026 Knockouts",
-    description: "Live knockout brackets — upper and lower tier. Finals day Sunday 27 September.",
+    description: "Knockout brackets — upper and lower tier, every result from the 2026 summer leagues.",
     images: [{ url: OG, width: 1200, height: 630, alt: "W7 Padel Summer Leagues 2026 Knockouts" }],
   },
   twitter: { card: "summary_large_image", images: [OG] },

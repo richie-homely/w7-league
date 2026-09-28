@@ -123,7 +123,7 @@ export const COMPETITIONS: Competition[] = [
     status: "live",
     tagline: "5 divisions · 60 teams · champions crowned 27 Sep",
     detail:
-      "The inaugural W7 summer leagues are done: Finnegan & O'Sullivan took the upper tier, Earls & Keogh the lower, on finals day at the club's first birthday. Final standings and both brackets.",
+      "The inaugural W7 summer leagues are done: Finnegan & O'Sullivan took the upper tier, Earls & Keogh the lower, on finals day, 27 September. Final standings and both brackets.",
     href: "/summer-2026",
     cta: { label: "Final standings & brackets", href: "/summer-2026/knockouts" },
   },
