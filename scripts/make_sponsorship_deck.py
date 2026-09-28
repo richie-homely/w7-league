@@ -46,7 +46,7 @@ N = {
 
 # ── DRAFT prices, ex VAT, per year unless stated. Richie to set. ──────────────────────────
 P = {
-    "court": "€4,000", "league": "€2,500", "finals": "€750", "partner": "€600",
+    "court": "€6,000", "league": "€3,750", "finals": "€1,100", "partner": "€900",   # Richie, 28 Sep 2026: court to 6k, the rest up 1.5x
 }
 
 BLACK, CARD, BORDER, LIME, TEXT, MUTE = "#0a0a0a", "#161616", "#2a2a2a", "#D4FF3A", "#fafafa", "#9a9a9a"
