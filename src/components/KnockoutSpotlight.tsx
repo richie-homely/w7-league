@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { C, F, divColor } from "@/theme/tokens";
 import { buildBracket, tierQualifiers, TIER_PRIZES } from "@/lib/bracket";
 import { useLeagueData } from "@/lib/useLeagueData";
@@ -173,6 +174,8 @@ function TierBlock({
 
 export function KnockoutSpotlight({ bare = false }: { bare?: boolean } = {}) {
   const { teamsByDiv, fixtures, loading } = useLeagueData();
+  // read once, the way PartyBanner does: Date.now() straight in render trips the purity rule
+  const [now] = useState(() => Date.now());
   if (loading) return null;
 
   const upper = tierQualifiers("upper", teamsByDiv, fixtures);
@@ -193,6 +196,11 @@ export function KnockoutSpotlight({ bare = false }: { bare?: boolean } = {}) {
   const lowerRounds = roundsOf(lb);
   const pot = TIER_PRIZES.reduce(
     (n, p) => n + Number(p.amount.replace(/[^0-9]/g, "")), 0);
+  // Both finals have a result: the season is over and the copy should say so, not keep promising
+  // a finals day that has passed (Richie, 28 Sep 2026, the morning after). The birthday line goes
+  // with the banner, on the same cut-off.
+  const finished = !!ub.f[0]?.result && !!lb.f[0]?.result;
+  const partyOver = !!FINALS.eventUntil && now > new Date(FINALS.eventUntil + "T23:59:59").getTime();
 
   return (
     <div style={{ margin: bare ? "0" : "4px 0 34px" }}>
@@ -209,7 +217,7 @@ export function KnockoutSpotlight({ bare = false }: { bare?: boolean } = {}) {
               color: C.accent,
             }}
           >
-            NEXT UP · SUMMER LEAGUES 2026
+            {finished ? "SUMMER LEAGUES 2026 · COMPLETE" : "NEXT UP · SUMMER LEAGUES 2026"}
           </div>
           <div
             style={{
@@ -221,14 +229,24 @@ export function KnockoutSpotlight({ bare = false }: { bare?: boolean } = {}) {
               marginTop: 4,
             }}
           >
-            The <span style={{ color: C.accent }}>knockouts</span>
+            The <span style={{ color: C.accent }}>{finished ? "champions" : "knockouts"}</span>
           </div>
           <div style={{ fontSize: 13.5, color: C.mute, marginTop: 6, maxWidth: 560 }}>
-            Into the final stages: {upper.length + lower.length} teams started across both tiers, playing for
-            €{(pot * 2).toLocaleString()} in prizes. Both tiers play their finals at the club on{" "}
-            <span style={{ color: C.text }}>{FINALS.dates}</span>{FINALS.provisional ? " (provisional)" : ""}.
+            {finished ? (
+              <>
+                Done and dusted: {upper.length + lower.length} teams started across both tiers, and both finals were
+                played at the club on <span style={{ color: C.text }}>{FINALS.dates}</span>. The champions are on the
+                roll of honour below; every result is in the brackets.
+              </>
+            ) : (
+              <>
+                Into the final stages: {upper.length + lower.length} teams started across both tiers, playing for
+                €{(pot * 2).toLocaleString()} in prizes. Both tiers play their finals at the club on{" "}
+                <span style={{ color: C.text }}>{FINALS.dates}</span>{FINALS.provisional ? " (provisional)" : ""}.
+              </>
+            )}
           </div>
-          {FINALS.event && (
+          {FINALS.event && !partyOver && (
             <div style={{ fontSize: 13, color: C.accent, marginTop: 6, fontWeight: 700 }}>
               🎂 {FINALS.event} — {FINALS.eventDate}, finals day <span style={{ color: C.mute, fontWeight: 400 }}>· {FINALS.eventNote}</span>
             </div>
