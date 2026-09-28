@@ -8,7 +8,7 @@ sponsor, logo, tournament sponsor." Then: court sponsorship to 6k and the rest u
 photos of the courts; a mention of the website; and the new astro pitch next door, opening soon,
 with the courts in full view of the pitch and its supporters.
 
-Twelve landscape pages. Every number is the club's own, read on the day it was built, with the
+Thirteen landscape pages. Every number is the club's own, read on the day it was built, with the
 source named beside it so it can be refreshed. Photos and screenshots come from
 docs/sponsorship/shots/ - drop more court photos in there as PHOTO_* below and re-run.
 
@@ -27,6 +27,8 @@ HTML = os.path.join(OUT_DIR, "W7_Padel_Sponsorship_v1.1_28Sep2026.html")
 
 LOGO = os.path.join(SHOTS, "w7-logo-dark.png")        # W7 logo pack, 18 Sep 2026, dark-background version
 PHOTO_COURTS = os.path.join(SHOTS, "courts.jpg")       # evening game on court, from the league site
+PHOTO_DAY = os.path.join(SHOTS, "court-day.jpg")       # blue sky, game on, 27 Sep 2026 (Richie)
+PHOTO_FINALS = os.path.join(SHOTS, "finals-day.jpg")   # finals day and first birthday crowd, 27 Sep 2026 (Richie)
 SHOT_BOX = os.path.join(SHOTS, "box.png")              # league.w7padel.com/box, desktop
 SHOT_BOX_PHONE = os.path.join(SHOTS, "box-phone.png")  # same, phone width
 SHOT_KO = os.path.join(SHOTS, "knockouts.png")         # summer league knockout brackets
@@ -81,12 +83,13 @@ def card(title, body):
 
 def build_html():
     logo, courts = data_uri(LOGO), data_uri(PHOTO_COURTS)
+    day, finals = data_uri(PHOTO_DAY), data_uri(PHOTO_FINALS)
     box, box_phone, ko = data_uri(SHOT_BOX), data_uri(SHOT_BOX_PHONE), data_uri(SHOT_KO)
     pages = []
 
     # 1 cover: the photo fills the right half, the words sit on black
     pages.append(page(f'''
-      <div class="cover-photo" style="background-image:url('{courts}')"></div>
+      <div class="cover-photo" style="background-image:url('{day}')"></div>
       <div class="cover">
         <img src="{logo}" class="logo" alt="">
         <div class="eyebrow">SPONSORSHIP OPPORTUNITIES</div>
@@ -159,6 +162,20 @@ def build_html():
         {card("EVERY RESULT, AN EMAIL", "When a score goes in, both teams get an email with the result and the box table. A title sponsor's name is on every one of them.")}
         {card("A STAND-IN LIST", "Players outside the league put their name down to fill in when a team is short. More people on the courts, more people on the site.")}
         {card("A FINALS DAY", "Both tiers play their finals on one Sunday at the club, with the whole membership invited. The natural home for a tournament sponsor.")}
+      </div>'''))
+
+
+    # 6b finals day: yesterday's crowd
+    pages.append(page(f'''
+      <div class="eyebrow">FINALS DAY · 27 SEPTEMBER 2026</div>
+      <h2>The club's first birthday, and both finals on one Sunday.</h2>
+      <div class="venue">
+        <div class="photo" style="background-image:url('{finals}')"></div>
+        <div>
+          {card("WHAT IT LOOKED LIKE", f"Both tiers played their finals at the club, the {N['knockout_teams']} knockout teams and their supporters came, and the birthday brought families, a food truck and a full car park. This is the crowd a finals-day sponsor is put in front of.")}
+          {card("WHAT A SPONSOR GETS", "The day named for them, signage and a stand beside the courts, their name on the finals page and the bracket, on the invite to every league player, and on the photos and results afterwards.")}
+          {card("TWICE A YEAR", "A summer league finals day and a box league finals day, each with the whole membership invited. The birthday made this one bigger; the next is the box league final in April.")}
+        </div>
       </div>'''))
 
     # 7 the website
