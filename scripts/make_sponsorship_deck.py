@@ -94,14 +94,14 @@ def build_html():
         <img src="{logo}" class="logo" alt="">
         <div class="eyebrow">SPONSORSHIP OPPORTUNITIES</div>
         <h1>Put your name on the<br>busiest courts in Wicklow.</h1>
-        <p class="lead">Three courts on the Glebe, {N["players_registered"]} registered players, and a league that {N["league_players"]} of them play in every week.</p>
+        <p class="lead">Three courts in Wicklow Town, {N["players_registered"]} registered players, and a league that {N["league_players"]} of them play in every week.</p>
       </div>''', "has-photo"))
 
     # 2 the opportunity
     pages.append(page(f'''
       <div class="eyebrow">THE OPPORTUNITY</div>
       <h2>A year old, and already the place Wicklow plays.</h2>
-      <p class="lead">W7 opened in October 2025 with three courts on the Glebe. Twelve months on it has {N["players_registered"]} players registered, {N["bookings_month"]} bookings a month, and a box league of {N["box_teams"]} teams whose standings {N["site_visitors"]} people checked online in the last three weeks. Next door, a new all-weather astro pitch opens soon, with our courts in full view of the pitch and its supporters. Your brand goes where those people look: on the court, on the league site, and in every result email.</p>
+      <p class="lead">W7 opened in October 2025 with three courts in Wicklow Town. Twelve months on it has {N["players_registered"]} players registered, {N["bookings_month"]} bookings a month, and a box league of {N["box_teams"]} teams whose standings {N["site_visitors"]} people checked online in the last three weeks. Next door, a new all-weather astro pitch opens soon, with our courts in full view of the pitch and its supporters. Your brand goes where those people look: on the court, on the league site, and in every result email.</p>
       <div class="three">
         {card("THE CLUB", "Three floodlit courts on the edge of Wicklow Town, open 07:00 to 22:00, seven days. Bookable on Playtomic, the app every padel player in Ireland already has.")}
         {card("THE LEAGUES", f"A {N['box_boxes']}-box league with {N['box_teams']} teams, and a summer league of {N['summer_teams']} teams in {N['summer_divisions']} divisions with knockouts and a finals day. Run on the club's own site, not a spreadsheet.")}
@@ -111,13 +111,13 @@ def build_html():
     # 3 the venue: the photo
     pages.append(page(f'''
       <div class="eyebrow">THE VENUE</div>
-      <h2>Three courts, floodlit, on the Glebe.</h2>
+      <h2>Three courts, floodlit, in Wicklow Town.</h2>
       <div class="venue">
         <div class="photo" style="background-image:url('{courts}')"></div>
         <div>
           {card("THE COURTS", "Three full-size panoramic courts with glass backs and seating along the side. Floodlit, so the evenings run to 22:00 all winter, which is when the leagues play.")}
           {card("THE ASTRO PITCH", "A new all-weather pitch is being built directly alongside, opening soon. It brings its own teams, training nights and supporters to the same ground, all with a clear line of sight to the court signage.")}
-          {card("THE GLEBE", "On the edge of Wicklow Town with parking at the door, five minutes from Main Street and the N11. Players come from Wicklow, Rathnew, Ashford, Greystones and the villages around.")}
+          {card("WICKLOW TOWN", "On the edge of the town with parking at the door, five minutes from Main Street and the N11. Players come from Wicklow, Rathnew, Ashford, Greystones and the villages around.")}
         </div>
       </div>'''))
 
@@ -265,7 +265,7 @@ def build_html():
         <div><b>Richie Carroll</b> · Co-owner · richiecarroll65@gmail.com</div>
         <div><b>David Hennebry</b> · Co-owner · welcome@w7padel.com</div>
         <div><b>Mike Shanahan</b> · Operations Manager · mike@w7padel.com · 085 135 4570</div>
-        <div style="margin-top:6px;color:{MUTE}">league.w7padel.com &nbsp;·&nbsp; W7 Padel, The Glebe, Wicklow Town, A67 HE33</div>
+        <div style="margin-top:6px;color:{MUTE}">league.w7padel.com &nbsp;·&nbsp; W7 Padel, Wicklow Town, A67 HE33</div>
       </div>'''))
 
     css = f"""
