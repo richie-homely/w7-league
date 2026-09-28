@@ -102,12 +102,18 @@ export interface PastSeason {
 }
 
 export const PAST_SEASONS: PastSeason[] = [
-  // { season: "Summer 2026", format: "5 divisions · tier knockouts",
-  //   winners: [
-  //     { title: "Lower Tier Champions", team: "TBD" },
-  //     { title: "Upper Tier Champions", team: "TBD" },
-  //   ],
-  //   href: "/summer-2026" },
+  // Finals day, Sunday 27 September 2026 - the club's first birthday. Results from Richie, 28 Sep.
+  {
+    season: "Summer 2026",
+    format: "5 divisions · 60 teams · tier knockouts · finals day 27 Sep 2026",
+    winners: [
+      { title: "Upper Tier Champions", team: "Peter Finnegan & Davy O'Sullivan" },
+      { title: "Upper Tier Runners-up", team: "Robert Pickerill & David Hennebry" },
+      { title: "Lower Tier Champions", team: "Andy Earls & Robert Keogh" },
+      { title: "Lower Tier Runners-up", team: "Wesley Wojnar & Tom Maguire" },
+    ],
+    href: "/summer-2026/knockouts",
+  },
 ];
 
 export const COMPETITIONS: Competition[] = [
@@ -115,11 +121,11 @@ export const COMPETITIONS: Competition[] = [
     id: "summer-2026",
     title: "Summer Leagues 2026",
     status: "live",
-    tagline: "5 divisions · 60 teams · knockouts underway",
+    tagline: "5 divisions · 60 teams · champions crowned 27 Sep",
     detail:
-      "Live standings, fixtures and the tier knockout brackets for the inaugural W7 summer leagues.",
+      "The inaugural W7 summer leagues are done: Finnegan & O'Sullivan took the upper tier, Earls & Keogh the lower, on finals day at the club's first birthday. Final standings and both brackets.",
     href: "/summer-2026",
-    cta: { label: "Standings & fixtures", href: "/summer-2026" },
+    cta: { label: "Final standings & brackets", href: "/summer-2026/knockouts" },
   },
   {
     id: "box-autumn-2026",

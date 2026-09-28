@@ -530,6 +530,49 @@ export const KNOCKOUT_RESULTS: {
     score: "5-7, 7-6, 10-8",
     playedOn: "2026-09-26",
   },
+  // ── Finals day, Sunday 27 September 2026, the club's first birthday. Reported by Richie on
+  // the 28th: who won, not the scores. Ties are recorded so the brackets resolve; "score to
+  // follow" is shown until the cards come in. ──────────────────────────────────────────────
+  {
+    // Upper-tier SF1: Finnegan & O'Sullivan (1st seed) v Donohoe & Orr (5th).
+    teams: [
+      "bc24d564-247f-4116-a5e2-3dde99a7b204", // Peter Finnegan & Davy O'Sullivan
+      "45e90a98-907a-49de-b971-ed4fef5025dc", // Shane Donohoe & Dylan Orr
+    ],
+    winnerTeamId: "bc24d564-247f-4116-a5e2-3dde99a7b204",
+    score: "score to follow",
+    playedOn: "2026-09-27",
+  },
+  {
+    // Upper-tier SF2: Fitz & David (2nd seed) v Pickerill & Hennebry (4th).
+    teams: [
+      "1ea17980-ae90-4a26-ad3a-2fbad7dc27d4", // John Fitz 202 & David
+      "33b592a2-065a-47d7-a371-fb1d59528dc5", // Robert Pickerill & David Hennebry
+    ],
+    winnerTeamId: "33b592a2-065a-47d7-a371-fb1d59528dc5",
+    score: "score to follow",
+    playedOn: "2026-09-27",
+  },
+  {
+    // Upper-tier FINAL: Finnegan & O'Sullivan beat Pickerill & Hennebry. Champions, tier 1.
+    teams: [
+      "bc24d564-247f-4116-a5e2-3dde99a7b204", // Peter Finnegan & Davy O'Sullivan
+      "33b592a2-065a-47d7-a371-fb1d59528dc5", // Robert Pickerill & David Hennebry
+    ],
+    winnerTeamId: "bc24d564-247f-4116-a5e2-3dde99a7b204",
+    score: "score to follow",
+    playedOn: "2026-09-27",
+  },
+  {
+    // Lower-tier FINAL: Earls & Keogh (1st seed) beat Wojnar & Maguire (11th). Champions, tier 2.
+    teams: [
+      "8bd7bb6e-beb7-41e5-968e-168f458faa0e", // Andy Earls & Robert Keogh
+      "62da68dd-80f6-4d26-ae14-a449466bf150", // Wesley Wojnar & Tom Maguire
+    ],
+    winnerTeamId: "8bd7bb6e-beb7-41e5-968e-168f458faa0e",
+    score: "score to follow",
+    playedOn: "2026-09-27",
+  },
 ];
 
 function slotTeamId(s: BracketSlot): string | null {
