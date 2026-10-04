@@ -62,12 +62,41 @@ def outsiders(names, teams, by_player_box, by_player_summer):
             continue
         mates = set()
         for idx in (by_player_box, by_player_summer):
-            t = idx.get(k)
-            if t:
+            for t in as_teams(idx.get(k)):
                 mates |= {norm(t["p1"]), norm(t["p2"])}
         if mates and not (mates & roster):
             out.append(n)
     return out
+
+
+def as_teams(v):
+    """by_player_* values are a team, or a list of teams when two players share a name."""
+    return [] if not v else (v if isinstance(v, list) else [v])
+
+
+def resolve_team(name_key, cands, other_keys):
+    """Two league players share a name ("Grainne Ring" sits in box 4 and, as "Grainne Ring (2)",
+    in box 12; norm() drops the "(2)"), so the key alone cannot say which one is on this booking.
+    The other names on the booking can: the one whose team-mate is also named, else the one
+    whose box the other identified players are in. Nothing fits -> None, and the name is left
+    unattributed rather than guessed (4 Oct 2026: box 4's fixtures went unmatched for a month
+    because the last duplicate registered always won).
+    """
+    cands = as_teams(cands)
+    if len(cands) <= 1:
+        return cands[0] if cands else None
+    mate = [t for t in cands if ({norm(t["p1"]), norm(t["p2"])} - {name_key}) & other_keys]
+    if len(mate) == 1:
+        return mate[0]
+    boxes = set()
+    for k in other_keys:
+        for t in as_teams(by_player_box_global.get(k)):
+            boxes.add(t["box"])
+    same = [t for t in cands if t.get("box") in boxes]   # summer teams carry no box
+    return same[0] if len(same) == 1 else None
+
+
+by_player_box_global = {}
 
 API_BASE = "https://thirdparty.playtomic.io"
 
@@ -141,10 +170,17 @@ def detect(days=14):
     matches = get("box_matches?select=id,box,team1_id,team2_id,status&box=lt.90&limit=2000")
     summer = get("teams?select=id,division_id,p1,p2&limit=300")
     by_player_box, by_player_summer = {}, {}
+    def add(idx, k, t):
+        # a second team under the same name becomes a list; resolve_team() picks at match time
+        if k in idx:
+            idx[k] = as_teams(idx[k]) + [t]
+        else:
+            idx[k] = t
     for t in box_teams:
-        by_player_box[norm(t["p1"])] = t; by_player_box[norm(t["p2"])] = t
+        add(by_player_box, norm(t["p1"]), t); add(by_player_box, norm(t["p2"]), t)
     for t in summer:
-        by_player_summer[norm(t["p1"])] = t; by_player_summer[norm(t["p2"])] = t
+        add(by_player_summer, norm(t["p1"]), t); add(by_player_summer, norm(t["p2"]), t)
+    by_player_box_global.clear(); by_player_box_global.update(by_player_box)
     fixture_by_pair = {tuple(sorted((m["team1_id"], m["team2_id"]))): m for m in matches}
 
     box_hits, summer_hits = [], []
@@ -164,8 +200,9 @@ def detect(days=14):
             continue
         # box fixture: two full teams, same box
         cnt = {}
-        for n in names:
-            t = by_player_box.get(norm(n))
+        keys = [norm(n) for n in names]
+        for n, k in zip(names, keys):
+            t = resolve_team(k, by_player_box.get(k), set(keys) - {k})
             if t: cnt.setdefault(t["id"], [t, 0]); cnt[t["id"]][1] += 1
         two = [v[0] for v in cnt.values()]
         if (len(two) == 2 and two[0]["box"] == two[1]["box"] and max(v[1] for v in cnt.values()) == 2
@@ -180,8 +217,8 @@ def detect(days=14):
             continue
         # summer-league tie: four players spanning exactly two teams in the same tier
         st = {}
-        for n in names:
-            t = by_player_summer.get(norm(n))
+        for n, k in zip(names, keys):
+            t = resolve_team(k, by_player_summer.get(k), set(keys) - {k})
             if t: st.setdefault(t["id"], [t, 0]); st[t["id"]][1] += 1
         two = [v[0] for v in st.values()]
         if (len(two) == 1 and next(iter(st.values()))[1] == 2
