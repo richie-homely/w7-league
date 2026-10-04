@@ -10,7 +10,8 @@ import { track } from "./track";
 import type { SetScore } from "./types";
 import { resultMissing, type LeagueBooking } from "./bookings";
 
-export type BoxMatchStatus = "pending" | "submitted" | "confirmed" | "disputed";
+// "void": not played by the cycle deadline - -1 point to both teams (set by box_admin_close_cycle)
+export type BoxMatchStatus = "pending" | "submitted" | "confirmed" | "disputed" | "void";
 
 /** Fixtures Playtomic shows as played with no score entered, and the teams who owe one.
  *  Richie, 13 Sep 2026: "surface a little more visibly on the league home page and the box
@@ -312,10 +313,16 @@ export function computeBoxStandings(
   const byId = Object.fromEntries(rows.map((r) => [r.teamId, r]));
 
   for (const m of boxMatches) {
-    if (m.status !== "confirmed" || !m.sets) continue;
     const r1 = byId[m.team1Id];
     const r2 = byId[m.team2Id];
     if (!r1 || !r2) continue;
+    if (m.status === "void") {
+      // unplayed at the cycle deadline: -1 each, no game played (rules of 5 Sep 2026)
+      r1.Pts -= 1;
+      r2.Pts -= 1;
+      continue;
+    }
+    if (m.status !== "confirmed" || !m.sets) continue;
     let s1 = 0;
     let s2 = 0;
     let g1 = 0;
@@ -346,7 +353,7 @@ export function computeBoxStandings(
     loser.L++;
     // League points (rules of 5 Sep 2026): 4 for a straight-sets win, 3 for a win
     // after splitting the first two sets, 1 to the losers if they took a set, 0 for
-    // losing in two. Unplayed-at-deadline penalties (-1 each) are applied by W7.
+    // losing in two. Unplayed at the deadline is "void" above: -1 each.
     const straight = (t1Won && s2 === 0) || (!t1Won && s1 === 0);
     winner.Pts += straight ? 4 : 3;
     if (!straight) loser.Pts += 1;

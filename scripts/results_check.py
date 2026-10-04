@@ -231,10 +231,12 @@ def main():
 
     # ---- TOTALS
     by = {}
+    cur_cycle = max((m.get("cycle", 1) for m in matches), default=1)   # the newest cycle with fixtures is the live one
     for m in matches:
-        by[m["status"]] = by.get(m["status"], 0) + 1
-    out.append(f"\nTOTALS cycle 1: {by.get('confirmed', 0)} confirmed - {by.get('submitted', 0)} awaiting confirmation - "
-               f"{by.get('disputed', 0)} disputed - {by.get('pending', 0)} unplayed - of {CYCLE_FIXTURES}")
+        if m.get("cycle", 1) == cur_cycle:
+            by[m["status"]] = by.get(m["status"], 0) + 1
+    out.append(f"\nTOTALS cycle {cur_cycle}: {by.get('confirmed', 0)} confirmed - {by.get('submitted', 0)} awaiting confirmation - "
+               f"{by.get('disputed', 0)} disputed - {by.get('pending', 0)} unplayed - {by.get('void', 0)} void - of {sum(by.values())}")
 
     sig = json.dumps(sorted(open_rows + ko_rows))
     changed = bool(new_rows) or sig != state.get("open_sig")

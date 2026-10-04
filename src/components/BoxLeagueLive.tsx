@@ -24,6 +24,7 @@ const STATUS_CHIP: Record<string, { label: string; color: string }> = {
   submitted: { label: "AWAITING CONFIRMATION", color: C.amber },
   confirmed: { label: "CONFIRMED", color: C.green },
   disputed: { label: "DISPUTED", color: C.red },
+  void: { label: "VOID · −1 EACH", color: C.red },
 };
 
 const inputStyle: React.CSSProperties = {
@@ -521,7 +522,7 @@ function MatchRow({
           );
         })}
         <Chip label={chip.label} color={chip.color} />
-        {mine && match.status !== "confirmed" && (
+        {mine && match.status !== "confirmed" && match.status !== "void" && (
           <button onClick={() => setSubOpen(!subOpen)} style={ghostBtn}>{subOpen ? "Close" : "Log a sub"}</button>
         )}
         {/* A player away and the fixture still to play: ask the stand-in list (Richie, 20 Sep 2026) */}
@@ -764,6 +765,17 @@ export function BoxLeagueLive({
     [teams]
   );
   const boxes = focusBox !== null && allBoxes.includes(focusBox) ? [focusBox] : allBoxes;
+  // One cycle at a time (Richie, 4 Oct 2026: the close runs overnight and the next cycle's
+  // fixtures appear the same night). The newest cycle with fixtures is the live one; earlier
+  // cycles stay readable - their final tables, with the void fixtures - behind the pills.
+  const cyclesPresent = useMemo(
+    () => [...new Set(matches.filter((m) => m.box < 90).map((m) => m.cycle))].sort((a, b) => a - b),
+    [matches]
+  );
+  const liveCycle = cyclesPresent.length ? cyclesPresent[cyclesPresent.length - 1] : 1;
+  const [pickedCycle, setPickedCycle] = useState<number | null>(null);
+  const viewCycle = pickedCycle !== null && cyclesPresent.includes(pickedCycle) ? pickedCycle : liveCycle;
+  const cycleMatches = useMemo(() => matches.filter((m) => m.cycle === viewCycle), [matches, viewCycle]);
 
   // Find my box: the registered email tells us the team, the team tells us the box.
   const [findEmail, setFindEmail] = useState(() => rememberedEmail());
@@ -940,13 +952,34 @@ export function BoxLeagueLive({
           </button>
         </div>
       )}
+      {cyclesPresent.length > 1 && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 14, fontSize: 12.5 }}>
+          <span style={{ color: C.mute }}>Showing</span>
+          {cyclesPresent.map((c) => (
+            <button
+              key={c}
+              onClick={() => setPickedCycle(c)}
+              style={{
+                background: c === viewCycle ? C.accent : C.bg2, color: c === viewCycle ? "#0a0a0a" : C.text,
+                border: `1px solid ${c === viewCycle ? C.accent : C.border}`, borderRadius: 999, padding: "4px 12px",
+                fontWeight: 700, cursor: "pointer", fontFamily: F.body,
+              }}
+            >
+              Cycle {c}{c === liveCycle ? " · live" : " · final"}
+            </button>
+          ))}
+          {viewCycle !== liveCycle && (
+            <span style={{ color: C.mute }}>Final table - teams have since moved boxes. The boxes below are as they stand now.</span>
+          )}
+        </div>
+      )}
       <div style={{ display: "flex", flexDirection: "column", gap: 16, marginTop: 14 }}>
         {boxes.map((b) => (
           <BoxSection
-            key={b}
+            key={`${b}-${viewCycle}`}
             box={b}
             teams={teams.filter((t) => t.box === b && t.active)}
-            matches={matches.filter((m) => m.box === b)}
+            matches={cycleMatches.filter((m) => m.box === b)}
             onMessage={setBanner}
             focusMatch={focusMatch}
             defaultOpen={boxes.length === 1 || b === focusBox}

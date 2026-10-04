@@ -94,3 +94,27 @@ checks that both sides agree, and only disagreements come to welcome@w7padel.com
   cycles, and only if a team is obviously misplaced; promotion and relegation do the rest.
 - **The −1 rule.** It is in the rules and every player agreed to it. Apply it evenly from
   cycle 1 or it will not hold by cycle 3.
+
+## Cycle close (added 4 Oct 2026)
+
+Richie, 4 Oct 2026: "process the next box overnight that night ... then have draft emails".
+
+- **When.** The Task Scheduler job `W7 Box Cycle Close` runs on the NUC at 00:30 every night
+  and does nothing unless a cycle ended the day before (the dates come from
+  `src/lib/boxCalendar.ts`, which already matches the Playtomic listing: cycle 1 ends Sun 11 Oct,
+  cycle 2 Sun 8 Nov, cycle 3 Sun 6 Dec, cycle 4 Sun 17 Jan, cycle 5 Sun 14 Feb, and so on).
+- **What.** `scripts/box_cycle_close.py --auto` works out every box's final table (same points and
+  tiebreaks as the site), then one Supabase call, `box_admin_close_cycle`
+  (`supabase/box_cycle_close_04Oct2026.sql`), does the lot in one transaction: unplayed fixtures
+  become `void` (-1 each), results entered but never confirmed are taken as confirmed, disputed
+  ones are left for Richie, the top two go up and the bottom two down (3rd stays; box 1 and box 20
+  keep their ends), seeds in the new box run relegated-from-above / stayer / promoted-from-below,
+  and the next cycle's fixtures are generated. `box_cycle_moves` records where everyone went.
+- **Emails.** The same run renders one draft per team under `data/mailout/cycle<N+1>/` in three
+  voices (promoted / your new box is X / you stay in box X), each with the team's new fixtures
+  and score links, and emails Richie the pack with three samples. Nothing reaches a player until
+  `python scripts/box_cycle_close.py --cycle N --send --yes` is run.
+- **Site.** The box page shows the newest cycle; earlier cycles' final tables sit behind pills.
+  A void fixture shows as `VOID · -1 EACH` with no score buttons.
+- **Preview any time.** `python scripts/box_cycle_close.py --cycle N --dry-run` prints the
+  tables and moves as they would be applied tonight, and writes `data/cycle_close/`.
