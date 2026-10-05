@@ -390,21 +390,14 @@ export function BoxLeaguePage() {
           <Fact label="FORMAT" value="5 PER BOX" sub="4 games in 4 weeks · top 2 up, bottom 2 down" />
           <Fact label="POINTS" value="4 · 3 · 1 · 0" sub="2–0 win 4 · tiebreak win 3 · losers who took a set 1" />
           <Fact label="BOX WINNERS" value="€40 CREDIT" sub="€20 Playtomic credit per player, every cycle" />
-          <Fact
-            label="SPACES"
-            value={`${BOX_LEAGUE.maxTeams} TEAMS`}
-            sub={
-              isFull
-                ? "Fixed pairs · boxes by combined rating"
-                : `${BOX_LEAGUE.maxTeams - Math.floor(BOX_LEAGUE.registeredPlayers / 2)} left · fixed pairs, boxes by rating`
-            }
-          />
-          <Fact
-            label="ENTRY"
-            value={`€${BOX_LEAGUE.entryPerTeam} / TEAM`}
-            sub={`€${BOX_LEAGUE.entryPerPerson} per person`}
-          />
-          <Fact label="ENTRIES" value="FULL" sub="All 100 team places taken, 7 Sep" />
+          {/* Richie, 5 Oct 2026: no entry fee or spaces-left tiles now the league is full and under
+              way - just the totals, read from the live boxes. */}
+          {(() => {
+            const live = teams.filter((t) => t.active && t.box < 90);
+            const nTeams = live.length || BOX_LEAGUE.maxTeams;
+            const nBoxes = new Set(live.map((t) => t.box)).size || Math.ceil(BOX_LEAGUE.maxTeams / 5);
+            return <Fact label="TEAMS" value={`${nTeams} TEAMS`} sub={`${nBoxes} boxes · fixed pairs, boxes by combined rating`} />;
+          })()}
         </div>
         </Collapsible>
 

@@ -12,10 +12,10 @@ import { fetchBoxStatus } from "@/lib/boxStatus";
  * the URL carries a version that changes once a week: a link pasted in week 4 shows week 4. */
 export async function generateMetadata(): Promise<Metadata> {
   const s = await fetchBoxStatus();
+  // No entry fee in the preview text (Richie, 5 Oct 2026): the league is full and running.
   const description =
     `${s.sentence} Boxes of five by combined Playtomic rating: four games over four weeks, ` +
-    "then the top two go up a box and the bottom two go down. " +
-    `€${BOX_LEAGUE.entryPerTeam} per team, ${BOX_LEAGUE.durationMonths} months. Wicklow Town.`;
+    `then the top two go up a box and the bottom two go down. ${BOX_LEAGUE.durationMonths} months, Wicklow Town.`;
   const image = `/box/og?v=${s.version}`;
   return {
     title: "W7 Padel · Autumn/Winter Padel Box League",
