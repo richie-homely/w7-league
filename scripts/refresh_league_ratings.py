@@ -91,6 +91,9 @@ def main():
     venue.load_env()
     args = sys.argv[1:]
     push, notify, force = "--push" in args, "--notify" in args, "--force" in args
+    # --force --hold "Name,Name": apply the held moves except these (a first run after months
+    # of drift holds real summer improvements alongside the genuine mismatches)
+    keep_held = {venue.norm(n) for n in args[args.index("--hold") + 1].split(",")} if "--hold" in args else set()
     lv = levels()
     print(f"venue players with a padel level: {len(lv)}")
     pins = overrides()
@@ -131,7 +134,7 @@ def main():
                 if old is not None and abs(live - old) < 0.01:
                     continue
                 real_old = old is not None and old > FLOOR + 0.01
-                if real_old and abs(live - old) > HOLD_ABOVE and not force:
+                if real_old and abs(live - old) > HOLD_ABOVE and (not force or venue.norm(nm) in keep_held):
                     held.append((where, label, nm, old, live))
                     continue
                 new[col] = live
