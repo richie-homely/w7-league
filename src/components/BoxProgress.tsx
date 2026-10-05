@@ -77,14 +77,25 @@ export function BoxProgress({
   const [now] = useState(() => new Date());   // snapshot at mount: a render must be pure
   const live = currentCycle(now) ?? { cycle: BOX_CYCLES[0], state: "upcoming" as const };
   const [cycleN, setCycleN] = useState(live.cycle.n);
-  const [week, setWeek] = useState(0);        // 0 = whole cycle, 1..4 = week of the cycle
+  const [week, setWeek] = useState(0);        // 0 = whole cycle, 1..nWeeks = Monday-to-Sunday week of the cycle
   const [openBox, setOpenBox] = useState<number | null>(null);
 
   const cycle = BOX_CYCLES.find((c) => c.n === cycleN) ?? BOX_CYCLES[0];
   const cStart = new Date(cycle.start + "T00:00:00").getTime();
   const cEnd = new Date(cycle.end + "T23:59:59").getTime();
-  const wkStart = week ? cStart + (week - 1) * 7 * DAY : cStart;
-  const wkEnd = week ? Math.min(cStart + week * 7 * DAY, cEnd) : cEnd;
+  // Weeks run Monday to Sunday and end on the deadline (Richie, 5 Oct 2026: the pills ran in
+  // seven-day steps from the early-opening Thursday, so cycle 1 showed "Wk 4 · 1–7 Oct" and
+  // lost 8–11 Oct). Week 1 starts on the first Monday of the cycle and takes the early days with
+  // it; the last week ends on the cycle's Sunday; cycle 4 is six weeks over Christmas.
+  const startDow = new Date(cStart).getDay();                    // 0 = Sunday
+  const firstMonday = startDow === 1 ? cStart : cStart + ((8 - startDow) % 7) * DAY;
+  const nWeeks = Math.max(1, Math.ceil((cEnd - firstMonday) / (7 * DAY)));
+  const weekBounds = (w: number) => ({
+    a: w === 1 ? cStart : firstMonday + (w - 1) * 7 * DAY,
+    b: Math.min(firstMonday + w * 7 * DAY, cEnd + 1),          // exclusive end
+  });
+  const wkStart = week ? weekBounds(week).a : cStart;
+  const wkEnd = week ? weekBounds(week).b : cEnd;
   const isCurrent = cycleN === live.cycle.n;
   const state = isCurrent ? live.state : cycleN < live.cycle.n ? "over" : "upcoming";
   const left = daysLeft(cycle, now);
@@ -127,8 +138,9 @@ export function BoxProgress({
     : [];
 
   const weekLabel = (w: number) => {
-    const a = cStart + (w - 1) * 7 * DAY, b = Math.min(a + 6 * DAY, cEnd);
-    return `Wk ${w} · ${new Date(a).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}–${new Date(b).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}`;
+    const { a, b } = weekBounds(w);
+    const last = b - DAY / 2;   // the Sunday (or the deadline) the week ends on
+    return `Wk ${w} · ${new Date(a).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}–${new Date(last).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}`;
   };
 
   return (
@@ -154,7 +166,7 @@ export function BoxProgress({
         <button onClick={() => { setCycleN(Math.min(BOX_CYCLES.length, cycleN + 1)); setWeek(0); setOpenBox(null); }} disabled={cycleN >= BOX_CYCLES.length} style={{ ...pill(false), opacity: cycleN >= BOX_CYCLES.length ? 0.4 : 1 }} aria-label="Next cycle">›</button>
         <span style={{ width: 10 }} />
         <button onClick={() => setWeek(0)} style={pill(week === 0)}>Whole cycle</button>
-        {[1, 2, 3, 4].map((w) => (
+        {Array.from({ length: nWeeks }, (_, i) => i + 1).map((w) => (
           <button key={w} onClick={() => setWeek(w)} style={pill(week === w)}>{weekLabel(w)}</button>
         ))}
       </div>
