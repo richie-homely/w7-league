@@ -1,7 +1,8 @@
 -- Live Playtomic ratings for every league player (Richie, 16 Sep 2026:
 -- "show league players current Playtomic rating beside their names on the leagues").
 -- Written by scripts/refresh_league_ratings.py from W7's venue player list.
--- 156 teams change; players not found on Playtomic keep the rating they had.
+-- 152 teams change; players not found on Playtomic keep the rating they had;
+-- 19 move(s) over 1.0 held for review (not in this file).
 
 update public.box_teams set r1 = 5.18, r2 = 4.16, updated_at = now() where id = 'ab14a51e-cabd-4b39-af1d-621dc33f3fa7';  -- Peter Finnegan & Christopher Byrne
 update public.box_teams set r1 = 4.51, r2 = 4.13, updated_at = now() where id = 'fbca6b95-eef1-4f09-9aab-e71eab286867';  -- Shane Donohoe & Dylan Orr
@@ -36,12 +37,11 @@ update public.box_teams set r1 = 3.08, updated_at = now() where id = '286a21f9-7
 update public.box_teams set r1 = 2.19, r2 = 2.54, updated_at = now() where id = 'b8a0db17-e2a6-4420-b11d-7ed18b47f78b';  -- Gabriel Uribe & Aron Souto
 update public.box_teams set r1 = 2.18, r2 = 2.84, updated_at = now() where id = '7339af69-accf-4a93-9e3d-883f87bbdb91';  -- John D & Sam Harte
 update public.box_teams set r1 = 2.68, r2 = 2.21, updated_at = now() where id = '228808ac-cf1a-4230-bd18-6454e8cfc810';  -- Kieran Fraser & Ana J
-update public.box_teams set r1 = 1.32, r2 = 0.75, updated_at = now() where id = '8b720e09-2851-4578-8180-e0525769b0eb';  -- Fionn Lang & Anthea Lang
 update public.box_teams set r1 = 2.46, r2 = 2.45, updated_at = now() where id = '63a580ff-d835-4c49-98bf-2f5726b32dab';  -- Eamonn O'Hanrahan & Liam Finn
 update public.box_teams set r1 = 3.0, r2 = 2.04, updated_at = now() where id = '51aeac8d-30de-4778-8f55-4b0a002b3f35';  -- Callum Smale & Ryan Tolan
 update public.box_teams set r1 = 2.12, r2 = 2.86, updated_at = now() where id = '5ae4379a-cc75-45f6-b0b7-a3620ba393bd';  -- Karol Stankiewicz & Sath
 update public.box_teams set r1 = 2.01, r2 = 1.85, updated_at = now() where id = '13a0b102-1090-457e-aafb-7792314d30e8';  -- David O Neill & John O Neill
-update public.box_teams set r1 = 1.6, r2 = 0.78, updated_at = now() where id = '0ba19a8d-1228-4346-8f86-30601598d69d';  -- Keefe Lang & Chris Lang
+update public.box_teams set r2 = 0.78, updated_at = now() where id = '0ba19a8d-1228-4346-8f86-30601598d69d';  -- Keefe Lang & Chris Lang
 update public.box_teams set r1 = 1.55, r2 = 2.46, updated_at = now() where id = '494ac9e8-0b64-43c5-bd57-1e3184df1fb4';  -- Lorraine Gallagher & Tina Meehan
 update public.box_teams set r1 = 2.26, r2 = 1.69, updated_at = now() where id = '1a41e420-cee5-42f4-82d7-7ac14c1a8f44';  -- Peter Dunne & Lillian Carthy
 update public.box_teams set r1 = 2.12, r2 = 1.41, updated_at = now() where id = '1aaf5be2-e799-4768-a0be-7cd6e2db402a';  -- Kieran Fitzpatrick & Stephen Fitzpatrick
@@ -53,7 +53,7 @@ update public.box_teams set r1 = 1.51, r2 = 2.02, updated_at = now() where id = 
 update public.box_teams set r1 = 1.98, r2 = 1.25, updated_at = now() where id = '380445b1-6506-45f3-8470-3a4a646956de';  -- Thomas Meade & Maurice Ramsay
 update public.box_teams set r1 = 2.27, r2 = 2.37, updated_at = now() where id = '595875d3-6529-4007-b122-79310f387989';  -- Ross Stephenson & Ross Hamilton
 update public.box_teams set r1 = 1.22, r2 = 1.11, updated_at = now() where id = '60fe6999-4a42-4f24-9df8-d3f2bd4b80f5';  -- Damien Dunne & Joanne Dunne
-update public.box_teams set r1 = 2.52, r2 = 1.68, updated_at = now() where id = 'a3e27fbd-707a-4b22-b573-45b597702a51';  -- Claire Austen & CJ Adams
+update public.box_teams set r1 = 2.52, updated_at = now() where id = 'a3e27fbd-707a-4b22-b573-45b597702a51';  -- Claire Austen & CJ Adams
 update public.box_teams set r1 = 1.01, r2 = 1.71, updated_at = now() where id = '866339f6-ed00-46be-929f-4697a280ca92';  -- Alan Cleary & Alex Hassett
 update public.box_teams set r2 = 0.97, updated_at = now() where id = 'b71f734c-660a-4996-94b6-47229504dc96';  -- Fran Ford & D M
 update public.box_teams set r1 = 2.01, r2 = 1.82, updated_at = now() where id = '6e6d0d32-2474-49c5-8511-78bbe2e23742';  -- Clinton Verhoog & Patrick Ffrench
@@ -69,7 +69,7 @@ update public.box_teams set r1 = 0.86, r2 = 1.08, updated_at = now() where id = 
 update public.box_teams set r1 = 0.53, r2 = 0.73, updated_at = now() where id = '297e8493-19f4-4a7c-85fc-190062c63bd2';  -- Michele McCormack & Sonja
 update public.box_teams set r1 = 1.23, r2 = 1.66, updated_at = now() where id = 'b61f7f3d-a18e-4fed-b67c-4e37c9e770a3';  -- Conor Dodd & Dillon Mordaunt
 update public.box_teams set r2 = 1.27, updated_at = now() where id = 'cd0fc588-41c1-4ddd-bf9a-99088ab8aeab';  -- Eva Rybak & Kris Rybak
-update public.box_teams set r1 = 2.3, r2 = 2.12, updated_at = now() where id = '477497d9-46ec-46be-8b90-7425dc996e2d';  -- John Lester & Kyle Dempsey
+update public.box_teams set r1 = 2.3, updated_at = now() where id = '477497d9-46ec-46be-8b90-7425dc996e2d';  -- John Lester & Kyle Dempsey
 update public.box_teams set r1 = 1.48, r2 = 2.0, updated_at = now() where id = '56272c09-1188-496d-ba83-435a4f6c9f06';  -- Gary Brady & Ciaran O'Donoghue
 update public.box_teams set r1 = 0.87, r2 = 1.01, updated_at = now() where id = '30cd0825-f8b5-4c7d-b897-bb1a5f26056b';  -- Katie Marie & Aoife Williams
 update public.box_teams set r1 = 0.52, updated_at = now() where id = '407f5fa3-ac18-4ec8-b898-4e8dbc0a3a7d';  -- Deirdre Hoare & Salvador J
@@ -108,25 +108,23 @@ update public.teams set r1 = 3.12, r2 = 2.89, updated_at = now() where id = '6f3
 update public.teams set r1 = 2.81, r2 = 2.83, updated_at = now() where id = '77d07338-4116-4fd7-8692-cfabd06dfb8e';  -- Nathan Condell & Simon Matthews
 update public.teams set r2 = 1.36, updated_at = now() where id = '32351f44-1509-4b39-8c29-ad2fff201dde';  -- Cian Haddock & Andras Bondar
 update public.teams set r1 = 4.16, updated_at = now() where id = '7955d401-3729-400c-8e92-4c5e85603bb3';  -- Christopher Byrne & Barry Kelly
-update public.teams set r1 = 2.54, updated_at = now() where id = '14645c79-43d7-45d6-bcf3-ba3123ba2983';  -- Jack Colaluca & Oussama
 update public.teams set r1 = 2.08, r2 = 0.72, updated_at = now() where id = '7a3e128b-d29d-4c3d-9d78-3d3e321cea8d';  -- Jack Noble & Fionn O'Higgins
 update public.teams set r1 = 2.54, r2 = 2.18, updated_at = now() where id = '4b3ff9fe-0cb1-4f1a-9487-bc9638b06097';  -- Aron Souto & John D
 update public.teams set r1 = 1.42, r2 = 1.95, updated_at = now() where id = '6701b4db-2cf6-4b73-a870-f35def277a91';  -- Ciara Kavanagh & Grainne Ring
 update public.teams set r1 = 2.24, r2 = 1.59, updated_at = now() where id = '017dcc0e-056b-41ec-a42c-627cdb7dd85b';  -- Patrick Kennelly & Aisling O'Brien
 update public.teams set r1 = 1.57, r2 = 2.06, updated_at = now() where id = '682da521-e75f-41be-8ffa-e35c87431683';  -- Mark Tindale & Mark Williams
-update public.teams set r1 = 2.62, r2 = 2.46, updated_at = now() where id = '3f2812d0-ca30-4f49-ad0c-c5c63489cfe7';  -- Shaun Humby & Thomas McKeon
+update public.teams set r2 = 2.46, updated_at = now() where id = '3f2812d0-ca30-4f49-ad0c-c5c63489cfe7';  -- Shaun Humby & Thomas McKeon
 update public.teams set r1 = 2.37, r2 = 1.67, updated_at = now() where id = '26d031b3-f774-4476-b7f8-1e805143ac6c';  -- Ross Hamilton & Lucy McGettigan
 update public.teams set r1 = 1.48, r2 = 2.0, updated_at = now() where id = 'e5ecb5fc-4bf3-4d98-a0a6-9c1743274d73';  -- Gary Brady & Ciaran O'Donoghue
-update public.teams set r1 = 2.69, r2 = 2.48, updated_at = now() where id = '62da68dd-80f6-4d26-ae14-a449466bf150';  -- Wesley Wojnar & Tom Maguire
+update public.teams set r2 = 2.48, updated_at = now() where id = '62da68dd-80f6-4d26-ae14-a449466bf150';  -- Wesley Wojnar & Tom Maguire
 update public.teams set r1 = 0.92, r2 = 0.88, updated_at = now() where id = 'f2528bd0-7a72-4beb-aa64-4fb74552c36c';  -- James Heron & Bairbre Heron
 update public.teams set r1 = 0.5, r2 = 0.66, updated_at = now() where id = '0fae5c1b-986f-45fe-8935-cda5fa75337c';  -- Juliette Kidd & Marie Galligan
 update public.teams set r1 = 1.41, updated_at = now() where id = '55cc30f8-3f19-4775-a00f-136ffba1539b';  -- Patrick Sturgess & Paula Battori
 update public.teams set r1 = 2.72, r2 = 2.59, updated_at = now() where id = 'e5775ed4-cb67-41a5-a15a-6468c5c845d2';  -- Mark O'Sullivan 1 & Brian O'Sullivan
-update public.teams set r1 = 2.86, r2 = 3.75, updated_at = now() where id = '92e97cc0-51e9-4a12-acb0-cbc3e0e8bd48';  -- Antonio Loboschi & Sahil Kaistha
 update public.teams set r1 = 1.52, updated_at = now() where id = '77bfb39a-bf72-4880-ab02-4e29867e9672';  -- Mark O'Sullivan 2 & Danny Mccoy
 update public.teams set r1 = 1.72, r2 = 2.65, updated_at = now() where id = 'a93c2d87-3878-46fb-81c7-532e9e6c3e88';  -- Brian McVicar & Lee Fitzpatrick
 update public.teams set r1 = 2.21, r2 = 2.68, updated_at = now() where id = '897c9acd-784a-48d1-b15b-73cde3134014';  -- Ana J & Kieran Fraser
-update public.teams set r1 = 3.0, r2 = 2.04, updated_at = now() where id = '8b0ad15f-c884-4554-8ec5-3354db001967';  -- Callum Smale & Ryan Tolan
+update public.teams set r1 = 3.0, updated_at = now() where id = '8b0ad15f-c884-4554-8ec5-3354db001967';  -- Callum Smale & Ryan Tolan
 update public.teams set r1 = 0.82, r2 = 1.53, updated_at = now() where id = '11383d91-a854-4f1c-b1c0-9c551d267e73';  -- Kerry Callery & Niamh Cassidy
 update public.teams set r1 = 1.93, r2 = 0.51, updated_at = now() where id = 'add5673a-031b-4907-95c4-da9f63862623';  -- Oce Mapp & John Frazer
 update public.teams set r1 = 1.15, r2 = 1.71, updated_at = now() where id = 'f962636f-b6b7-4482-b2b1-a73f38d724f9';  -- Paula Wood & Conor O'Neill
@@ -137,25 +135,24 @@ update public.teams set r1 = 1.06, r2 = 1.45, updated_at = now() where id = '0ca
 update public.teams set r1 = 2.75, r2 = 3.04, updated_at = now() where id = '8a9683ca-d92b-4791-b015-2f3f3b4e0756';  -- Richie Cotter & Ronan Royce
 update public.teams set r1 = 2.83, r2 = 2.8, updated_at = now() where id = 'ff432314-9956-47a3-aea0-0aaa30d21ebd';  -- Gareth Murphy & Jim Foley
 update public.teams set r1 = 2.94, r2 = 5.05, updated_at = now() where id = '221b18e7-ea20-481d-8998-55f469ce57e0';  -- Leah Spillane & Ashley Wynne
-update public.teams set r1 = 0.67, r2 = 1.58, updated_at = now() where id = '0c555c9f-d013-4788-a69f-657db97248c2';  -- Conn Kinsella & Oran Dunning
+update public.teams set r1 = 0.67, updated_at = now() where id = '0c555c9f-d013-4788-a69f-657db97248c2';  -- Conn Kinsella & Oran Dunning
 update public.teams set r2 = 2.18, updated_at = now() where id = '3aa22b68-574b-45a4-8f5d-f0725714071c';  -- Sam Walker & Kasey Clark
 update public.teams set r2 = 2.43, updated_at = now() where id = '6f988ace-a507-4ecc-865e-6b2710c8aec9';  -- Anton Burlihin & Mark Banim
-update public.teams set r1 = 1.12, r2 = 2.91, updated_at = now() where id = 'aea54ed5-920f-4ebc-a5a5-32d78aaf1f97';  -- Oisin Brown & Cillian Williams
-update public.teams set r1 = 1.69, r2 = 2.26, updated_at = now() where id = '30f1b527-13c4-4328-8b22-628e55a6def9';  -- Lillian Carthy & Peter Dunne
+update public.teams set r1 = 1.12, updated_at = now() where id = 'aea54ed5-920f-4ebc-a5a5-32d78aaf1f97';  -- Oisin Brown & Cillian Williams
+update public.teams set r2 = 2.26, updated_at = now() where id = '30f1b527-13c4-4328-8b22-628e55a6def9';  -- Lillian Carthy & Peter Dunne
 update public.teams set r1 = 3.01, r2 = 2.52, updated_at = now() where id = 'ae8547b3-d868-4292-845d-aa3c0f466f91';  -- Nicky Gethin Taggart & Claire Austen
 update public.teams set r1 = 2.41, r2 = 2.65, updated_at = now() where id = '956becb9-1337-4520-a81b-636bb678df9e';  -- Kayleigh Sullivan & Leanne S
 update public.teams set r1 = 0.5, r2 = 0.54, updated_at = now() where id = '2662dc3d-07ec-4207-ac54-c2caefb49996';  -- Jack Wu & Peter Mitchell
 update public.teams set r1 = 1.08, r2 = 0.86, updated_at = now() where id = '5e53bc0e-54ef-4a3b-b406-da03dd03b495';  -- Shirley Deady & Rick Deady
 update public.teams set r1 = 0.57, r2 = 0.68, updated_at = now() where id = '0d68f49a-19bb-4957-8b43-c3ac29a968d0';  -- Kerrie Beacom & Sandra Dunne
-update public.teams set r1 = 3.13, r2 = 3.0, updated_at = now() where id = '8bd7bb6e-beb7-41e5-968e-168f458faa0e';  -- Andy Earls & Robert Keogh
-update public.teams set r1 = 6.07, r2 = 3.76, updated_at = now() where id = '1ea17980-ae90-4a26-ad3a-2fbad7dc27d4';  -- John Fitz 202 & David
+update public.teams set r2 = 3.0, updated_at = now() where id = '8bd7bb6e-beb7-41e5-968e-168f458faa0e';  -- Andy Earls & Robert Keogh
+update public.teams set r2 = 3.76, updated_at = now() where id = '1ea17980-ae90-4a26-ad3a-2fbad7dc27d4';  -- John Fitz 202 & David
 update public.teams set r1 = 2.93, updated_at = now() where id = 'f11580c4-579b-455a-85c6-c0316db92912';  -- David Kennan & Paul McGlade
-update public.teams set r1 = 4.27, r2 = 5.22, updated_at = now() where id = '24ad96a9-7f6d-4f1e-83c7-bdc1103c3aef';  -- Rob Lucy & Lee Biddulph
-update public.teams set r2 = 2.33, updated_at = now() where id = '589cd9d2-49da-4a36-9bb0-589dbb434da6';  -- Stevan O'Toole & Padraic Bermingham
+update public.teams set r1 = 4.27, updated_at = now() where id = '24ad96a9-7f6d-4f1e-83c7-bdc1103c3aef';  -- Rob Lucy & Lee Biddulph
 update public.teams set r1 = 2.54, r2 = 3.85, updated_at = now() where id = 'd159f467-1855-42e9-8d07-153f91493d4e';  -- Colm Bolger & Brian Cornyn
 update public.teams set r1 = 3.65, r2 = 3.22, updated_at = now() where id = '592e19a2-caa0-4fc2-9d2d-aa688eacd545';  -- Matthew & Mike Shanahan
 update public.teams set r1 = 3.3, r2 = 3.36, updated_at = now() where id = '58da7df0-c02b-4088-b319-294555c74ae9';  -- Jack Furlong & Dylan Furlong
 update public.teams set r1 = 3.35, r2 = 2.44, updated_at = now() where id = 'e79bbd3d-a9ad-47da-9b68-983aa550963f';  -- Dylan Frazer & Sean Leonard
-update public.teams set r1 = 2.85, r2 = 3.37, updated_at = now() where id = '95633f64-d4ef-4eb1-a64b-82f979ed7e20';  -- Ella Tindale & Sahir Mangat
+update public.teams set r1 = 2.85, updated_at = now() where id = '95633f64-d4ef-4eb1-a64b-82f979ed7e20';  -- Ella Tindale & Sahir Mangat
 update public.teams set r1 = 2.96, r2 = 1.95, updated_at = now() where id = '4db1ee60-d1d4-4e3d-b7c1-7a2171a1f740';  -- Kevin Finnegan & Richie Carroll
 update public.teams set r1 = 3.28, r2 = 2.01, updated_at = now() where id = '63f40b7a-8ba9-4e51-bb94-1ec3a52fc5c4';  -- James Connolly & Clinton Verhoog
