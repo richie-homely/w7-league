@@ -9,6 +9,12 @@ export const metadata = { title: "Rules & Format · W7 Autumn/Winter Padel Box L
 // The league rules as issued by W7 on 5 Sep 2026. Text is kept close to the
 // original; figures that live in code (dates, cap) are read from it so the two
 // cannot drift.
+// Every section has a stable anchor (Richie, 7 Oct 2026: "a direct link for the rules
+// section"), so a question in the WhatsApp group can be answered with one link, e.g.
+// league.w7padel.com/box/rules#promotion-relegation. Slugs are derived from the heading.
+const slug = (h: string) =>
+  h.toLowerCase().replace(/&/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
 const SECTIONS: { h: string; body: (string | string[])[] }[] = [
   {
     h: "The league",
@@ -139,10 +145,25 @@ export default function BoxRulesPage() {
           Issued 5 September 2026; winner credit confirmed at €20 per player on 7 September 2026. Where these rules and the Playtomic event listing differ, these rules apply.
         </p>
 
-        {SECTIONS.map((s) => (
-          <section key={s.h} style={{ marginTop: 26 }}>
-            <h2 style={{ fontFamily: F.display, fontSize: 22, margin: "0 0 8px", color: C.accent, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+        {/* jump list: one tap to any rule, and the same addresses work as direct links */}
+        <nav aria-label="Rules sections" style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 16 }}>
+          {SECTIONS.map((s) => (
+            <a
+              key={s.h}
+              href={`#${slug(s.h)}`}
+              style={{ fontSize: 12, color: C.text, textDecoration: "none", padding: "4px 10px", border: `1px solid ${C.border}`, borderRadius: 999, background: C.card }}
+            >
               {s.h}
+            </a>
+          ))}
+        </nav>
+
+        {SECTIONS.map((s) => (
+          <section key={s.h} id={slug(s.h)} style={{ marginTop: 26, scrollMarginTop: 72 }}>
+            <h2 style={{ fontFamily: F.display, fontSize: 22, margin: "0 0 8px", color: C.accent, letterSpacing: "0.03em", textTransform: "uppercase" }}>
+              <a href={`#${slug(s.h)}`} style={{ color: "inherit", textDecoration: "none" }} title="Link to this section">
+                {s.h}
+              </a>
             </h2>
             {s.body.map((b, i) =>
               Array.isArray(b) ? (
