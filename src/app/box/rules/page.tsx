@@ -60,6 +60,7 @@ const SECTIONS: { h: string; body: (string | string[])[] }[] = [
       "At the end of each cycle:",
       ["1st — promoted", "2nd — promoted", "3rd — stays in the same box", "4th — relegated", "5th — relegated"],
       "The top two move up, the bottom two move down, and the team finishing 3rd holds its place.",
+      "Teams level on points are separated, in order, by: the result of the match between them (head-to-head); then set difference; then game difference across the cycle. The championship tiebreak counts as a set, not as games. Where the two teams' match was not played, head-to-head is skipped. The box winner's credit goes to the team placed first after these tiebreakers.",
     ],
   },
   {

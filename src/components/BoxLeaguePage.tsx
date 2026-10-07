@@ -410,7 +410,7 @@ export function BoxLeaguePage() {
               ["Four games in four weeks", "You play each of the other four teams once per cycle. Unplayed at the deadline = void and −1 point to both teams, so arrange all four as soon as the cycle opens. A box of four plays three and takes a bye."],
               ["You pick the time", "There are no fixed fixture slots. Arrange each match directly with your opponents and book the court whenever suits you both. A sub is fine if their rating is within 0.75 of the player they replace."],
               ["Log the result", "Two sets, then a championship tiebreak if it's one apiece. Enter the score on this page with the email you registered with; it counts once your opponents confirm it."],
-              ["Points and prizes", "4 points for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if they took a set. Top of the box at the end of a cycle wins €20 Playtomic credit per player."],
+              ["Points and prizes", "4 points for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if they took a set. Top of the box at the end of a cycle wins €20 Playtomic credit per player. Level on points? Head-to-head decides, then set difference, then game difference."],
               ["Up or down", "Top two teams move up a box, bottom two move down, and the next cycle starts. Only the middle team holds its place, so the ladder moves quickly."],
             ].map(([h, t], i) => (
               <div key={h} style={{ display: "flex", gap: 12, background: C.card,
