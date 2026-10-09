@@ -73,16 +73,17 @@ async function sb<T>(path: string): Promise<T | null> {
   }
 }
 
-/** Top rows for one month key ("all" for the all-time board). Empty until the table exists. */
+/** Top rows for one month key ("all" for the all-time board): opted-in players only, through the
+ *  court_points_public view. Empty until the SQL is applied and the first push lands. */
 export async function fetchBoard(month: string, limit = 25): Promise<PointsRow[]> {
   const rows = await sb<PointsRow[]>(
-    `court_points?month=eq.${encodeURIComponent(month)}&order=points.desc,sessions.desc&limit=${limit}&select=player,month,display,points,sessions,updated_at`,
+    `court_points_public?month=eq.${encodeURIComponent(month)}&order=points.desc,sessions.desc&limit=${limit}&select=player,month,display,points,sessions,updated_at`,
   );
   return rows ?? [];
 }
 
 /** Month keys present, newest first, excluding "all". */
 export async function fetchMonths(): Promise<string[]> {
-  const rows = await sb<{ month: string }[]>(`court_points?select=month&month=neq.all&limit=5000`);
+  const rows = await sb<{ month: string }[]>(`court_points_public?select=month&month=neq.all&limit=5000`);
   return Array.from(new Set((rows ?? []).map((r) => r.month))).sort().reverse();
 }

@@ -143,8 +143,8 @@ def push(players):
     for k, p in players.items():
         pid = re.sub(r"[^a-z0-9]", "", k)[:40] or norm(p["name"])
         for m, (mins, s) in p["months"].items():
-            rows.append({"player": pid, "display": p["display"], "month": m, "points": mins * POINTS_PER_MINUTE, "sessions": s})
-        rows.append({"player": pid, "display": p["display"], "month": "all", "points": p["total"] * POINTS_PER_MINUTE, "sessions": p["sessions"]})
+            rows.append({"player": pid, "display": p["display"], "email": p["email"], "month": m, "points": mins * POINTS_PER_MINUTE, "sessions": s})
+        rows.append({"player": pid, "display": p["display"], "email": p["email"], "month": "all", "points": p["total"] * POINTS_PER_MINUTE, "sessions": p["sessions"]})
     body = json.dumps({"p_key": os.environ["SITE_ADMIN_KEY"], "p_rows": rows}).encode()
     req = urllib.request.Request(f"{url}/rest/v1/rpc/league_admin_set_points", data=body, method="POST",
                                  headers={"apikey": key, "Authorization": f"Bearer {key}", "Content-Type": "application/json"})

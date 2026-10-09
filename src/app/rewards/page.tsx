@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { C, F } from "@/theme/tokens";
 import { LADDER, fetchBoard, fetchMonths, hoursOf, monthKey, monthLabel, progress, type PointsRow } from "@/lib/rewards";
+import { CourtPointsJoin } from "@/components/CourtPointsJoin";
 
 // W7 Court Points (Richie, 9 Oct 2026): a point for every minute on court, for every player
 // named on the booking. Rewards unlock on a ladder (src/lib/rewards.ts). The board is pushed
@@ -65,9 +66,13 @@ export default async function RewardsPage() {
           <Board title="All time" rows={all} showLadder />
         </div>
 
+        <div style={{ marginTop: 16 }}>
+          <CourtPointsJoin />
+        </div>
+
         <p style={{ color: C.mute, fontSize: 12, marginTop: 26, lineHeight: 1.5 }}>
-          Names are shown as first name and initial. Staff and coaches are not on the board. To be left off it, email{" "}
-          <a href="mailto:welcome@w7padel.com" style={{ color: C.mute }}>welcome@w7padel.com</a>.
+          Names are shown as first name and initial, and only for players who have joined. Staff and coaches are not on the board.
+          Questions to <a href="mailto:welcome@w7padel.com" style={{ color: C.mute }}>welcome@w7padel.com</a>.
           {updated && <> Last updated {updated.toLocaleString("en-IE", { timeZone: "Europe/Dublin", weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.</>}
         </p>
       </div>
@@ -83,7 +88,7 @@ function Board({ title, rows, showLadder = false }: { title: string; rows: Point
         <div style={{ fontSize: 12, color: C.mute }}>top {rows.length || 25}</div>
       </div>
       {rows.length === 0 ? (
-        <div style={{ padding: 20, color: C.mute, fontSize: 14 }}>The board fills in with the next morning's push from the booking system.</div>
+        <div style={{ padding: 20, color: C.mute, fontSize: 14 }}>Nobody on the board yet. Join below and your points appear with the next morning's update.</div>
       ) : (
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
           <tbody>
