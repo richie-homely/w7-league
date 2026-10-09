@@ -90,8 +90,14 @@ def main():
         r = by_day.get(d, {"views": 0, "uniques": 0})
         L.append(f"  {d[5:]}  {'#' * min(60, r['views'] // 2):60} {r['views']:4} / {r['uniques']}")
     L += ["", "TOP PAGES (14 days)"]
-    for p in rep["by_path"][:10]:
+    for p in [x for x in rep["by_path"] if not x["path"].startswith("p100:")][:10]:
         L.append(f"  {p['path']:36} {p['views']:5} views  {p['uniques']:4} people")
+    # Padel 100 note readers (Richie, 9 Oct 2026): the market site posts views with a "p100:" path
+    p100 = [x for x in rep["by_path"] if x["path"].startswith("p100:")]
+    if p100:
+        L += ["", "PADEL 100 NOTE READERS (14 days, anonymous browser ids)"]
+        for p in p100[:6]:
+            L.append(f"  {p['path'][5:]:36} {p['views']:5} views  {p['uniques']:4} people")
     if active_y:
         L += ["", f"TEAMS ON THE SITE YESTERDAY ({len(active_y)})"]
         L += [f"  Box {t['box']:2}  {t['name']}" + ("  (first time)" if t in new_y else "") for t in sorted(active_y, key=lambda t: t["box"])]
