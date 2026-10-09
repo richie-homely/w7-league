@@ -67,6 +67,9 @@ function Header() {
         <NavLink href={LEAGUE_URL} external>
           Leagues
         </NavLink>
+        <NavLink href={`${LEAGUE_URL}/rewards`} external>
+          Court Points
+        </NavLink>
         {/* Vouchers stay on Wix checkout until Stripe is wired in. */}
         <NavLink href="https://www.w7padel.com/gift-card" external>
           Vouchers
