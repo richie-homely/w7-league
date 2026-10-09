@@ -98,6 +98,13 @@ def standings(teams, matches, at_deadline):
         if st == "void":
             r1["Pts"] -= 1; r2["Pts"] -= 1; r1["void"] += 1; r2["void"] += 1
             continue
+        if st == "walkover" and m.get("walkover_to"):
+            # one side conceded (Richie, 9 Oct 2026): 3 points to the team ready to play, 0 to the other, 2-0 in sets
+            win, lose = (r1, r2) if m["walkover_to"] == m["team1_id"] else (r2, r1)
+            r1["P"] += 1; r2["P"] += 1; win["W"] += 1; lose["L"] += 1
+            win["SF"] += 2; lose["SA"] += 2; win["Pts"] += 3
+            win["h2h"][lose["team"]["id"]] += 1
+            continue
         if st != "confirmed" or not m.get("sets"):
             continue
         s1 = s2 = g1 = g2 = 0
@@ -177,7 +184,7 @@ def pack_text(cycle, tables, moves, matches, teams_by_id, result=None):
     for m in matches:
         st[m["status"]] += 1
     out.append(f"Fixtures: {st['confirmed']} confirmed, {st['submitted']} entered-not-confirmed (taken as confirmed), "
-               f"{st['pending']} unplayed (VOID, -1 each), {st['disputed']} disputed (left for Richie), {st.get('void', 0)} already void")
+               f"{st['pending']} unplayed (VOID, -1 each), {st['disputed']} disputed (left for Richie), {st.get('void', 0)} already void, {st.get('walkover', 0)} walkovers")
     disputed = [m for m in matches if m["status"] == "disputed"]
     if disputed:
         out.append("DISPUTED - fix with box_admin_set_result, then adjust moves by hand if it changes a place:")
@@ -353,7 +360,7 @@ def main():
         return 0
 
     teams = [t for t in sb_get("box_teams?select=id,box,seed,name,p1,p2,active&order=box,seed") if t["active"] and t["box"] < 90]
-    matches = sb_get(f"box_matches?select=id,box,cycle,team1_id,team2_id,sets,status&cycle=eq.{n}&box=lt.90")
+    matches = sb_get(f"box_matches?select=id,box,cycle,team1_id,team2_id,sets,status,walkover_to&cycle=eq.{n}&box=lt.90")
     teams_by_id = {t["id"]: t for t in teams}
     tables, moves = plan_moves(teams, matches)
     os.makedirs(PACK_DIR, exist_ok=True)

@@ -96,6 +96,8 @@ const SECTIONS: { h: string; body: (string | string[])[] }[] = [
     body: [
       "All matches must be completed within the cycle's four-week playing period. A match not completed by the cycle deadline is declared null and void and BOTH teams receive a −1 point penalty.",
       "There are no individual extensions or exceptions for holidays, work, availability or difficulty arranging a fixture. Four weeks means teams need to be organised from the start of each cycle: arrange all four fixtures as soon as the cycle opens rather than leaving games to the final week. Please only enter if you and your partner are committed to completing all four matches in every cycle.",
+      // Walkovers added by Richie, 9 Oct 2026.
+      "Walkover: if a team cannot field a pair for a fixture and concedes it, tell W7 (welcome@w7padel.com) and the match is recorded as a walkover: 3 points to the team that was ready to play, the same as a win decided in the tiebreak, and 0 to the team that conceded. It counts as 2–0 in sets and no games for the tiebreakers. Walkovers are applied by W7, not entered as a score.",
     ],
   },
   {

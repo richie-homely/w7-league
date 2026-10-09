@@ -25,6 +25,7 @@ const STATUS_CHIP: Record<string, { label: string; color: string }> = {
   confirmed: { label: "CONFIRMED", color: C.green },
   disputed: { label: "DISPUTED", color: C.red },
   void: { label: "VOID · −1 EACH", color: C.red },
+  walkover: { label: "WALKOVER · 3 PTS", color: C.amber },
 };
 
 const inputStyle: React.CSSProperties = {
@@ -479,8 +480,8 @@ function MatchRow({
           <span style={{ color: C.mute }}> vs </span>
           <span style={{ fontWeight: 600 }}>{t2.name}</span>
         </div>
-        <div style={{ fontFamily: F.mono, fontSize: 13, color: match.status === "confirmed" ? C.text : C.mute }}>
-          {formatScore(match.sets)}
+        <div style={{ fontFamily: F.mono, fontSize: 13, color: match.status === "confirmed" || match.status === "walkover" ? C.text : C.mute }}>
+          {match.status === "walkover" ? `W/O · ${(match.walkoverTo === t1.id ? t1 : t2).name}` : formatScore(match.sets)}
         </div>
         {booking && match.status !== "pending" && match.sets && (() => {
           const rb = resultBooking(match, new Map([[match.id, booking]]));
@@ -522,7 +523,7 @@ function MatchRow({
           );
         })}
         <Chip label={chip.label} color={chip.color} />
-        {mine && match.status !== "confirmed" && match.status !== "void" && (
+        {mine && match.status !== "confirmed" && match.status !== "void" && match.status !== "walkover" && (
           <button onClick={() => setSubOpen(!subOpen)} style={ghostBtn}>{subOpen ? "Close" : "Log a sub"}</button>
         )}
         {/* A player away and the fixture still to play: ask the stand-in list (Richie, 20 Sep 2026) */}
@@ -623,7 +624,7 @@ function BoxSection({
   const [dueNow] = useState(() => Date.now());
   const scoreDue = useMemo(() => scoresDue(matches, bookings, dueNow).teamIds, [matches, bookings, dueNow]);
   const teamsById = useMemo(() => Object.fromEntries(teams.map((t) => [t.id, t])), [teams]);
-  const played = matches.filter((m) => m.status === "confirmed").length;
+  const played = matches.filter((m) => m.status === "confirmed" || m.status === "walkover").length;
 
   return (
     <div
@@ -867,7 +868,8 @@ export function BoxLeagueLive({
         Play everyone in your box, then post your result here — either team can enter it using a
         registered email address, and it counts once the opposing team confirms (entering the same
         score also confirms it). Points: 4 for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if
-        they took a set, 0 for losing in two. Unplayed at the cycle deadline: void, −1 each.
+        they took a set, 0 for losing in two. Unplayed at the cycle deadline: void, −1 each. A walkover (one side
+        concedes): 3 points to the team ready to play, 0 to the team conceding, applied by W7.
       </p>
       <div
         style={{

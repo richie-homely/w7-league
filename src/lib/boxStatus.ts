@@ -75,8 +75,9 @@ export async function fetchBoxStatus(now: Date = new Date()): Promise<BoxStatus>
   const matches = (await sb<{ status: string; cycle: number }[]>(
     `box_matches?select=status,cycle&box=lt.90&cycle=eq.${cycle.n}&limit=1000`
   )) ?? [];
-  const counts = { confirmed: 0, submitted: 0, pending: 0, disputed: 0, void: 0 };
+  const counts = { confirmed: 0, submitted: 0, pending: 0, disputed: 0, void: 0, walkover: 0 };
   for (const m of matches) counts[m.status as keyof typeof counts] = (counts[m.status as keyof typeof counts] ?? 0) + 1;
+  counts.confirmed += counts.walkover;   // a walkover is a result in, for the status line
   const total = matches.length;
   const nowIso = now.toISOString();
   const booked = (await sb<{ match_key: string }[]>(

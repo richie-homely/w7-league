@@ -11,7 +11,8 @@ import type { SetScore } from "./types";
 import { resultMissing, type LeagueBooking } from "./bookings";
 
 // "void": not played by the cycle deadline - -1 point to both teams (set by box_admin_close_cycle)
-export type BoxMatchStatus = "pending" | "submitted" | "confirmed" | "disputed" | "void";
+// "walkover": one side conceded - 3 points to walkoverTo, 0 to the other, counted 2-0 in sets (Richie, 9 Oct 2026)
+export type BoxMatchStatus = "pending" | "submitted" | "confirmed" | "disputed" | "void" | "walkover";
 
 /** Fixtures Playtomic shows as played with no score entered, and the teams who owe one.
  *  Richie, 13 Sep 2026: "surface a little more visibly on the league home page and the box
@@ -56,6 +57,8 @@ export interface BoxMatch {
   sets: SetScore[] | null;
   status: BoxMatchStatus;
   submittedTeam: string | null;
+  /** the team awarded a walkover, when status is "walkover" */
+  walkoverTo: string | null;
   notes: string;
   /** when the row last changed — for a confirmed match, the confirmation time */
   updatedAt: string | null;
@@ -203,6 +206,7 @@ function mapMatch(r: any): BoxMatch {
     sets: r.sets ?? null,
     status: r.status,
     submittedTeam: r.submitted_team ?? null,
+    walkoverTo: r.walkover_to ?? null,
     notes: r.notes ?? "",
     updatedAt: r.updated_at ?? null,
   };
@@ -320,6 +324,22 @@ export function computeBoxStandings(
       // unplayed at the cycle deadline: -1 each, no game played (rules of 5 Sep 2026)
       r1.Pts -= 1;
       r2.Pts -= 1;
+      continue;
+    }
+    if (m.status === "walkover") {
+      // one side conceded (Richie, 9 Oct 2026): 3 points to the team that was ready to play, as
+      // for a win decided in the tiebreak; 0 to the other; 2-0 in sets, no games
+      const winner = m.walkoverTo === r1.teamId ? r1 : m.walkoverTo === r2.teamId ? r2 : null;
+      if (!winner) continue;
+      const loser = winner === r1 ? r2 : r1;
+      r1.P++;
+      r2.P++;
+      winner.W++;
+      loser.L++;
+      winner.SF += 2;
+      loser.SA += 2;
+      winner.Pts += 3;
+      winner.h2h[loser.teamId] = (winner.h2h[loser.teamId] || 0) + 1;
       continue;
     }
     if (m.status !== "confirmed" || !m.sets) continue;
