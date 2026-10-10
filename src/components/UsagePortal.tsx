@@ -191,6 +191,9 @@ export function UsagePortal() {
       <div style={{ borderBottom: `1px solid ${C.border}`, padding: "14px 20px", display: "flex", alignItems: "center", gap: 16 }}>
         <div style={{ fontFamily: F.display, fontSize: 20, letterSpacing: "0.03em" }}>W7 LEAGUE SITE · USAGE</div>
         <div style={{ flex: 1 }} />
+        <Link href="/admin/p100" style={{ fontSize: 12, color: C.mute, textDecoration: "none", padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 6 }}>
+          Padel 100 readers
+        </Link>
         <Link href="/box" style={{ fontSize: 12, color: C.mute, textDecoration: "none", padding: "6px 12px", border: `1px solid ${C.border}`, borderRadius: 6 }}>
           ← Box league
         </Link>
