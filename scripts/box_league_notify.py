@@ -91,6 +91,13 @@ def table_lines(box, teams, matches, highlight=()):
     tab = {t["id"]: {"n": t["name"], "P": 0, "W": 0, "pts": 0, "sd": 0, "gd": 0}
            for t in teams.values() if t.get("box") == box}
     for m in matches:
+        if m["box"] == box and m["status"] == "walkover" and m.get("walkover_to"):
+            a, b = tab.get(m["team1_id"]), tab.get(m["team2_id"])
+            if a and b:
+                win, lose = (a, b) if m["walkover_to"] == m["team1_id"] else (b, a)
+                a["P"] += 1; b["P"] += 1; win["W"] += 1; win["pts"] += 3
+                win["sd"] += 2; lose["sd"] -= 2
+            continue
         if m["box"] != box or m["status"] != "confirmed" or not m["sets"]:
             continue
         a, b = tab.get(m["team1_id"]), tab.get(m["team2_id"])
@@ -144,7 +151,7 @@ def main():
     state = json.load(open(STATE, encoding="utf-8")) if os.path.exists(STATE) else {}
     teams = {t["id"]: t for t in sb_get("box_teams?select=id,box,seed,name,p1,p2,active")}
     contacts = contacts_by_team_name()
-    matches = sb_get("box_matches?select=id,box,status,sets,team1_id,team2_id,submitted_team,updated_at&status=in.(submitted,confirmed,disputed)")
+    matches = sb_get("box_matches?select=id,box,status,sets,team1_id,team2_id,submitted_team,walkover_to,updated_at&status=in.(submitted,confirmed,disputed,walkover)")
     sent = 0
 
     def addrs(*ts):
@@ -165,19 +172,32 @@ def main():
         sub = teams.get(m["submitted_team"])
         opp = t2 if sub and sub["id"] == t1["id"] else t1
         score = fmt_sets(m["sets"])
-        result = outcome(m["sets"], t1, t2)
+        wo = teams.get(m.get("walkover_to") or "")
+        if wo and not m["sets"]:
+            # a walkover (Richie, 10 Oct 2026): no score, 3 points to the team awarded it
+            loser = t2 if wo["id"] == t1["id"] else t1
+            result = (f"{wo['name']} - walkover against {loser['name']} (3 points)" if m["status"] == "walkover"
+                      else f"{wo['name']} claim a walkover against {loser['name']}")
+        else:
+            result = outcome(m["sets"], t1, t2)
         link = f"{SITE}/box?match={m['id']}"
         if m["status"] == "submitted":
             to = addrs(opp)
-            subject = f"W7 Box League — please confirm: {result}"
+            subject = (f"W7 Box League — walkover claimed: please confirm or dispute" if (wo and not m["sets"])
+                       else f"W7 Box League — please confirm: {result}")
             text = "\n".join([
                 f"Hi {opp['p1'].split()[0]} and {opp['p2'].split()[0]},",
                 "",
-                f"{sub['name'] if sub else 'Your opponents'} have entered this result for your Box {m['box']} match:",
+                (f"{sub['name'] if sub else 'Your opponents'} have claimed a WALKOVER for your Box {m['box']} match, saying you couldn't play it:"
+                 if (wo and not m["sets"]) else
+                 f"{sub['name'] if sub else 'Your opponents'} have entered this result for your Box {m['box']} match:"),
                 f"  {result}",
                 "",
-                "CHECK THE NAMES, NOT JUST THE SCORE — confirming the wrong way round puts the win",
-                "on the wrong team, and the table follows the names.",
+                *(["Confirm it if that's right: they get 3 points, you get 0. Dispute it if the match was",
+                   "played or arranged, and W7 will sort it out. Not disputed by the cycle deadline, it stands."]
+                  if (wo and not m["sets"]) else
+                  ["CHECK THE NAMES, NOT JUST THE SCORE — confirming the wrong way round puts the win",
+                   "on the wrong team, and the table follows the names."]),
                 "",
                 "PLEASE CONFIRM OR DISPUTE",
                 *[f"  {opp['p1'].split()[0] if i == 0 else opp['p2'].split()[0]}: {link}&as={a}" for i, a in enumerate(addrs(opp)[:2])],
@@ -215,6 +235,24 @@ def main():
             ])
             headline, subline, color = ("Result corrected" if corrected else "Result confirmed"), \
                 f"Box {m['box']} · {result}", (wh.GOLD if corrected else wh.LIME_DK)
+        elif m["status"] == "walkover":
+            to = addrs(t1, t2)
+            subject = f"W7 Box League — walkover recorded: {result}"
+            text = "\n".join([
+                f"A walkover has been recorded in Box {m['box']}:",
+                f"  {result}",
+                "",
+                "The team that was ready to play gets 3 points, the other team 0. If this is wrong,",
+                "reply to this email and W7 will put it right.",
+                "",
+                f"BOX {m['box']} AFTER THIS RESULT",
+                *table_lines(m["box"], teams, matches, highlight=(t1["name"], t2["name"])),
+                "",
+                f"The full table: {SITE}/box?box={m['box']}",
+                "",
+                "— W7 Padel · Wicklow Town",
+            ])
+            headline, subline, color = "Walkover recorded", f"Box {m['box']}", wh.GOLD
         else:
             to = addrs(t1, t2) + [W7_INBOX]
             subject = f"W7 Box League — scores differ: {t1['name']} v {t2['name']}"

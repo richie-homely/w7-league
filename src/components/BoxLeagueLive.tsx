@@ -13,6 +13,8 @@ import { fmtBooking, resultBooking, resultMissing, useLeagueBookings, type Leagu
 import { FindSubForm } from "./FindSubForm";
 import {
   computeBoxStandings,
+  claimBoxWalkover,
+  concedeBoxMatch,
   confirmBoxScore,
   submitBoxScore,
   type BoxMatch,
@@ -287,9 +289,12 @@ function ConfirmForm({
       }}
     >
       <div style={{ fontSize: 12.5, color: C.text, lineHeight: 1.5 }}>
-        Confirm this result as the <strong>opposing team</strong> — enter the email you registered
-        with. If the score is wrong, dispute it (or submit your own version above and the W7 team
-        will resolve it).
+        {match.walkoverTo
+          ? <>Your opponents have claimed a <strong>walkover</strong> for this fixture. Confirm it if you couldn&apos;t play (they get 3 points,
+            you get 0), or dispute it if the match was played or arranged. Enter the email you registered with.</>
+          : <>Confirm this result as the <strong>opposing team</strong> — enter the email you registered
+            with. If the score is wrong, dispute it (or submit your own version above and the W7 team
+            will resolve it).</>}
       </div>
       <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
         <input
@@ -331,6 +336,66 @@ function ConfirmForm({
           }}
         >
           {busy === "dispute" ? "…" : "Dispute"}
+        </button>
+      </div>
+      {error && <div style={{ color: C.red, fontSize: 12.5 }}>{error}</div>}
+    </div>
+  );
+}
+
+// A walkover from the teams themselves (Richie, 10 Oct 2026: "sometimes, if a team can't make it,
+// they can claim a walk over"). "claim": the team that was ready asks for it, and the other team
+// confirms or disputes it like a score. "concede": the team that can't play gives it away, which
+// counts straight away. Same registered email as a score.
+function WalkoverForm({
+  match,
+  mode,
+  opponent,
+  onDone,
+}: {
+  match: BoxMatch;
+  mode: "claim" | "concede";
+  opponent: BoxTeam;
+  onDone: (msg: { ok: boolean; text: string }) => void;
+}) {
+  const [email, setEmail] = useState(() => rememberedEmail());
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function go() {
+    if (!email.includes("@")) {
+      setError("Enter the email address you registered with.");
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const res = mode === "claim" ? await claimBoxWalkover(match.id, email.trim()) : await concedeBoxMatch(match.id, email.trim());
+    setBusy(false);
+    if (!res.ok) setError(res.text);
+    else {
+      rememberEmail(email);
+      onDone(res);
+    }
+  }
+
+  return (
+    <div style={{ background: C.bg2, border: `1px solid ${C.border}`, borderRadius: 8, padding: "14px 16px", marginTop: 8, display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ fontSize: 12.5, color: C.text, lineHeight: 1.5 }}>
+        {mode === "claim" ? (
+          <>Claim a <strong>walkover</strong> if {opponent.name} couldn&apos;t play this fixture. You get <strong>3 points</strong>, they get 0.
+          They&apos;re asked to confirm it, like a score; if they don&apos;t dispute it by the cycle deadline it stands.</>
+        ) : (
+          <>Can&apos;t play this one? <strong>Give {opponent.name} the walkover</strong>: they get 3 points and you get 0, which is better
+          than leaving it unplayed (−1 to both teams at the deadline). This counts straight away and only W7 can undo it.</>
+        )}
+      </div>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+        <input style={{ ...inputStyle, flex: "1 1 220px" }} type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+          placeholder="Your registered email" autoComplete="email" />
+        <button onClick={go} disabled={busy}
+          style={{ background: mode === "claim" ? C.amber : "transparent", color: mode === "claim" ? C.bg : C.amber, border: `1px solid ${C.amber}`,
+                   borderRadius: 6, padding: "9px 16px", fontSize: 13, fontWeight: 700, cursor: busy ? "wait" : "pointer" }}>
+          {busy ? "…" : mode === "claim" ? "Claim the walkover" : "Give them the walkover"}
         </button>
       </div>
       {error && <div style={{ color: C.red, fontSize: 12.5 }}>{error}</div>}
@@ -450,13 +515,16 @@ function MatchRow({
   const [subOpen, setSubOpen] = useState(false);
   const [findOpen, setFindOpen] = useState(false);
   const [nowMs] = useState(() => Date.now());   // snapshot for the result-missing test (render stays pure)
-  const [open, setOpen] = useState<false | "submit" | "confirm">(
+  const [open, setOpen] = useState<false | "submit" | "confirm" | "claim" | "concede">(
     autoOpen ? (match.status === "submitted" ? "confirm" : match.status === "confirmed" ? false : "submit") : false
   );
   const t1 = teamsById[match.team1Id];
   const t2 = teamsById[match.team2Id];
   if (!t1 || !t2) return null;
-  const chip = STATUS_CHIP[match.status];
+  const claim = match.walkoverTo !== null && match.status !== "walkover";   // a walkover claim, not yet confirmed
+  const chip = claim
+    ? { label: match.status === "disputed" ? "WALKOVER CLAIM DISPUTED" : "WALKOVER CLAIMED · AWAITING CONFIRMATION", color: match.status === "disputed" ? C.red : C.amber }
+    : STATUS_CHIP[match.status];
   // Richie, 7 Sep 2026: enter your email once at the top and only your own matches show
   // the score buttons. A deep link from a confirmation email is that team's own match.
   const mine = autoOpen || (viewerTeamId !== null && (match.team1Id === viewerTeamId || match.team2Id === viewerTeamId));
@@ -481,7 +549,7 @@ function MatchRow({
           <span style={{ fontWeight: 600 }}>{t2.name}</span>
         </div>
         <div style={{ fontFamily: F.mono, fontSize: 13, color: match.status === "confirmed" || match.status === "walkover" ? C.text : C.mute }}>
-          {match.status === "walkover" ? `W/O · ${(match.walkoverTo === t1.id ? t1 : t2).name}` : formatScore(match.sets)}
+          {match.walkoverTo ? `W/O${match.status === "walkover" ? "" : " claimed"} · ${(match.walkoverTo === t1.id ? t1 : t2).name}` : formatScore(match.sets)}
         </div>
         {booking && match.status !== "pending" && match.sets && (() => {
           const rb = resultBooking(match, new Map([[match.id, booking]]));
@@ -531,14 +599,22 @@ function MatchRow({
           <button onClick={() => setFindOpen(!findOpen)} style={ghostBtn}>{findOpen ? "Close" : "Find a stand-in"}</button>
         )}
         {mine && (match.status === "pending" || match.status === "disputed") && (
-          <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={actionBtn}>
-            {open === "submit" ? "Close" : "Enter result"}
-          </button>
+          <>
+            <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={actionBtn}>
+              {open === "submit" ? "Close" : "Enter result"}
+            </button>
+            <button onClick={() => setOpen(open === "claim" ? false : "claim")} style={ghostBtn}>
+              {open === "claim" ? "Close" : "Claim walkover"}
+            </button>
+            <button onClick={() => setOpen(open === "concede" ? false : "concede")} style={ghostBtn}>
+              {open === "concede" ? "Close" : "We can't play"}
+            </button>
+          </>
         )}
         {mine && match.status === "submitted" && (
           <>
             <button onClick={() => setOpen(open === "confirm" ? false : "confirm")} style={actionBtn}>
-              {open === "confirm" ? "Close" : "Confirm result"}
+              {open === "confirm" ? "Close" : claim ? "Confirm walkover" : "Confirm result"}
             </button>
             <button onClick={() => setOpen(open === "submit" ? false : "submit")} style={ghostBtn}>
               Correct score
@@ -562,6 +638,14 @@ function MatchRow({
         />
       )}
       {open === "confirm" && <ConfirmForm match={match} onDone={done} />}
+      {(open === "claim" || open === "concede") && viewerTeamId !== null && (
+        <WalkoverForm
+          match={match}
+          mode={open}
+          opponent={viewerTeamId === t1.id ? t2 : t1}
+          onDone={done}
+        />
+      )}
     </div>
   );
 }
@@ -868,8 +952,8 @@ export function BoxLeagueLive({
         Play everyone in your box, then post your result here — either team can enter it using a
         registered email address, and it counts once the opposing team confirms (entering the same
         score also confirms it). Points: 4 for a 2–0 win, 3 for a win in the tiebreak, 1 to the losers if
-        they took a set, 0 for losing in two. Unplayed at the cycle deadline: void, −1 each. A walkover (one side
-        concedes): 3 points to the team ready to play, 0 to the team conceding, applied by W7.
+        they took a set, 0 for losing in two. Unplayed at the cycle deadline: void, −1 each. Walkover: 3 points to the team
+        ready to play, 0 to the other. Claim one from your match, or give one away if you can't play.
       </p>
       <div
         style={{

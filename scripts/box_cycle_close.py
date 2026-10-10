@@ -92,7 +92,8 @@ def standings(teams, matches, at_deadline):
             continue
         st = m["status"]
         if at_deadline and st == "submitted":
-            st = "confirmed"
+            # a walkover claim nobody disputed stands as a walkover (the SQL trigger does the same)
+            st = "walkover" if (m.get("walkover_to") and not m.get("sets")) else "confirmed"
         if at_deadline and st == "pending":
             st = "void"
         if st == "void":

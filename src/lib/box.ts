@@ -100,6 +100,11 @@ export const RPC_MESSAGES: Record<string, { ok: boolean; text: string }> = {
   },
   bad_sets: { ok: false, text: "That score doesn't look right — check the set scores and try again." },
   already_confirmed: { ok: false, text: "This result is already confirmed." },
+  ok_walkover_claimed: {
+    ok: true,
+    text: "Walkover claimed. It shows as provisional until your opponents confirm it, and stands if they don't dispute it by the cycle deadline.",
+  },
+  ok_conceded: { ok: true, text: "Walkover given. Your opponents get the 3 points. Thanks for letting them know." },
   bad_status: { ok: false, text: "This result isn't awaiting confirmation." },
   not_found: { ok: false, text: "Match not found — refresh and try again." },
 };
@@ -271,6 +276,20 @@ export async function submitBoxScore(
   const msg = rpcMessage(data as string);
   if (msg.ok) track("submit", email);
   return msg;
+}
+
+export async function claimBoxWalkover(matchId: string, email: string): Promise<{ ok: boolean; text: string }> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("claim_box_walkover", { p_match: matchId, p_email: email });
+  if (error) return { ok: false, text: error.message };
+  return rpcMessage(data as string);
+}
+
+export async function concedeBoxMatch(matchId: string, email: string): Promise<{ ok: boolean; text: string }> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("concede_box_match", { p_match: matchId, p_email: email });
+  if (error) return { ok: false, text: error.message };
+  return rpcMessage(data as string);
 }
 
 export async function confirmBoxScore(
