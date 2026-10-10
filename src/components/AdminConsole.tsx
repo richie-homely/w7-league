@@ -19,6 +19,7 @@ import { parseSets, setsWon } from "@/lib/scoring";
 import { createClient } from "@/lib/supabase/client";
 import { useLeagueData } from "@/lib/useLeagueData";
 import { Logo, ScoreCell, TeamName } from "./ui";
+import { BoxWalkoverPanel } from "./BoxWalkoverPanel";
 
 // Two distinct side colours so the admin can match each team to its score
 // column at a glance (team 1 = neon, team 2 = info blue).
@@ -389,6 +390,8 @@ function AdminView({
           Settings
         </button>
       </div>
+
+      <BoxWalkoverPanel supabase={supabase} />
 
       {showSettings && (
         <SettingsPanel

@@ -120,3 +120,48 @@ begin
   return 'ok_set';
 end;
 $$;
+
+-- The same walkover, from the admin page (league.w7padel.com/admin) for a signed-in admin
+-- (Richie, 10 Oct 2026: "did the walkover button get sorted?"). Gated on is_admin() - the
+-- magic-link login of the three admin addresses - instead of the site key, so it can sit
+-- behind a button in the browser. Same rules and the same log line as the key-gated version.
+create or replace function public.box_walkover_by_admin(
+  p_match uuid,
+  p_winner uuid,
+  p_reason text
+) returns text
+language plpgsql
+volatile
+security definer
+set search_path = public
+as $$
+declare
+  m public.box_matches%rowtype;
+  who text := coalesce(auth.jwt() ->> 'email', 'admin');
+begin
+  if not public.is_admin() then return 'not_authorised'; end if;
+  if p_reason is null or length(trim(p_reason)) < 8 then return 'reason_required'; end if;
+  select * into m from public.box_matches where id = p_match for update;
+  if not found then return 'not_found'; end if;
+  perform set_config('w7.admin', 'on', true);
+  if p_winner is null then
+    update public.box_matches
+       set status = 'pending', walkover_to = null, sets = null, submitted_team = null,
+           submitted_at = null, confirmed_at = null, updated_at = now()
+     where id = p_match;
+    insert into public.box_score_log (match_id, action, email, sets)
+      values (p_match, 'admin_walkover_clear: ' || left(trim(p_reason), 180), who, null);
+    return 'ok_cleared';
+  end if;
+  if p_winner <> m.team1_id and p_winner <> m.team2_id then return 'bad_winner'; end if;
+  update public.box_matches
+     set status = 'walkover', walkover_to = p_winner, sets = null, submitted_team = null,
+         submitted_at = null, confirmed_at = now(), updated_at = now()
+   where id = p_match;
+  insert into public.box_score_log (match_id, action, email, sets)
+    values (p_match, 'admin_walkover to ' || p_winner::text || ': ' || left(trim(p_reason), 160), who, m.sets);
+  return 'ok_walkover';
+end;
+$$;
+revoke all on function public.box_walkover_by_admin(uuid, uuid, text) from public, anon;
+grant execute on function public.box_walkover_by_admin(uuid, uuid, text) to authenticated;
